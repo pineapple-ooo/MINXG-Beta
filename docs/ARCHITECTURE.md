@@ -151,3 +151,66 @@ math; AI agents can request a still-stable ID range (e.g.
 
 Each pillar is isolated, registers idempotently, and never reaches into
 its siblings.
+
+
+## Self-evolution loop (v1.2.0)
+
+```
+                  ┌───────────────────────────┐
+                  │  DriverEngine (live)      │
+                  │  operators = [...]        │
+                  └─────────────┬─────────────┘
+                                │ step()
+                                ▼
+                  ┌───────────────────────────┐
+                  │  FailureTour              │
+                  │  detect NaN / huge amp    │
+                  └─────────────┬─────────────┘
+                                │ failures_by_op
+                                ▼
+                  ┌───────────────────────────┐
+                  │  FieldForge               │
+                  │  queries contracts registry│
+                  │  for Cells advertising    │
+                  │  same capability          │
+                  └─────────────┬─────────────┘
+                                │ FieldProposal[]
+                                ▼
+                  ┌───────────────────────────┐
+                  │  TwinEngine               │
+                  │  shadow clone engine      │
+                  │  compares drift on probe  │
+                  └─────────────┬─────────────┘
+                                │ TwinOutcome.accepted
+                                ▼
+                  ┌───────────────────────────┐
+                  │  replace_operator(idx, op)│
+                  │  - or -                   │
+                  │  leave rejected for next  │
+                  │  cycle                    │
+                  └───────────────────────────┘
+```
+
+The loop is purely advisory. It never modifies the live engine
+in place during a step; all replacements land at the end of a
+cycle. Replacing the live engine is the single mutation per
+cycle, bounded by `max_replaces_per_cycle` (default 3).
+
+## Compatibility alias map
+
+The `py_workers/` alias package uses `__getattr__` to map every
+flat module name onto its `minxg.five_pillars.<pillar>.<mod>` home.
+The flat name stays callable so historical code keeps loading.
+
+| Flat (legacy)                                  | Five-pillar home                          |
+|------------------------------------------------|-------------------------------------------|
+| `py_workers.fs_io`                             | `minxg.five_pillars.io.fs_io`             |
+| `py_workers.system`                            | `minxg.five_pillars.dispatch.system`      |
+| `py_workers.ai_tools`                          | `minxg.five_pillars.transform.ai_tools`   |
+| `py_workers.crypto_tools`                      | `minxg.five_pillars.aggregate.crypto_tools` |
+| `py_workers.text_tools`                        | `minxg.five_pillars.scalar.text_tools`    |
+| `py_workers.ga`, `.cat`, ...                   | `minxg.ga`, `minxg.cat`, ... (math pillars, unchanged names) |
+
+Add a new entry to `py_workers/__init__.py`'s `_PILLAR_MODULE_SET`
+or `_MATH_PILLARS` when introducing new modules; the alias falls
+through to the underlying object via `getattr(minxg, attr)`.

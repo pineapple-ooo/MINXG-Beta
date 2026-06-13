@@ -5,6 +5,75 @@ All notable changes to MINXG are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] — Self-developed subsystems
+
+### Added
+- `minxg.contracts` — Cell / Port / Registry / Lifecycle framework.
+  Cells advertise capabilities through a `CellMeta` metaclass and are
+  registered once into a `Registry` that other Cells consult by
+  capability name. Editing one Cell never touches the others.
+- `minxg.driver` — Temporal Operator-Field driver engine. Operators
+  are pure `State → State` mappings; the engine advances time with
+  explicit Euler integration and adaptive sub-stepping on drift.
+  Five phases (`ready`, `stepping`, `paused`, `halted`, `faulted`)
+  exposed through `engine.on_phase(prev, new)` hooks.
+- `minxg.self_evolution` — closed-loop self-improvement. `FailureTour`
+  records engine failures; `FieldForge` queries the contracts
+  registry for capable Cells; `TwinEngine` validates a swap on a
+  shadow copy of the live engine; `EvolutionLoop.cycle()` commits
+  the swap on twin-accept.
+- `minxg.polyglot` — multi-language AST normaliser. Reduces Python /
+  Rust / JavaScript / Go / shell to a single `OperatorGraph` shape
+  with topological-order support. Pure Python; Rust/JS/Go/shell
+  use regex heuristics.
+- `minxg.lossless` — BIE-geometry lossless compression. Each byte
+  becomes a unit-sphere point; byte-to-byte transitions become
+  blades; the curvature skeleton is what gets stored, with a
+  CRC-32 trailer guaranteeing byte-identical reconstruction.
+- `minxg.twin` — Python ↔ Rust RTL emitter. `python_to_rust` covers
+  function definitions, if / elif / else, while, for-range,
+  augmented assignments, all standard expressions. `rust_to_python`
+  reverses. Unsupported constructs raise `UnsupportedTwinOp`.
+- `minxg.lens` — reverse docstring export. Bundled 14-entry
+  glossary (operator / driver / bridge / registry / cell / port /
+  field / state / drift / blade / curvature / worker / twin /
+  evolution) maps EN → ZH / ZH-TW / JA / KO. Lens renders every
+  section in every language, with a `GLOSSARY.md` summary table.
+
+### Changed
+- `minxg.VERSION` is now `"1.2.0"`.
+- `pyproject.toml` `version = "1.2.0"`, license author "MINXG Authors".
+- New top-level constants exported from `minxg.__init__`:
+  `POLYGLOT_LANGUAGES`, `LOSSLESS_MAGIC`, `LOSSLESS_VERSION`,
+  `TWIN_ERROR`, `SELF_EVOLUTION_PHASES`, `LENS_LANGUAGES`,
+  `DRIVER_PHASES`, `DRIVER_DEFAULT_MAX_SUBDIVISIONS`.
+
+### Tests
+- 114 passed (+1 skipped, no rustc on Termux), ~2 s
+
+## [1.1.0] — Five-pillar layout + contracts + driver + hot-reload removed
+
+### Added
+- `minxg/five_pillars/{scalar, aggregate, io, dispatch, transform}`
+  layout — flat worker files moved into five orthogonal planes.
+  Each pillar only depends on `minxg.base`; cross-pillar imports are
+  fully qualified.
+- `minxg/five_pillars/` re-exports the public surface so
+  `from minxg import FsIoWorker` still works.
+
+### Removed
+- GitHub hot-reload subsystem. `multiligua_cli/hot_reload.py`,
+  the `update` subcommand, the `/update` TUI shortcut,
+  `setup_hot_reload`'s repo/branch prompts are gone. Use
+  `pip install --upgrade minxg-beta` instead. See
+  `docs/ARCHITECTURE.md` § "Self-evolution loop" for the rationale.
+
+### Changed
+- `minxg.driver` previously existed as the engine scaffold;
+  promoted to a fully-implemented subsystem in v1.2.0.
+- `py_workers/` is now a thin alias package with `__getattr__`
+  pointing flat module names at `minxg.five_pillars.<p>.<x>`.
+
 ## [0.0.2-audit] — Repo hygiene & CI hardening
 
 ### Added

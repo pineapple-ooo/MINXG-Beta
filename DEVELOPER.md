@@ -28,6 +28,14 @@ Everything you need to read, modify, extend, and ship MINXG.
 │   ├── topo/                      Algebraic Topology operators
 │   ├── chaos/                     Dynamical Systems operators
 │   └── fiber/                     Fiber Bundle operators
+├── minxg/                         v1.2.0 self-developed subsystems
+│   ├── contracts/                 Cell / Port / Registry framework (edit isolation)
+│   ├── driver/                    Temporal Operator-Field driver engine
+│   ├── self_evolution/            closed-loop self-improvement on driver drift
+│   ├── polyglot/                  multi-language AST normaliser (5 langs)
+│   ├── lossless/                  BIE-geometry lossless compression (CRC32)
+│   ├── twin/                      Python ↔ Rust RTL emitter
+│   └── lens/                      reverse-docstring export to 5 languages
 ├── py_workers/                    backward-compat alias package (do not edit)
 ├── multiling/                     orchestration layer
 │   ├── agent/                     Multi-agent runtime
@@ -373,3 +381,157 @@ Total: 75 tests, ~2 seconds on Android.
 * `docs/DRIVER.md`, `docs/PILLARS.md`, `docs/ARCHITECTURE.md` exist and
   match the code.
 * No `__pycache__` is committed.
+
+
+---
+
+## 13. v1.2.0 — Self-Developed Subsystems
+
+Five new sub-packages ship on top of the driver engine and the
+contracts registry. Each is small (~200-400 LOC) and tightly tested.
+None of them is a rebrand of an existing library — they all use the
+driver's drift telemetry as their feedback signal.
+
+### 13.1 `minxg/self_evolution`
+
+Closed-loop self-improvement. Four pieces:
+
+* `FailureTour.detect_from_state(step, payload, caused_by)` records
+  unrecoverable failures by operator.
+* `FieldForge.propose(failures_by_op, probe, n_steps)` queries the
+  contracts registry for Cells advertising the same capability as
+  the failing operator, measures drift on a synthetic probe, and
+  emits ranked `FieldProposal`s.
+* `TwinEngine.compare(live_engine, candidate, target_idx, probe,
+  tolerance)` runs a shadow clone of the live driver with one
+  candidate operator swapped, compares drift, returns `TwinOutcome`.
+* `EvolutionLoop.cycle(config)` orchestrates a full cycle. A cycle
+  replaces operators whose candidates pass the twin gate and leaves
+  the rest.
+
+The loop depends ONLY on the public driver API. It never reaches
+into engine internals. Editing `engine.step()` never breaks
+self-evolution.
+
+### 13.2 `minxg/polyglot`
+
+Multi-language AST normaliser. Output is a single `OperatorGraph`
+shape regardless of source language.
+
+```python
+from minxg.polyglot import normalize
+
+graph = normalize(source_string)  # auto-detects Python/Rust/JS/Go/shell
+for node in graph.topological_order():
+    print(node.op_id, "->", node.output)
+```
+
+`detect_language(text)` uses regex heuristics; pass `language=`
+explicitly to skip detection.
+
+### 13.3 `minxg/lossless`
+
+BIE-geometry lossless compression. Each byte becomes a unit-sphere
+point in (theta, phi); transitions between bytes are blades kept
+or dropped based on a curvature threshold. Reconstruction is
+guaranteed byte-identical by a CRC-32 trailer.
+
+```python
+from minxg.lossless import LosslessCodec
+
+codec = LosslessCodec(curvature_threshold=0.05)
+blob = codec.compress(b"hello world") .payload
+assert codec.decompress(blob) == b"hello world"
+```
+
+Run-length semantics: `SkeletonEntry.run_length` counts how many
+times the *previous dst_byte* is repeated before this entry's
+dst_byte appears. `run_length=0` is valid for the first transition.
+
+Format header is 11 bytes: magic(b"MINSKE" → 6 bytes), version
+(u8), length(u32 big-endian). Round-trip the codec immediately
+after writing it — bytes-only I/O bugs hide.
+
+### 13.4 `minxg/twin`
+
+Python ↔ Rust RTL emitter, no compilation dependencies.
+
+```python
+from minxg.twin import python_to_rust, rust_to_python
+
+src = python_to_rust('''
+    def total(n: int) -> int:
+        s = 0
+        for i in range(n):
+            s = s + i
+        return s
+''').source
+# src is a valid Rust *function* (no module wrapper)
+```
+
+Covers: function defs with annotations, while, for-range, if /
+elif / else, augmented assignments, bool / binop / compare /
+unary expressions, nested if-inside-orelse chains.
+
+Anything else raises `UnsupportedTwinOp(op_name, hint)`. The class
+name is exported via `minxg.TWIN_ERROR = "UnsupportedTwinOp"` so
+callers can `except minxg.UnsupportedTwinOp: ...` indirectly.
+
+### 13.5 `minxg/lens`
+
+Reverse docstring export.
+
+```python
+from minxg.lens import Lens, LensConfig
+
+batch = Lens(LensConfig(languages=("en", "zh"), output_dir=tmp)).render_doc(
+    "", {"heading": "operator", "body": "advances the state"},
+)
+# writes tmp/en.md, tmp/zh.md, tmp/GLOSSARY.md
+```
+
+The bundled glossary has 14 entries (operator / driver / bridge /
+registry / cell / port / field / state / drift / blade / curvature /
+worker / twin / evolution). Add at runtime with
+`glossary.add(Entry(term="...", translations={...}))`.
+
+### 13.6 Driver public API dependence
+
+The driver engine deliberately exposes four getters so that
+self-evolution / twin / future orchestrators can compose without
+reaching into internals:
+
+```python
+engine.operators()           -> Tuple[Operator, ...]
+engine.step_size()           -> float
+engine.max_subdivisions()    -> int
+engine.replace_operator(i, op)
+engine.remove_operator(name) -> bool
+engine.add_operator(op)
+engine.on_phase(lambda prev, new: ...)
+engine.reset()
+engine.halt()
+```
+
+Do NOT add private attributes that you intend consumers to read.
+Compose through these.
+
+---
+
+## 14. Removing a Published Subsystem
+
+The GitHub `hot-reload` cycle (`git fetch && git reset --hard && pip
+install -e .`) was removed in v1.1.0. The lesson is in
+`docs/ARCHITECTURE.md` and `minxg-megarefactor-v1/references/`.
+When a feature has shipped publicly and you decide it is wrong:
+
+1. `git rm <module>` — don't keep `.disabled` stubs.
+2. Sweep `from .X import`, `X.func`, and CLI command shortcuts.
+3. Replace each entry with a no-op `print_warning(...) + return 0`
+   so wiring stays intact.
+4. Sweep `setup.py` prompts and display strings.
+5. Run the full py_compile + pytest gate.
+6. Commit.
+
+The principle: removing a feature is a one-way door. Make sure
+your not-removed callers still type-check and run.

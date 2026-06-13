@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "minxg-beta"
-version = "0.10.0"
-description = "MINXG-Beta — Multi-Language AI Orchestration Framework. Six mathematical pillars. 376 operators. Python + C/C++/Go."
+version = "1.2.0"
+description = "MINXG — five-pillar worker platform with a self-developed driver engine and five mathematical-pillar operator libraries. 376+ math operators. Pure Python."
 readme = "README.md"
 requires-python = ">=3.11"
-authors = [{ name = "MINXG Team" }]
+authors = [{ name = "MINXG Authors" }]
 license = { text = "MIT" }
-keywords = ["ai", "orchestration", "gateway", "openhttp", "tool-cluster", "rag", "minxg"]
+keywords = ["ai", "orchestration", "workers", "operator", "driver", "five-pillars", "self-evolution", "lossless", "polyglot", "minxg"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
@@ -81,6 +81,22 @@ include = [
     "gateway.*",
     "minxg",
     "minxg.*",
+    "minxg.five_pillars",
+    "minxg.five_pillars.*",
+    "minxg.contracts",
+    "minxg.contracts.*",
+    "minxg.driver",
+    "minxg.driver.*",
+    "minxg.self_evolution",
+    "minxg.self_evolution.*",
+    "minxg.polyglot",
+    "minxg.polyglot.*",
+    "minxg.lossless",
+    "minxg.lossless.*",
+    "minxg.twin",
+    "minxg.twin.*",
+    "minxg.lens",
+    "minxg.lens.*",
     "minxg.ga",
     "minxg.ga.*",
     "minxg.cat",

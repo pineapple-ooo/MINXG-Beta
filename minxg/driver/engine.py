@@ -70,6 +70,15 @@ class DriverEngine:
     def replace_operator(self, idx: int, op: Operator) -> None:
         self._operators[idx] = op
 
+    def operators(self) -> Tuple[Operator, ...]:
+        return tuple(self._operators)
+
+    def step_size(self) -> float:
+        return self._dt
+
+    def max_subdivisions(self) -> int:
+        return self._max_subdiv
+
     def remove_operator(self, name: str) -> bool:
         before = len(self._operators)
         self._operators = [o for o in self._operators if o.name != name]

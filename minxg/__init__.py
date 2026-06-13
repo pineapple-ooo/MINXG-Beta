@@ -92,7 +92,7 @@ __all__ = [
     "get_tools_by_category", "get_system_capabilities",
 ]
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 
 try:
     from . import ga
@@ -140,3 +140,12 @@ TOTAL_MATHEMATICAL_OPERATORS = (
     GA_OPERATORS + CAT_OPERATORS + IG_OPERATORS
     + TOPO_OPERATORS + CHAOS_OPERATORS + FIBER_OPERATORS
 )
+
+POLYGLOT_LANGUAGES = ("python", "rust", "javascript", "go", "shell")
+LOSSLESS_MAGIC = b"MINSKE"
+LOSSLESS_VERSION = 1
+TWIN_ERROR = "UnsupportedTwinOp"
+SELF_EVOLUTION_PHASES = ("born", "mutable", "live", "quiet", "gone")
+LENS_LANGUAGES = ("en", "zh", "zh-TW", "ja", "ko")
+DRIVER_PHASES = ("ready", "stepping", "paused", "halted", "faulted")
+DRIVER_DEFAULT_MAX_SUBDIVISIONS = 6

@@ -152,3 +152,25 @@ doesn't break other operators.
 | `parametric_field`| fields.py        | Linear gain on one axis        |
 | `clamp_field`     | fields.py        | Hard bounds on every key       |
 | `smoothing_field` | fields.py        | Exponential decay              |
+
+
+## v1.2.0 additions
+
+The driver now exposes four public getters used by self-evolution
+and any future orchestrator. Use these instead of reaching into
+engine internals:
+
+```python
+engine.operators()           -> Tuple[Operator, ...]
+engine.step_size()           -> float
+engine.max_subdivisions()    -> int
+```
+
+The phase enumerator is exposed through `from minxg.driver import
+EnginePhase` and printed by the bundled `engine.phase` property.
+
+Hook into phase transitions with:
+
+```python
+engine.on_phase(lambda prev, new: ...)
+```

@@ -1,23 +1,23 @@
 # MINXG
 
-A modular AI worker platform with a self-developed driver engine and six
-mathematical operator pillars, written in pure Python and engineered to
-run anywhere Termux runs.
+A modular AI worker platform organised as five orthogonal operator
+planes, plus a self-developed driver engine, plus six categorical
+operator libraries, plus optional languages / compression / twin
+compilers / docs lenses.
 
-## What is it
-
-MINXG is one Python package split into five functional pillars plus an
-independent driver engine plus six mathematical-pillar operator libraries.
-Add or replace a single module without touching the rest of the project.
+One small pip install. Pure Python. Runs on Termux.
 
 ## Install
 
 ```
-pip install minxg
+pip install minxg-beta
 ```
 
-Termux / Android / Linux / macOS — pure Python, no compiled dependency
-required at install time. Optional native modules are detected at runtime.
+Optional native acceleration (speeds up crypto + IO workers):
+
+```
+pip install "minxg-beta[fast]"
+```
 
 ## Quick start
 
@@ -28,54 +28,80 @@ print(minxg.VERSION)
 print(minxg.detect_platform())
 
 fs = minxg.FsIoWorker()
-files = minxg.run_async(fs.list_directory(path="/tmp"))
+result = await fs.list_directory(path="/tmp")
 ```
 
-## Five Pillars
+For the driver engine (substitute for a task graph):
 
-The 50+ worker classes are organised along five orthogonal planes so that
-no two classes share an import path:
+```python
+from minxg.driver import State, DriverEngine, smoothing_field
+
+state = State(payload={"x": 0.0, "v": 1.0})
+engine = DriverEngine([smoothing_field(rate=0.4)])
+end, report = engine.run(state, n_steps=24)
+```
+
+For lossless compression:
+
+```python
+from minxg.lossless import LosslessCodec
+
+codec = LosslessCodec()
+blob = codec.compress(b"some payload") .payload
+back  = codec.decompress(blob)
+assert back == b"some payload"
+```
+
+## Five pillars
+
+The 55 worker classes are organised along five orthogonal planes:
 
 ```
-minxg.five_pillars.scalar       pure compute (math, datetime, text, color)
-minxg.five_pillars.aggregate    encoders and aggregators (crypto, encoding, ml)
-minxg.five_pillars.io           external surfaces (fs, network, media, web)
-minxg.five_pillars.dispatch     execution and limits (system, sh, adb, root)
-minxg.five_pillars.transform    state and persistence (events, rules, hot-reload)
+minxg.five_pillars.scalar       pure compute        math / datetime / text / color
+minxg.five_pillars.aggregate    encoders            crypto / encoding / ml / templates
+minxg.five_pillars.io           external surfaces   fs / net / media / web / cloud
+minxg.five_pillars.dispatch     execution / limits  system / sh / adb / root
+minxg.five_pillars.transform    state and events    persistence / rules / ai
 ```
 
 Edit one worker, nothing else moves.
 
-## Driver engine
+## Self-developed subsystems
 
-`minxg.driver` treats each operator as a vector field on a shared state
-manifold and advances the state through explicit Euler integration with
-adaptive sub-stepping. See `docs/DRIVER.md` for the math.
-
-```python
-from minxg.driver import State, DriverEngine, arithmetic_field, smoothing_field
-
-state = State(payload={"x": 0.0})
-engine = DriverEngine([
-    arithmetic_field(lambda s: {"x": 1.0}),
-    smoothing_field(rate=0.4),
-])
-result, report = engine.step(state)
-```
+* `minxg.driver` — Temporal Operator-Field driver engine. Operators
+  are pure functions on a shared state manifold; advancing one step
+  is explicit Euler integration with adaptive sub-stepping on drift.
+* `minxg.contracts` — Operator-Cell registry. Each Cell advertises
+  capabilities; replacing one Cell never touches the others.
+* `minxg.self_evolution` — Closed-loop self-improvement. A bouncer
+  records engine failures, a forge hunts capable Cells from the
+  contracts registry, a twin engine validates a swap is drift-safe
+  before committing.
+* `minxg.polyglot` — Multi-language AST normaliser. Python / Rust /
+  JavaScript / Go / shell all reduce to a single `OperatorGraph`.
+* `minxg.lossless` — BIE-geometry lossless compression. Every byte
+  becomes a unit-sphere point; transitions between bytes become
+  blades; the curvature skeleton is what gets stored, with a CRC-32
+  for byte-identical reconstruction.
+* `minxg.twin` — Python ↔ Rust RTL compiler. Source-equivalent twin
+  emitters cover if/elif/else, while/for-range, augmented assignments,
+  binop/compare expressions.
+* `minxg.lens` — Reverse-docstring exporter. Render any one
+  description into EN / ZH / ZH-TW / JA / KO doc files + a glossary.
 
 ## Mathematical pillars
 
-Six additional sub-packages provide operator libraries grounded in
-mathematical structures: `minxg.ga`, `minxg.cat`, `minxg.infogeo`,
-`minxg.topo`, `minxg.chaos`, `minxg.fiber`. They auto-register on import
-and contribute 300+ operators.
+Six categorical libraries ship with the package and register
+300+ stable operator IDs on import:
 
-## Contracts
-
-`minxg.contracts` is the pluggable Cell-Registry pattern: every worker
-advertises capabilities, registers through one shared registry, and never
-imports another worker directly. Replacing a worker changes only the
-registry entry.
+```
+minxg.ga         5000-5499   geometric algebra
+minxg.cat        4000-4499   category theory
+minxg.infogeo    7000-7499   information geometry
+minxg.topo       8000-8499   algebraic topology
+minxg.chaos      8500-8999   dynamical systems
+minxg.fiber      6000-6499   fiber bundles
+```
 
 ## Documentation
 
@@ -86,4 +112,4 @@ registry entry.
 
 ## License
 
-MIT.
+MIT. See `LICENSE`.
