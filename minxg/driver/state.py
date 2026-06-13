@@ -1,8 +1,8 @@
-"""State — the integration space of the driver engine.
+"""minxg.driver.state — typed scalar bag with optional bounds, used
+by the Temporal Operator-Field engine and the self_evolution twin.
 
-A State is a flat mapping of named scalar fields with optional bounds.
-Tensors are stored as a colon-suffixed key (`"velocity.x"`), which keeps
-the manifold flat while still allowing namespaced access.
+minxg.cap.provides: state.bag, state.bounds
+minxg.cap.requires: (none)
 """
 from __future__ import annotations
 from dataclasses import dataclass, field

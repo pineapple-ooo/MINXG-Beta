@@ -1,9 +1,7 @@
-"""Registry — type-keyed catalogue of Cells and Ports.
+"""minxg.contracts.registry — type-keyed catalogue of Cells.
 
-The Registry is the only shared object across Cells. It is created once,
-populated through `cell.register(...)`, then `lock()`-ed. After locking
-the catalogue is frozen; modifying a single Cell never invalidates other
-Cells because nothing inside the catalogue points back at them.
+minxg.cap.provides: contracts.registry, contracts.capability.query
+minxg.cap.requires: (none)
 """
 from __future__ import annotations
 from typing import Any, Dict, Iterable, Optional, Type

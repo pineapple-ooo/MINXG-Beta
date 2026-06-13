@@ -1,4 +1,14 @@
-"""EvolutionLoop — orchestrates the four components into a closed loop."""
+"""minxg.self_evolution.loop — orchestration layer for closed-loop
+self-improvement. The four components form a four-stroke cycle:
+
+    1. FailureTour collects failures from driver step reports.
+    2. FieldForge inspects failures, queries the Registry for Cells.
+    3. TwinEngine validates a swap on a shadow clone of the engine.
+    4. Accepted swaps land on the live engine.
+
+minxg.cap.provides: self.evolution.cycle
+minxg.cap.requires: driver.engine, contracts.registry, driver.drift.control
+"""
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Optional, Tuple

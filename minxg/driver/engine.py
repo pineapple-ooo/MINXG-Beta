@@ -1,15 +1,8 @@
-"""Engine — explicit-Euler driver with adaptive sub-stepping.
+"""minxg.driver.engine — Temporal Operator-Field integrator with adaptive
+sub-stepping, drift control, and five-phase observability.
 
-The engine integrates a stack of Operators across a State. Each step:
-
-  1. Snapshot the State.
-  2. For every Operator in execution tier, compute its delta.
-  3. Apply the delta scaled by `dt`.
-  4. Drift-check: if the per-step displacement exceeds `max_drift`,
-     subdivide `dt` up to `max_subdivisions` times.
-
-Steps are recorded as StepReports; an EnginePhase observable lets
-external code observe transitions without coupling to the engine.
+minxg.cap.provides: driver.engine, driver.drift.control, driver.phases
+minxg.cap.requires: state.bag, state.bounds
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
