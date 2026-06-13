@@ -1,0 +1,72 @@
+# MINXG Central Configuration — single source of truth
+# Modify ONLY this file to change runtime behavior.
+
+project:
+  name: minxg
+  version: 0.0.1a
+  description: "Multi-Language AI Orchestration Framework"
+
+# Operator registry — IDs and categories
+operators:
+  total: 376
+  categories:
+    math: {count: 20, id_range: [0, 19]}
+    text: {count: 19, id_range: [2000, 2018]}
+    data: {count: 12, id_range: [3500, 3511]}
+    cat: {count: 79, id_range: [4000, 4078]}
+    ga: {count: 47, id_range: [5000, 5049]}
+    logic: {count: 13, id_range: [5500, 5512]}
+    fiber: {count: 53, id_range: [6000, 6052]}
+    infogeo: {count: 51, id_range: [7000, 7050]}
+    topo: {count: 53, id_range: [8000, 8052]}
+    chaos: {count: 23, id_range: [8500, 8522]}
+    system: {count: 6, id_range: [9000, 9005]}
+
+# Mathematical pillars — the structural innovation
+pillars:
+  - {name: ga, full: "Geometric Algebra (Clifford)", operators: 47}
+  - {name: cat, full: "Category Theory", operators: 79}
+  - {name: infogeo, full: "Information Geometry", operators: 51}
+  - {name: topo, full: "Algebraic Topology", operators: 53}
+  - {name: chaos, full: "Dynamical Systems & Chaos", operators: 23}
+  - {name: fiber, full: "Fiber Bundles", operators: 53}
+
+# Native acceleration cores
+acceleration:
+  c_core:
+    path: c_core/
+    enabled: true
+    functions: 11
+  cpp_core:
+    path: cpp_core/
+    enabled: true
+  go_core:
+    path: go_core/
+    enabled: true
+
+# Self-evolution
+self_evolution:
+  algorithms: 10
+  drift_threshold: 0.15
+  phase_space_dim: 32
+  compression: zstd-level-3
+
+# Logging
+logging:
+  level: INFO
+  format: "%(asctime)s | %(levelname)-7s | %(message)s"
+
+# Paths (single source of truth)
+paths:
+  config: config/
+  extensions: extensions/
+  data: var/data/
+  cache: var/cache/
+  logs: var/data/logs/
+
+# Feature flags
+features:
+  hot_reload: true
+  anti_loop_guard: true
+  self_evolution: true
+  tidal_lock: true

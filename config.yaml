@@ -1,0 +1,39 @@
+browser_search:
+  enabled: false
+  api_type: "user"   # "user" = system browser, "api" = custom AI search API
+  api_url: ""
+  api_key: ""
+  model: ""
+
+ai:
+  provider: openai
+  model: gpt-4o
+  base_url: http://t.com
+  api_key: sk-x
+gateway:
+  host: 0.0.0.0
+  port: 18080
+  auto_start: true
+workers:
+  host: 127.0.0.1
+  port: 19001
+  auto_start: true
+models:
+  l2:
+    model: MiniMax-M3
+    base_url: https://api.iamhc.cn/v1
+    api_key: sk-u9b...rctp
+    provider: openai
+    max_tokens: 8192
+    timeout: 90
+  l3:
+    model: MiniMax-M3
+    base_url: https://api.iamhc.cn/v1
+    api_key: sk-u9b...rctp
+    provider: openai
+    max_tokens: 16384
+    timeout: 120
+legacy:
+  enable: false
+  routes: []
+lang: en

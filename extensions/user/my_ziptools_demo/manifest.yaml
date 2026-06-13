@@ -1,0 +1,5 @@
+name: my-ziptools
+version: 1.0.0
+author: Demo User
+description: 我的ZIP工具集 — 扫描ZIP内的代码并生成报告
+platforms: [linux, macos, windows, android]

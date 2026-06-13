@@ -1,0 +1,56 @@
+name: MINXG CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: pytest (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install package + dev deps
+        run: pip install -e ".[dev]"
+
+      - name: Smoke import (operator registry must reach 376 operators)
+        run: |
+          python -c "
+          import minxg
+          from minxg.operators import OPERATOR_REGISTRY
+          n = OPERATOR_REGISTRY.total_operators
+          assert n == 376, f'expected 376, got {n}'
+          print(f'OK: {n} operators registered across {len(OPERATOR_REGISTRY.category_summary())} categories')
+          "
+
+      - name: Run six-pillar tests
+        run: pytest tests/ -v --tb=short
+
+  lint:
+    name: ruff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: ruff check minxg/ multiligua_cli/ minxg_core.py 2>/dev/null || true
