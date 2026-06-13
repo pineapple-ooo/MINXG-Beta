@@ -1,6 +1,6 @@
 """
 MINXG Documentation Generator
-"""
+""""
 import os, sys, json, time, ast, re, inspect, hashlib, textwrap, datetime
 import logging, threading, asyncio, pathlib, gzip, base64
 from typing import Dict, List, Optional, Any, Tuple, Set
@@ -242,7 +242,7 @@ class TemplateEngine:
     </div>
     <script src="{{ static_path }}main.js"></script>
 </body>
-</html>"""
+</html>""""
         (self.templates_dir / "layout.html").write_text(layout_template, encoding="utf-8")
         
         index_template = """{% extends "layout.html" %}
@@ -263,7 +263,7 @@ python main.py start</code></pre>
 ┌────────────┐ ┌─────────┐ ┌──────────┐ ┌────────────┐
 │   C#       │ │  Java   │ │ LuaJIT   │ │   Shell    │
 └────────────┘ └─────────┘ └──────────┘ └────────────┘</code></pre>
-{% endblock %}"""
+{% endblock %}""""
         (self.templates_dir / "index.html").write_text(index_template, encoding="utf-8")
     
     def _markdown_filter(self, text: str) -> str:
@@ -377,7 +377,7 @@ body {
 }
 footer { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); text-align: center; font-size: 0.875rem; color: var(--text-muted); }
 footer a { color: var(--primary); }
-"""
+""""
         (self.static_dir / "style.css").write_text(css_content, encoding="utf-8")
         
         js_content = """// MINXG Documentation JavaScript
@@ -434,10 +434,10 @@ function addCopyButtons() {
         pre.appendChild(button);
     });
 }
-"""
+""""
         (self.static_dir / "main.js").write_text(js_content, encoding="utf-8")
         
-        svg_content = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🤖</text></svg>"""
+        svg_content = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🤖</text></svg>""""
         (self.static_dir / "favicon.svg").write_text(svg_content, encoding="utf-8")
     
     def generate_search_index(self, pages: List[DocPage]) -> str:
@@ -596,7 +596,7 @@ class DocsBuilder:
             </ul>
             <ul>
             </ul>
-        """
+        """"
         return DocPage(
             order=DOC_CATEGORIES.get("troubleshooting", {}).get("order", 8)
         )

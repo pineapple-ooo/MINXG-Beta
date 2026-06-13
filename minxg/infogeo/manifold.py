@@ -9,7 +9,7 @@ a probability distribution P_θ over some sample space, parameterized by
 All implementations are PURE PYTHON (no numpy dependency). For matrix
 operations we use list-of-lists with explicit loops. Performance: O(d²)
 for d-dim Fisher matrix, ~10ms typical for d=10 with n=1000 samples.
-"""
+""""
 from __future__ import annotations
 import math
 import random
@@ -18,9 +18,9 @@ from dataclasses import dataclass, field
 from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Pure-Python matrix utilities
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 def vec_add(a, b): return [x + y for x, y in zip(a, b)]
 def vec_sub(a, b): return [x - y for x, y in zip(a, b)]
@@ -32,7 +32,7 @@ def vec_clone(a): return list(a)
 
 def mat_zero(d1, d2): return [[0.0] * d2 for _ in range(d1)]
 def mat_mul(A, B):
-    """Matrix product. A is m×k, B is k×n, result is m×n."""
+    """Matrix product. A is m×k, B is k×n, result is m×n.""""
     m = len(A); n = len(B[0]) if B else 0; k = len(B) if B else 0
     if k == 0: return mat_zero(m, n)
     result = mat_zero(m, n)
@@ -70,13 +70,13 @@ def mat_eye(d):
     return I
 
 def mat_inv(A):
-    """Matrix inverse via Gauss-Jordan elimination. Returns A⁻¹."""
+    """Matrix inverse via Gauss-Jordan elimination. Returns A⁻¹.""""
     n = len(A)
-    # Augment with identity
+    
     M = [row + row_id for row, row_id in zip(A, mat_eye(n))]
-    # Forward elimination
+    
     for col in range(n):
-        # Find pivot
+        
         pivot = col
         for row in range(col + 1, n):
             if abs(M[row][col]) > abs(M[pivot][col]):
@@ -84,11 +84,11 @@ def mat_inv(A):
         M[col], M[pivot] = M[pivot], M[col]
         if abs(M[col][col]) < 1e-12:
             raise ValueError("Matrix is singular")
-        # Normalize pivot row
+        
         pv = M[col][col]
         for j in range(2 * n):
             M[col][j] /= pv
-        # Eliminate column
+        
         for row in range(n):
             if row == col: continue
             factor = M[row][col]
@@ -97,7 +97,7 @@ def mat_inv(A):
     return [row[n:] for row in M]
 
 def mat_solve(A, b):
-    """Solve A x = b via matrix inverse (simple, not optimized)."""
+    """Solve A x = b via matrix inverse (simple, not optimized).""""
     A_inv = mat_inv(A)
     return mat_vec(A_inv, b)
 
@@ -106,7 +106,7 @@ def mat_transpose(A):
     return [[A[i][j] for i in range(m)] for j in range(n)]
 
 def mat_outer3(G, v):
-    """3-tensor contraction: result[i, k] = Σ_j G[i, j, k] * v[j]"""
+    """3-tensor contraction: result[i, k] = Σ_j G[i, j, k] * v[j]""""
     d1 = len(G); d2 = len(G[0]) if G[0] else 0; d3 = len(G[0][0]) if G[0] and G[0][0] else 0
     result = mat_zero(d1, d3)
     for i in range(d1):
@@ -118,9 +118,9 @@ def mat_outer3(G, v):
     return result
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Distribution families
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 class DistributionFamily(ABC):
     @abstractmethod
@@ -189,7 +189,7 @@ class Categorical(DistributionFamily):
     def sample(self, theta, n=1, rng=None):
         if rng is None: rng = random
         theta = list(theta) / sum(theta) if hasattr(theta, "__truediv__") else [t / sum(theta) for t in theta]
-        # Cumulative
+        
         cum = []
         s = 0.0
         for t in theta:
@@ -207,9 +207,9 @@ class Categorical(DistributionFamily):
     def dim(self): return self.k
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Statistical manifold
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 @dataclass
 class StatisticalManifold:
@@ -254,7 +254,7 @@ class ExponentialFamily(DistributionFamily):
     """Exponential family in canonical (natural) parameterization.
 
     P_θ(x) = exp(θ · T(x) - A(θ)) · h(x)
-    """
+    """"
     def __init__(self, sufficient_stats: Callable, log_base: Callable = lambda x: 0.0,
                  sample_fn: Optional[Callable] = None):
         self.T = sufficient_stats

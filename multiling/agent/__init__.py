@@ -8,7 +8,7 @@ MINXG Agent Framework — 自主智能体系统
   - MultiAgentSession: 多智能体协作会话
   - Role: 智能体角色模板（系统级定义）
   - Capability: 智能体能力声明与匹配
-"""
+""""
 
 from .agent import Agent, AgentConfig
 from .session import MultiAgentSession, AgentMessage

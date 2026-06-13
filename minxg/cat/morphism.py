@@ -17,14 +17,14 @@ The CATEGORY of MINXG operators:
   - MORPHISMS = registered operators
   - COMPOSITION = f∘g via the chain operator
   - IDENTITY = identity morphism for each type
-"""
+""""
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, Generic, TypeVar
 import hashlib
 
 
-# ── Type ─────────────────────────────────────────────────────────────────────
+
 
 @dataclass(frozen=True)
 class Type:
@@ -34,7 +34,7 @@ class Type:
     iff their signatures are equal. For AI workloads, we use coarse types:
     'number', 'string', 'list', 'dict', 'bool', 'multivector', 'tensor',
     'function', 'any'.
-    """
+    """"
     name: str
     params: Tuple[str, ...] = ()
 
@@ -44,7 +44,7 @@ class Type:
         return f"{self.name}<{','.join(self.params)}>"
 
     def matches(self, other: "Type") -> bool:
-        """Structural matching. 'any' matches everything."""
+        """Structural matching. 'any' matches everything.""""
         if self.name == "any" or other.name == "any":
             return True
         if self.name != other.name:
@@ -67,7 +67,7 @@ class Type:
         return cls("dict", (str(key), str(value)))
 
 
-# ── Identity morphism ────────────────────────────────────────────────────────
+
 
 class Morphism:
     """A morphism in the operator category: an operator with type signature.
@@ -77,7 +77,7 @@ class Morphism:
       - composition rules
       - purity flag
       - monadic context (optional)
-    """
+    """"
     __slots__ = ("name", "domain", "codomain", "fn", "is_pure", "monadic_context",
                  "metadata")
 
@@ -106,7 +106,7 @@ class Morphism:
 
     @property
     def signature(self) -> str:
-        """A string signature like '(number, number) -> number'."""
+        """A string signature like '(number, number) -> number'.""""
         args = ", ".join(str(t) for t in self.domain)
         return f"({args}) -> {self.codomain}"
 
@@ -115,14 +115,14 @@ class Morphism:
 
         Note: this is REVERSED from function composition intuition. We use
         pipeline order: f >> g means "do f, then g", equivalent to g(f(x)).
-        """
+        """"
         return self.domain[0].matches(other.codomain) if self.domain else False
 
     def __rshift__(self, other: "Morphism") -> "Composite":
         """Pipeline composition: self >> other means self, then other.
 
         For x: self(x) = y, other(y) = z, so (self >> other)(x) = z.
-        """
+        """"
         if not self.can_compose_with(other):
             raise TypeError(
                 f"Cannot compose {self.name}: {self.signature} >> {other.name}: {other.signature}. "
@@ -134,13 +134,13 @@ class Morphism:
         return f"{self.name}: {self.signature}"
 
 
-# ── Identity ─────────────────────────────────────────────────────────────────
+
 
 def identity(t: Union[Type, str]) -> Morphism:
     """The identity morphism for type t: id_t : t → t.
 
     The identity is the unique morphism such that f∘id = f = id∘f.
-    """
+    """"
     if isinstance(t, str):
         t = Type(t)
     return Morphism(
@@ -154,18 +154,18 @@ def identity(t: Union[Type, str]) -> Morphism:
     )
 
 
-# ── Composite ────────────────────────────────────────────────────────────────
+
 
 class Composite(Morphism):
     """A composition of multiple morphisms: f₁ >> f₂ >> f₃ ...
 
     Composition is ASSOCIATIVE: (f >> g) >> h == f >> (g >> h).
     The associativity is verified at construction time via type checking.
-    """
+    """"
     def __init__(self, morphisms: List[Morphism]):
         if not morphisms:
             raise ValueError("Composite requires at least one morphism")
-        # Verify type compatibility
+        
         for i in range(len(morphisms) - 1):
             f_next = morphisms[i + 1]
             f_curr = morphisms[i]
@@ -175,7 +175,7 @@ class Composite(Morphism):
                     f"{f_next.name}: {f_next.signature} cannot follow "
                     f"{f_curr.name}: {f_curr.signature}"
                 )
-        # Domain = first morphism's domain, codomain = last morphism's codomain
+        
         super().__init__(
             name=" >> ".join(m.name for m in morphisms),
             domain=morphisms[0].domain,
@@ -195,18 +195,18 @@ def compose(*morphisms: Morphism) -> "Composite":
     """Compose a sequence of morphisms left-to-right.
 
     compose(f, g, h) = f >> g >> h  (do f, then g, then h)
-    """
+    """"
     if not morphisms:
         raise ValueError("compose requires at least one morphism")
     return Composite(list(morphisms))
 
 
 def _compose_fns(morphisms: List[Morphism]) -> Callable:
-    """Build a single callable from a chain of morphisms."""
+    """Build a single callable from a chain of morphisms.""""
     def composed(*args, **kwargs):
         result = morphisms[0](*args, **kwargs)
         for m in morphisms[1:]:
-            # Unwrap single-element lists / dicts for monadic threading
+            
             if isinstance(result, dict) and "value" in result and len(result) == 1:
                 result = result["value"]
             result = m(result)
@@ -215,7 +215,7 @@ def _compose_fns(morphisms: List[Morphism]) -> Callable:
 
 
 def _detect_monad(morphisms: List[Morphism]) -> Optional[str]:
-    """If all morphisms share a monadic context, propagate it."""
+    """If all morphisms share a monadic context, propagate it.""""
     contexts = [m.monadic_context for m in morphisms if m.monadic_context]
     if not contexts:
         return None
@@ -224,10 +224,10 @@ def _detect_monad(morphisms: List[Morphism]) -> Optional[str]:
     return "mixed"
 
 
-# ── Type derivation ──────────────────────────────────────────────────────────
+
 
 def derive_type(py_type: type) -> Type:
-    """Map a Python type to our coarse Type system."""
+    """Map a Python type to our coarse Type system.""""
     if py_type in (int, float, complex):
         return Type("number")
     if py_type is str:
@@ -246,7 +246,7 @@ def derive_type(py_type: type) -> Type:
 
 
 def derive_morphism_signature(fn: Callable) -> Tuple[Tuple[Type, ...], Type]:
-    """Best-effort type derivation from Python type hints."""
+    """Best-effort type derivation from Python type hints.""""
     import inspect
     try:
         sig = inspect.signature(fn)

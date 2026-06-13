@@ -6,7 +6,7 @@ extensions/import_wizard.py — 全平台扩展包导入向导 v1.0.0
 - 非交互式: 直接通过路径导入
 - Android: 支持文件管理器模式 (列出常用目录)
 - 全平台: 自动检测交互式/非交互式环境
-"""
+""""
 from __future__ import annotations
 import os
 import sys
@@ -16,9 +16,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 平台检测
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 def _get_platform() -> str:
     import platform
@@ -33,19 +33,19 @@ def _is_interactive() -> bool:
     return sys.stdin.isatty() and sys.stdout.isatty()
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 常用搜索目录 (全平台)
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 def _get_search_paths() -> List[str]:
-    """返回该平台常用的文件搜索目录。"""
+    """返回该平台常用的文件搜索目录。""""
     home = os.path.expanduser("~")
     plat = _get_platform()
 
     paths = [home, os.getcwd()]
 
     if plat == "Android":
-        # Android/Termux常见目录
+        
         paths.extend([
             "/storage/emulated/0",
             "/storage/emulated/0/Download",
@@ -73,17 +73,17 @@ def _get_search_paths() -> List[str]:
             os.path.join(home, "Desktop"),
         ])
 
-    # 只保留存在的目录
+    
     return [p for p in paths if os.path.isdir(p)]
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 扩展包有效文件扩展名
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 VALID_EXTENSIONS = (".py", ".zip", ".tar.gz", ".tgz")
 
-# Android可显示图标 (无emoji终端兼容)
+
 FILE_ICONS = {
     ".py": "[PY]",
     ".zip": "[ZIP]",
@@ -114,9 +114,9 @@ def _get_size_str(size_bytes: int) -> str:
     return f"{size_bytes/(1024*1024):.1f}MB"
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 交互式文件浏览器
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 def _browse_files(search_dir: str = None, filter_ext: bool = True) -> Optional[str]:
     """
@@ -126,10 +126,10 @@ def _browse_files(search_dir: str = None, filter_ext: bool = True) -> Optional[s
     输入 'd' 进入子目录，输入 '..' 返回上级目录。
 
     返回选中的文件路径，或 None 表示取消。
-    """
+    """"
     paths = _get_search_paths()
 
-    # 如果用户指定了目录，加入列表
+    
     if search_dir:
         search_dir = os.path.expanduser(search_dir)
         if os.path.isdir(search_dir) and search_dir not in paths:
@@ -147,21 +147,21 @@ def _browse_files(search_dir: str = None, filter_ext: bool = True) -> Optional[s
     print("  操作: 输入数字选择  d=进入子目录  ..=返回上级  q=取消")
     print()
 
-    # 如果只有一个路径且是目录，直接进入
+    
     if len(paths) == 1 and os.path.isdir(paths[0]):
         current_dir = paths[0]
     else:
-        # 先让用户选起始目录
+        
         current_dir = _choose_start_directory(paths)
 
     if current_dir is None:
         return None
 
-    # 文件选择循环
+    
     while True:
         result = _browse_directory(current_dir, filter_ext)
         if result is None:
-            return None  # 取消
+            return None  
         if result == "..":
             parent = os.path.dirname(current_dir)
             if parent == current_dir:
@@ -172,7 +172,7 @@ def _browse_files(search_dir: str = None, filter_ext: bool = True) -> Optional[s
         if os.path.isdir(full_path):
             current_dir = full_path
             continue
-        # 是文件，返回
+        
         if filter_ext:
             fname = full_path.lower()
             if not (fname.endswith(VALID_EXTENSIONS)):
@@ -183,7 +183,7 @@ def _browse_files(search_dir: str = None, filter_ext: bool = True) -> Optional[s
 
 
 def _choose_start_directory(paths: List[str]) -> Optional[str]:
-    """让用户选择起始目录。"""
+    """让用户选择起始目录。""""
     print("  选择起始目录:")
     for i, p in enumerate(paths):
         print(f"    [{i+1}] {p}")
@@ -209,7 +209,7 @@ def _choose_start_directory(paths: List[str]) -> Optional[str]:
 
 
 def _browse_directory(directory: str, filter_ext: bool) -> Optional[str]:
-    """浏览目录内容，让用户选择文件或进入子目录。"""
+    """浏览目录内容，让用户选择文件或进入子目录。""""
     print()
     print(f"  📂 {directory}")
     print()
@@ -223,11 +223,11 @@ def _browse_directory(directory: str, filter_ext: bool) -> Optional[str]:
         print("  无法访问此目录 (权限不足)")
         return ".."
 
-    # 显示父目录选项
+    
     print(f"  [..] 返回上级目录")
     print()
 
-    # 只显示目录和有效的扩展包文件
+    
     display_items = []
     for item in items:
         full = os.path.join(directory, item)
@@ -241,7 +241,7 @@ def _browse_directory(directory: str, filter_ext: bool) -> Optional[str]:
         print("  (此目录下没有可导入的文件)")
         return ".."
 
-    # 分页显示 (每页20项)
+    
     page = 0
     page_size = 20
     total = len(display_items)
@@ -280,7 +280,7 @@ def _browse_directory(directory: str, filter_ext: bool) -> Optional[str]:
                 page -= 1
                 continue
 
-            # 数字选择
+            
             idx = int(choice) - 1
             if 0 <= idx < total:
                 return display_items[idx]
@@ -293,7 +293,7 @@ def _browse_directory(directory: str, filter_ext: bool) -> Optional[str]:
 
 
 def _non_interactive_browse(paths: List[str], filter_ext: bool) -> Optional[str]:
-    """非交互式环境: 在常用目录搜索扩展包文件。"""
+    """非交互式环境: 在常用目录搜索扩展包文件。""""
     for d in paths:
         try:
             for item in sorted(os.listdir(d)):
@@ -306,9 +306,9 @@ def _non_interactive_browse(paths: List[str], filter_ext: bool) -> Optional[str]
     return None
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 导入核心逻辑
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 def import_extension(path: str, interactive: bool = True) -> Dict[str, Any]:
     """
@@ -328,8 +328,8 @@ def import_extension(path: str, interactive: bool = True) -> Dict[str, Any]:
 
     Returns:
         {"status": "success"/"error", "ext_name": ..., "dest": ...}
-    """
-    # Step 1: 确定文件路径
+    """"
+    
     if not path:
         if interactive and _is_interactive():
             path = _browse_files(filter_ext=True)
@@ -345,7 +345,7 @@ def import_extension(path: str, interactive: bool = True) -> Dict[str, Any]:
 
     path = os.path.expanduser(path)
 
-    # Step 2: 验证
+    
     if not os.path.isfile(path):
         return {"status": "error", "error": f"文件不存在: {path}"}
 
@@ -358,7 +358,7 @@ def import_extension(path: str, interactive: bool = True) -> Dict[str, Any]:
             "supported": list(VALID_EXTENSIONS),
         }
 
-    # Step 3: 确定目标目录
+    
     user_ext_dir = Path(__file__).parent / "user"
     user_ext_dir.mkdir(parents=True, exist_ok=True)
 
@@ -368,17 +368,17 @@ def import_extension(path: str, interactive: bool = True) -> Dict[str, Any]:
 
     dest_dir = user_ext_dir / ext_name
 
-    # Step 4: 复制/解压
+    
     try:
         if fl.endswith(".py"):
-            # 单文件扩展: 直接复制
+            
             dest_dir.mkdir(exist_ok=True)
             dest_file = dest_dir / "__init__.py"
             shutil.copy2(path, dest_file)
             source_type = "py"
 
         elif fl.endswith(".zip"):
-            # ZIP扩展包: 解压
+            
             import zipfile
             if dest_dir.exists():
                 shutil.rmtree(dest_dir)
@@ -388,7 +388,7 @@ def import_extension(path: str, interactive: bool = True) -> Dict[str, Any]:
             source_type = "zip"
 
         elif fl.endswith((".tar.gz", ".tgz")):
-            # TAR扩展包: 解压
+            
             import tarfile
             if dest_dir.exists():
                 shutil.rmtree(dest_dir)
@@ -397,10 +397,10 @@ def import_extension(path: str, interactive: bool = True) -> Dict[str, Any]:
                 tf.extractall(dest_dir)
             source_type = "tar.gz"
 
-        # Step 5: 验证 __init__.py 存在
+        
         init_file = dest_dir / "__init__.py"
         if not init_file.exists():
-            # 自动查找: 子目录里的 __init__.py
+            
             found = None
             for candidate in dest_dir.rglob("__init__.py"):
                 found = candidate
@@ -412,7 +412,7 @@ def import_extension(path: str, interactive: bool = True) -> Dict[str, Any]:
                     "dest": str(dest_dir),
                     "contents": sorted(os.listdir(str(dest_dir)))[:10],
                 }
-            # 把子目录的内容移上来
+            
             sub_dir = found.parent
             if sub_dir != dest_dir:
                 for item in os.listdir(str(sub_dir)):
@@ -435,7 +435,7 @@ def import_extension(path: str, interactive: bool = True) -> Dict[str, Any]:
 
 
 def list_import_formats() -> Dict[str, str]:
-    """返回支持的导入格式说明。"""
+    """返回支持的导入格式说明。""""
     return {
         ".py": "单文件Python扩展 — 包含 __init__.py 的单个Python文件",
         ".zip": "ZIP压缩包 — 包含扩展目录结构的ZIP文件",
@@ -445,7 +445,7 @@ def list_import_formats() -> Dict[str, str]:
 
 
 def get_import_help_text() -> str:
-    """返回导入帮助文本。"""
+    """返回导入帮助文本。""""
     plat = _get_platform()
     paths = _get_search_paths()
 
@@ -474,7 +474,7 @@ MINXG 扩展包导入指南
      from extensions.import_wizard import import_extension
      result = import_extension("/path/to/my_ext.zip")
 
-自动搜索目录:"""
+自动搜索目录:""""
 
     for p in paths:
         text += f"\n  • {p}"
@@ -489,16 +489,16 @@ MINXG 扩展包导入指南
   my_extension/
   ├── __init__.py          # 入口: def register(api)
   └── manifest.yaml        # 元数据 (可选)
-"""
+""""
     return text
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# CLI入口
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 def handle_import_command(args) -> int:
-    """CLI命令处理: minxg ext import [--path PATH] [--help]"""
+    """CLI命令处理: minxg ext import [--path PATH] [--help]""""
     path = getattr(args, 'path', None)
 
     if getattr(args, 'help', False):

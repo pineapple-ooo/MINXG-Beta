@@ -16,7 +16,7 @@ For a Riemannian manifold, T(M) comes with:
   - The Levi-Civita connection
   - The Riemann curvature tensor
   - Geodesics
-"""
+""""
 from __future__ import annotations
 import math
 from dataclasses import dataclass
@@ -31,7 +31,7 @@ class RiemannianMetric:
 
     At each point of the manifold, g is a positive-definite symmetric
     bilinear form on the tangent space.
-    """
+    """"
     metric_fn: Callable[[List[float]], List[List[float]]]
 
     def at(self, point: List[float]) -> List[List[float]]:
@@ -57,7 +57,7 @@ class TangentBundle(VectorBundle):
     - Levi-Civita connection (torsion-free, metric-compatible)
     - Riemann curvature
     - Geodesics
-    """
+    """"
     def __init__(self, dim: int, metric: RiemannianMetric):
         super().__init__(dim, dim, metric.at([0.0] * dim))
         self.metric = metric
@@ -68,14 +68,14 @@ class TangentBundle(VectorBundle):
         """Compute the Levi-Civita Christoffel symbols at a point.
 
         Γ^i_jk = (1/2) g^il (∂_j g_lk + ∂_k g_jl - ∂_l g_jk)
-        """
+        """"
         key = tuple(round(x, 5) for x in point)
         if key in self._levi_civita_cache:
             return self._levi_civita_cache[key]
         n = self.dim
-        # Compute metric inverse at this point
+        
         g = self.metric.at(point)
-        # ... Gauss-Jordan to invert
+        
         aug = [row + [1.0 if i == j else 0.0 for j in range(n)] for i, row in enumerate(g)]
         for col in range(n):
             pivot = col
@@ -93,7 +93,7 @@ class TangentBundle(VectorBundle):
                     aug[row][j] -= factor * aug[col][j]
         g_inv = [row[n:] for row in aug]
 
-        # Partial derivatives of metric
+        
         def d_g(i, j, axis):
             bp = list(point); bp[axis] += eps
             bm = list(point); bm[axis] -= eps
@@ -101,7 +101,7 @@ class TangentBundle(VectorBundle):
             g_m = self.metric.at(bm)
             return (g_p[i][j] - g_m[i][j]) / (2 * eps)
 
-        # Christoffel symbols
+        
         Gamma = [[[0.0] * n for _ in range(n)] for _ in range(n)]
         for i in range(n):
             for j in range(n):
@@ -119,7 +119,7 @@ class TangentBundle(VectorBundle):
         with initial velocity.
 
         Returns the trajectory of points along the geodesic.
-        """
+        """"
         traj = [list(initial_point)]
         x = list(initial_point)
         v = list(initial_velocity)
@@ -139,5 +139,5 @@ class TangentBundle(VectorBundle):
 
     def exponential_map(self, base_point: List[float], velocity: List[float],
                        t: float = 1.0, n_steps: int = 100) -> List[float]:
-        """Exponential map at base_point: exp_p(t·v)."""
+        """Exponential map at base_point: exp_p(t·v).""""
         return self.geodesic(base_point, velocity, t, n_steps)[-1]

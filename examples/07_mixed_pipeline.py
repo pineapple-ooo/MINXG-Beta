@@ -9,7 +9,7 @@ might use:
   - TOPO to detect regime changes via persistent homology
   - CHAOS to monitor Lyapunov and avoid chaotic training
   - FIBER for the underlying manifold structure
-"""
+""""
 import math
 import minxg.cat as cat
 from minxg.ga import Multivector, Signature, Rotor

@@ -13,7 +13,7 @@ Usage:
     h = sha256(b"hello")        # returns bytes
     enc = base64_encode(b"hi")  # returns str
     file_copy("/src", "/dst")   # returns 0 on success
-"""
+""""
 
 from __future__ import annotations
 
@@ -61,7 +61,7 @@ def _get_lib() -> ctypes.CDLL:
 
 
 class ByteBuffer:
-    """Pre-allocated buffer for ctypes output."""
+    """Pre-allocated buffer for ctypes output.""""
     __slots__ = ("buf", "size")
 
     def __init__(self, size: int):
@@ -73,7 +73,7 @@ class ByteBuffer:
 
 
 class StringBuffer:
-    """Pre-allocated buffer for string output."""
+    """Pre-allocated buffer for string output.""""
     __slots__ = ("buf", "size")
 
     def __init__(self, size: int):
@@ -98,7 +98,7 @@ def _check(really_call, *args) -> int:
 
 
 def base64_encode(data: bytes) -> str:
-    """Base64-encode bytes. Returns ASCII string."""
+    """Base64-encode bytes. Returns ASCII string.""""
     lib = _get_lib()
     needed = ((len(data) + 2) // 3) * 4 + 1
     out = StringBuffer(needed)
@@ -113,7 +113,7 @@ def base64_encode(data: bytes) -> str:
 
 
 def base64_decode(s: str) -> bytes:
-    """Base64-decode string to bytes."""
+    """Base64-decode string to bytes.""""
     lib = _get_lib()
     data = s.strip().encode("ascii")
     out = ByteBuffer(len(data))
@@ -128,7 +128,7 @@ def base64_decode(s: str) -> bytes:
 
 
 def hex_encode(data: bytes) -> str:
-    """Hex-encode bytes (lowercase)."""
+    """Hex-encode bytes (lowercase).""""
     lib = _get_lib()
     out = StringBuffer(len(data) * 2 + 1)
     n = lib.cpp_hex_encode(
@@ -142,7 +142,7 @@ def hex_encode(data: bytes) -> str:
 
 
 def hex_decode(s: str) -> bytes:
-    """Decode hex string to bytes."""
+    """Decode hex string to bytes.""""
     lib = _get_lib()
     data = s.strip().encode("ascii")
     out = ByteBuffer(len(data) // 2 + 1)
@@ -157,7 +157,7 @@ def hex_decode(s: str) -> bytes:
 
 
 def url_encode(s: str) -> str:
-    """Percent-encode a string for URL use."""
+    """Percent-encode a string for URL use.""""
     lib = _get_lib()
     p = lib.cpp_url_encode(s.encode("utf-8"))
     if not p:
@@ -169,7 +169,7 @@ def url_encode(s: str) -> str:
 
 
 def url_decode(s: str) -> str:
-    """Decode a percent-encoded URL string."""
+    """Decode a percent-encoded URL string.""""
     lib = _get_lib()
     p = lib.cpp_url_decode(s.encode("utf-8"))
     if not p:
@@ -181,7 +181,7 @@ def url_decode(s: str) -> str:
 
 
 def utf8_valid(data: bytes) -> bool:
-    """Return True if data is valid UTF-8."""
+    """Return True if data is valid UTF-8.""""
     lib = _get_lib()
     r = lib.cpp_utf8_valid(data, len(data))
     return r == 1
@@ -192,7 +192,7 @@ def utf8_valid(data: bytes) -> bool:
 
 
 def sha256(data: bytes) -> bytes:
-    """SHA-256 hash. Returns 32 bytes."""
+    """SHA-256 hash. Returns 32 bytes.""""
     lib = _get_lib()
     out = ByteBuffer(32)
     r = lib.cpp_sha256(data, len(data), ctypes.byref(out.buf), 32)
@@ -202,7 +202,7 @@ def sha256(data: bytes) -> bytes:
 
 
 def sha512(data: bytes) -> bytes:
-    """SHA-512 hash. Returns 64 bytes."""
+    """SHA-512 hash. Returns 64 bytes.""""
     lib = _get_lib()
     out = ByteBuffer(64)
     r = lib.cpp_sha512(data, len(data), ctypes.byref(out.buf), 64)
@@ -212,7 +212,7 @@ def sha512(data: bytes) -> bytes:
 
 
 def hmac_sha256(key: bytes, data: bytes) -> bytes:
-    """HMAC-SHA256. Returns 32 bytes."""
+    """HMAC-SHA256. Returns 32 bytes.""""
     lib = _get_lib()
     out = ByteBuffer(32)
     r = lib.cpp_hmac_sha256(
@@ -226,7 +226,7 @@ def hmac_sha256(key: bytes, data: bytes) -> bytes:
 
 
 def pbkdf2_sha256(password: bytes, salt: bytes, iterations: int, output_len: int) -> bytes:
-    """PBKDF2-HMAC-SHA256."""
+    """PBKDF2-HMAC-SHA256.""""
     lib = _get_lib()
     out = ByteBuffer(output_len)
     r = lib.cpp_pbkdf2_sha256(
@@ -241,7 +241,7 @@ def pbkdf2_sha256(password: bytes, salt: bytes, iterations: int, output_len: int
 
 
 def secure_random(length: int) -> bytes:
-    """Cryptographically secure random bytes."""
+    """Cryptographically secure random bytes.""""
     lib = _get_lib()
     out = ByteBuffer(length)
     r = lib.cpp_secure_random(ctypes.byref(out.buf), length)
@@ -255,7 +255,7 @@ def secure_random(length: int) -> bytes:
 
 
 def file_stat(path: str) -> Optional[dict]:
-    """Stat a file. Returns dict with 'size' or None if not found / not regular."""
+    """Stat a file. Returns dict with 'size' or None if not found / not regular.""""
     lib = _get_lib()
     sz = ctypes.c_uint64(0)
     r = lib.cpp_file_stat(path.encode("utf-8"), ctypes.byref(sz))
@@ -265,13 +265,13 @@ def file_stat(path: str) -> Optional[dict]:
 
 
 def file_copy(src: str, dst: str) -> int:
-    """Copy file src -> dst. Returns 0 on success."""
+    """Copy file src -> dst. Returns 0 on success.""""
     lib = _get_lib()
     return lib.cpp_file_copy(src.encode("utf-8"), dst.encode("utf-8"), None)
 
 
 def file_read(path: str, max_size: int = 10 * 1024 * 1024) -> bytes:
-    """Read entire file into memory (capped at max_size)."""
+    """Read entire file into memory (capped at max_size).""""
     lib = _get_lib()
     out = ByteBuffer(max_size)
     actual = ctypes.c_uint64(0)
@@ -286,13 +286,13 @@ def file_read(path: str, max_size: int = 10 * 1024 * 1024) -> bytes:
 
 
 def file_write(path: str, data: bytes) -> int:
-    """Write data to file. Returns 0 on success."""
+    """Write data to file. Returns 0 on success.""""
     lib = _get_lib()
     return lib.cpp_file_write(path.encode("utf-8"), data, len(data))
 
 
 class MmappedFile:
-    """RAII mmap — auto-closes on GC."""
+    """RAII mmap — auto-closes on GC.""""
     __slots__ = ("data", "size")
 
     def __init__(self, data: bytes, size: int):
@@ -307,7 +307,7 @@ class MmappedFile:
 
 
 def mmap_file(path: str) -> MmappedFile:
-    """Memory-map a file (read-only). Caller must NOT free the returned buffer."""
+    """Memory-map a file (read-only). Caller must NOT free the returned buffer.""""
     lib = _get_lib()
     ptr = ctypes.POINTER(ctypes.c_uint8)()
     sz = ctypes.c_size_t(0)
@@ -319,13 +319,13 @@ def mmap_file(path: str) -> MmappedFile:
 
 
 def mmap_close() -> None:
-    """Close all active mmaps and release resources."""
+    """Close all active mmaps and release resources.""""
     lib = _get_lib()
     lib.cpp_mmap_close()
 
 
 def glob_files(pattern: str, max_results: int = 1000) -> List[str]:
-    """Glob pattern. Returns list of matching paths."""
+    """Glob pattern. Returns list of matching paths.""""
     lib = _get_lib()
 
     entry_size = 512
@@ -354,7 +354,7 @@ def glob_files(pattern: str, max_results: int = 1000) -> List[str]:
 
 
 def csv_info(content: str, delim: str = ",") -> Tuple[int, int]:
-    """Return (rows, cols) for CSV content."""
+    """Return (rows, cols) for CSV content.""""
     lib = _get_lib()
     rows = ctypes.c_int(0)
     cols = ctypes.c_int(0)
@@ -369,7 +369,7 @@ def csv_info(content: str, delim: str = ",") -> Tuple[int, int]:
 
 
 def csv_cell(content: str, row: int, col: int, delim: str = ",") -> str:
-    """Get CSV cell at (row, col)."""
+    """Get CSV cell at (row, col).""""
     lib = _get_lib()
     out = StringBuffer(4096)
     n = lib.cpp_csv_cell(
@@ -387,7 +387,7 @@ def csv_cell(content: str, row: int, col: int, delim: str = ",") -> str:
 
 
 def tokenize(text: str, max_tokens: int = 0) -> List[str]:
-    """Split text on whitespace. max_tokens=0 means unlimited."""
+    """Split text on whitespace. max_tokens=0 means unlimited.""""
     lib = _get_lib()
     MAX = 10000
     arr = (ctypes.c_char_p * MAX)()
@@ -403,7 +403,7 @@ def tokenize(text: str, max_tokens: int = 0) -> List[str]:
 
 
 def word_frequency(text: str, top_n: int = 20) -> List[Tuple[str, int]]:
-    """Return top-N words by frequency as [(word, count), ...]."""
+    """Return top-N words by frequency as [(word, count), ...].""""
     lib = _get_lib()
     out = StringBuffer(8192)
     n = lib.cpp_word_frequency(
@@ -425,7 +425,7 @@ def word_frequency(text: str, top_n: int = 20) -> List[Tuple[str, int]]:
 
 
 def trim(s: str) -> str:
-    """Strip leading/trailing whitespace."""
+    """Strip leading/trailing whitespace.""""
     lib = _get_lib()
     data = s.encode("utf-8")
     out = StringBuffer(len(data) + 1)
@@ -442,7 +442,7 @@ def trim(s: str) -> str:
 
 
 def slugify(text: str) -> str:
-    """Convert to URL slug via native C."""
+    """Convert to URL slug via native C.""""
     lib = _get_lib()
     data = text.encode("utf-8")
     out = StringBuffer(max(len(data) + 1, 256))
@@ -455,7 +455,7 @@ def slugify(text: str) -> str:
 
 
 def truncate(text: str, max_len: int = 100, suffix: str = "...") -> str:
-    """Truncate text with suffix via native C."""
+    """Truncate text with suffix via native C.""""
     lib = _get_lib()
     data = text.encode("utf-8")
     suf = suffix.encode("utf-8")
@@ -470,7 +470,7 @@ def truncate(text: str, max_len: int = 100, suffix: str = "...") -> str:
 
 
 def extract_urls(text: str, max_urls: int = 100) -> List[str]:
-    """Extract URLs via native C."""
+    """Extract URLs via native C.""""
     lib = _get_lib()
     data = text.encode("utf-8")
     out = StringBuffer(65536)
@@ -483,7 +483,7 @@ def extract_urls(text: str, max_urls: int = 100) -> List[str]:
 
 
 def extract_emails(text: str, max_emails: int = 100) -> List[str]:
-    """Extract email addresses via native C."""
+    """Extract email addresses via native C.""""
     lib = _get_lib()
     data = text.encode("utf-8")
     out = StringBuffer(65536)
@@ -496,7 +496,7 @@ def extract_emails(text: str, max_emails: int = 100) -> List[str]:
 
 
 def extract_hashtags(text: str, max_tags: int = 100) -> List[str]:
-    """Extract hashtags via native C."""
+    """Extract hashtags via native C.""""
     lib = _get_lib()
     data = text.encode("utf-8")
     out = StringBuffer(65536)
@@ -509,7 +509,7 @@ def extract_hashtags(text: str, max_tags: int = 100) -> List[str]:
 
 
 def normalize_ws(text: str, line_ending: str = "\n") -> str:
-    """Normalize whitespace via native C."""
+    """Normalize whitespace via native C.""""
     lib = _get_lib()
     le_map = {"\n": 0, "\r\n": 1, "\r": 2}
     le = le_map.get(line_ending, 0)
@@ -524,7 +524,7 @@ def normalize_ws(text: str, line_ending: str = "\n") -> str:
 
 
 def base_convert(number: str, from_base: int = 10, to_base: int = 16) -> str:
-    """Convert number between bases 2-36 via native C."""
+    """Convert number between bases 2-36 via native C.""""
     lib = _get_lib()
     out = StringBuffer(256)
     n = lib.cpp_base_convert(number.encode("utf-8"), from_base, to_base,
@@ -536,7 +536,7 @@ def base_convert(number: str, from_base: int = 10, to_base: int = 16) -> str:
 
 
 def _split_null(buf, count: int) -> List[str]:
-    """Split null-separated strings from ctypes char buffer."""
+    """Split null-separated strings from ctypes char buffer.""""
     results = []
     start = 0
     raw = bytes(buf)

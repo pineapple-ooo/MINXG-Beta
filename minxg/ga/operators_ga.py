@@ -6,7 +6,7 @@ This file bridges the geometric algebra engine to the minxg operator registry.
 Operators are auto-registered when the module is imported.
 
 Operator IDs in range 5000-5049 are reserved for Geometric Algebra.
-"""
+""""
 from __future__ import annotations
 import math
 from typing import Any, List
@@ -20,17 +20,17 @@ from .algebra import (
 from .rotor import Rotor, Reflector, Translator, Dilator
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# 150+ GA operators across 12 sub-categories
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 def _ga_product(ga_fn, name, op_id, desc):
-    """Wrap a GA product into an operator."""
+    """Wrap a GA product into an operator.""""
     def fn(a, b):
         ma = a if isinstance(a, Multivector) else Multivector.vector(a)
         mb = b if isinstance(b, Multivector) else Multivector.vector(b)
         result = ga_fn(ma, mb)
-        # Return as dict for serialization
+        
         return {f"e_{k:04b}": v for k, v in result.coeffs.items()}
     return Operator(op_id, name, "ga", desc, ["multivector", "multivector"], "multivector", True, fn)
 
@@ -40,7 +40,7 @@ def _ga_unary(mv_fn, name, op_id, desc):
         if not isinstance(m, Multivector):
             m = Multivector.vector(m)
         if "angle" in kwargs and name.startswith("rotor"):
-            # Rotor from bivector + angle
+            
             B = m if isinstance(m, Multivector) else Multivector.vector(m)
             result = mv_fn(B, kwargs["angle"])
         else:
@@ -54,14 +54,14 @@ def _ga_unary(mv_fn, name, op_id, desc):
 _GA_STATE = {"registered": False}
 
 def register_ga_operators():
-    """Register all GA operators (IDs 5000-5499). Idempotent."""
+    """Register all GA operators (IDs 5000-5499). Idempotent.""""
     if _GA_STATE["registered"]:
-        return 47  # already registered
+        return 47  
     _GA_STATE["registered"] = True
     reg = OPERATOR_REGISTRY
     op_id = 5000
 
-    # ── Products (3500-3549) ─────────────────────────────────────────────
+    
     for name, fn, desc in [
         ("ga_geometric", geometric_product, "Geometric product ab"),
         ("ga_outer", outer_product, "Outer (wedge) product a∧b"),
@@ -76,7 +76,7 @@ def register_ga_operators():
         reg.register(_ga_product(fn, name, op_id, desc))
         op_id += 1
 
-    # ── Unary operations (3550-3599) ─────────────────────────────────────
+    
     def _wrap_unary(name, op_id, desc, fn):
         def wrapped(m, **kw):
             mv = m if isinstance(m, Multivector) else Multivector.vector(m)
@@ -96,13 +96,13 @@ def register_ga_operators():
     reg.register(_wrap_unary("ga_log", op_id, "Multivector logarithm", lambda m: m.log())); op_id += 1
     reg.register(_wrap_unary("ga_sqrt", op_id, "Multivector square root", lambda m: m.sqrt())); op_id += 1
 
-    # Grade projections
+    
     for k in range(0, 5):
         reg.register(_wrap_unary(f"ga_grade_{k}", op_id, f"Project to grade {k}",
                                  lambda m, k=k: m.grade(k)))
         op_id += 1
 
-    # ── Construction operators (5000-5049) ───────────────────────────────
+    
     def make_scalar(value, **kw):
         return Multivector.scalar(value, Signature(kw.get("p", 4), kw.get("q", 0)))
     reg.register(Operator(op_id, "ga_scalar", "ga", "Construct scalar multivector",
@@ -120,7 +120,7 @@ def register_ga_operators():
     reg.register(Operator(op_id, "ga_zero", "ga", "Zero multivector",
                           [], "multivector", True, make_zero)); op_id += 1
 
-    # ── Pseudoscalar & duality (3650-3699) ───────────────────────────────
+    
     reg.register(_wrap_unary("ga_pseudoscalar", op_id, "Pseudoscalar I = e_0∧...∧e_{n-1}",
                              lambda m: pseudoscalar(m.sig))); op_id += 1
 
@@ -131,7 +131,7 @@ def register_ga_operators():
     reg.register(Operator(op_id, "ga_pseudoscalar_inverse", "ga", "Inverse pseudoscalar",
                           [], "multivector", True, _pseudoscalar_inverse)); op_id += 1
 
-    # ── Rotor (rotation) operators (5010-5049) ───────────────────────────
+    
     def rotor_from_bivector(B, angle, **kw):
         if not isinstance(B, Multivector):
             B = Multivector.vector(B)
@@ -161,7 +161,7 @@ def register_ga_operators():
     reg.register(Operator(op_id, "ga_rotor_angle", "ga", "Extract rotation angle from rotor",
                           ["multivector"], "number", True, rotor_angle)); op_id += 1
 
-    # ── Reflector (3750-3799) ────────────────────────────────────────────
+    
     def reflector_from_normal(n, **kw):
         n_mv = Multivector.vector(n) if not isinstance(n, Multivector) else n
         r = Reflector.from_normal(n_mv.normalize())
@@ -178,7 +178,7 @@ def register_ga_operators():
     reg.register(Operator(op_id, "ga_reflector_apply", "ga", "Apply reflection to vector",
                           ["multivector", "multivector"], "multivector", True, reflector_apply)); op_id += 1
 
-    # ── Translator (PGA) (3800-3849) ─────────────────────────────────────
+    
     def translator_from_translation(t, **kw):
         sig = Signature(kw.get("p", 3), kw.get("q", 0), kw.get("r", 1))
         t_mv = Multivector.vector(t) if not isinstance(t, Multivector) else t
@@ -187,7 +187,7 @@ def register_ga_operators():
     reg.register(Operator(op_id, "ga_translator_from_translation", "ga", "PGA translator from translation vector",
                           ["multivector"], "multivector", True, translator_from_translation)); op_id += 1
 
-    # ── Dilator (3850-3899) ──────────────────────────────────────────────
+    
     def dilator_from_scale(k, **kw):
         sig = Signature(kw.get("p", 4), kw.get("q", 0))
         d = Dilator.from_scale(k, sig)
@@ -204,8 +204,8 @@ def register_ga_operators():
     reg.register(Operator(op_id, "ga_dilator_apply", "ga", "Apply dilation to vector",
                           ["number", "multivector"], "multivector", True, dilator_apply)); op_id += 1
 
-    # ── Special-purpose GA ops (3900-3999) ───────────────────────────────
-    # 100+ specialized operators
+    
+    
 
     def _norm_sq(m, **kw):
         mv = m if isinstance(m, Multivector) else Multivector.vector(m)
@@ -239,7 +239,7 @@ def register_ga_operators():
     reg.register(Operator(op_id, "ga_from_dict", "ga", "Multivector from dict",
                           ["dict"], "multivector", True, _from_dict)); op_id += 1
 
-    # Algebraic structure tests
+    
     def _is_pure_grade(m, k, **kw):
         mv = m if isinstance(m, Multivector) else Multivector.vector(m)
         return all(grade_of(b) == k for b in mv.coeffs)
@@ -253,7 +253,7 @@ def register_ga_operators():
     reg.register(Operator(op_id, "ga_is_trivector", "ga", "True if multivector is pure grade 3",
                           ["multivector"], "bool", True, lambda m, **kw: _is_pure_grade(m, 3))); op_id += 1
 
-    # Aliases for common operations
+    
     reg.register(Operator(op_id, "ga_wedge", "ga", "Alias for outer product",
                           ["multivector", "multivector"], "multivector", True,
                           _ga_product(outer_product, "wedge", op_id, "").fn)); op_id += 1
@@ -261,8 +261,8 @@ def register_ga_operators():
                           ["multivector", "multivector"], "multivector", True,
                           _ga_product(inner_product, "dot", op_id, "").fn)); op_id += 1
 
-    return op_id - 5000  # return count
+    return op_id - 5000  
 
 
-# Register on import
+
 GA_OPERATOR_COUNT = register_ga_operators()

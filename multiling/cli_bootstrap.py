@@ -19,7 +19,7 @@ References:
 - PEP 538 (PYTHONCOERCECLOCALE) - CPython's built-in fix for POSIX locales
 - PEP 540 (UTF-8 Mode) - CPython's built-in fix for Windows console
 - https://github.com/multiligua/multiligua/issues/1
-"""
+""""
 
 import sys
 import os

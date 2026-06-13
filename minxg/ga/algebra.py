@@ -26,7 +26,7 @@ which is fast for typical AI workloads where k ≤ 8.
 
 The metric enters via the simplification rule:
   e_i * e_i = metric(i)  (which equals +1, -1, or 0)
-"""
+""""
 from __future__ import annotations
 import math
 from typing import Dict, Tuple
@@ -36,7 +36,7 @@ from .multivector import (
 )
 
 
-# ── Blade-to-blade geometric product ─────────────────────────────────────────
+
 
 def _blade_product(a_blade: int, a_coeff: float,
                    b_blade: int, b_coeff: float,
@@ -48,7 +48,7 @@ def _blade_product(a_blade: int, a_coeff: float,
     Algorithm: 1) count inversions (sign from anticommuting grade-1 basis
     vectors), 2) pair up repeated indices (each pair contributes metric(i)),
     3) collect remaining singletons as a sorted basis blade.
-    """
+    """"
     if a_blade == 0:
         return (b_blade, a_coeff * b_coeff)
     if b_blade == 0:
@@ -85,19 +85,19 @@ def _blade_product(a_blade: int, a_coeff: float,
 
     return (final_blade, a_coeff * b_coeff * sign * final_metric)
 
-    # Now collapse: e_i * e_i = metric(i)
-    # If any basis vector appears twice, we need to apply metric
-    # Walk through combined, group consecutive equal indices
+    
+    
+    
     result_blade = 0
     for idx in combined:
         result_blade |= (1 << idx)
 
-    # Apply metric for squared basis vectors
+    
     metric_factor = 1.0
-    # Count pairs of identical basis vectors — they annihilate
-    # but contribute sign and metric factor
-    # Simpler approach: after full sort, if same i appears even number of times
-    # they pair up and give metric(i); odd number of times is forbidden by sign
+    
+    
+    
+    
     i = 0
     final_blades = []
     final_metric = 1.0
@@ -106,7 +106,7 @@ def _blade_product(a_blade: int, a_coeff: float,
         while j < len(combined) and combined[j] == combined[i]:
             j += 1
         run_length = j - i
-        # Each pair (e_i e_i) gives metric(i)
+        
         pairs = run_length // 2
         leftover = run_length % 2
         final_metric *= sig.metric(combined[i]) ** pairs
@@ -114,24 +114,24 @@ def _blade_product(a_blade: int, a_coeff: float,
             final_blades.append(combined[i])
         i = j
 
-    # Recompute sign for final_blades into canonical order
+    
     final_blades.sort()
     final_sign = 1
     final_blade = 0
     for idx in final_blades:
-        # No extra sign from sorting already-sorted list
+        
         final_blade |= (1 << idx)
 
     return (final_blade, a_coeff * b_coeff * sign * final_metric * final_sign)
 
 
-# ── Public products ──────────────────────────────────────────────────────────
+
 
 def geometric_product(a: Multivector, b: Multivector) -> Multivector:
     """The geometric product ab. The fundamental product of GA.
 
     Decomposes as: ab = a·b + a∧b (inner + outer).
-    """
+    """"
     if a.sig != b.sig:
         raise ValueError(f"Signature mismatch: {a.sig} vs {b.sig}")
     sig = a.sig
@@ -151,7 +151,7 @@ def outer_product(a: Multivector, b: Multivector) -> Multivector:
     The grade of a∧b is grade(a) + grade(b). It's antisymmetric:
         a ∧ b = -b ∧ a
     For basis blades sharing any index, a∧b = 0.
-    """
+    """"
     sig = a.sig
     if b.sig != sig:
         raise ValueError(f"Signature mismatch: {a.sig} vs {b.sig}")
@@ -176,13 +176,13 @@ def inner_product(a: Multivector, b: Multivector) -> Multivector:
                   = (e_A∪B' · e_B) e_A∩B  (complicated case)
 
     For a vector v and r-blade B: v·B = grade projection of vB onto grade r-1.
-    """
-    # Use: a·b = <a b>_{grade_b - 1}  for Euclidean inner product
+    """"
+    
     if a.sig != b.sig:
         raise ValueError(f"Signature mismatch: {a.sig} vs {b.sig}")
     ab = geometric_product(a, b)
-    # Determine target grade: the inner product lowers b's grade by 1
-    # We project onto all grades that have lower grade than max(b) by 1
+    
+    
     if not b.coeffs:
         return Multivector.zero(a.sig)
     max_b_grade = max(grade_of(bb) for bb in b.coeffs)
@@ -196,19 +196,19 @@ def left_contraction(a: Multivector, b: Multivector) -> Multivector:
     For blades of grades r and s:
         e_A ⌋ e_B = (e_A · e_B) e_A∧e_B'   if e_A ⊆ e_B, else 0
     The grade of the result is s - r.
-    """
+    """"
     if a.sig != b.sig:
         raise ValueError(f"Signature mismatch: {a.sig} vs {b.sig}")
     out: Dict[int, float] = {}
     for ba, ca in a.coeffs.items():
         for bb, cb in b.coeffs.items():
-            # ba must be subset of bb
+            
             if ba & bb != ba:
                 continue
             rb = bb & ~ba
-            # Sign from moving ba's bits past bb's remaining bits
+            
             sign = 1
-            # ... (simplified: use trial commute)
+            
             out[rb] = out.get(rb, 0.0) + sign * ca * cb
     return Multivector(out, a.sig)
 
@@ -220,7 +220,7 @@ def right_contraction(a: Multivector, b: Multivector) -> Multivector:
         e_A ⌊ e_B = 0  if e_B ⊄ e_A
                    = (e_A · e_B) e_A∧e_B'  otherwise
     The grade of the result is r - s.
-    """
+    """"
     if a.sig != b.sig:
         raise ValueError(f"Signature mismatch: {a.sig} vs {b.sig}")
     out: Dict[int, float] = {}
@@ -239,7 +239,7 @@ def fat_dot(a: Multivector, b: Multivector) -> Multivector:
     For blades of grades r, s:
         e_A • e_B = 0  if r != s
                   = (-1)^(r(r-1)/2) (e_A · e_B)  if r = s
-    """
+    """"
     if a.sig != b.sig:
         raise ValueError(f"Signature mismatch: {a.sig} vs {b.sig}")
     out: Dict[int, float] = {}
@@ -250,14 +250,14 @@ def fat_dot(a: Multivector, b: Multivector) -> Multivector:
                 continue
             if ba != bb:
                 continue
-            # sign: (-1)^(r(r-1)/2)
+            
             sign = -1 if (ga * (ga - 1) // 2) % 2 else 1
             out[0] = out.get(0, 0.0) + sign * ca * cb
     return Multivector(out, a.sig)
 
 
 def scalar_product(a: Multivector, b: Multivector) -> float:
-    """Extracts the scalar (grade-0) part of a*b."""
+    """Extracts the scalar (grade-0) part of a*b.""""
     if a.sig != b.sig:
         raise ValueError(f"Signature mismatch: {a.sig} vs {b.sig}")
     return geometric_product(a, b)[0]
@@ -268,7 +268,7 @@ def commutator(a: Multivector, b: Multivector) -> Multivector:
 
     Makes the multivector space a graded Lie algebra. For bivectors,
     this is the standard Lie algebra of the rotation group.
-    """
+    """"
     return (geometric_product(a, b) - geometric_product(b, a)) * 0.5
 
 
@@ -276,25 +276,25 @@ def anti_commutator(a: Multivector, b: Multivector) -> Multivector:
     """Jordan bracket: {a,b} = (ab + ba) / 2.
 
     Makes the multivector space a Jordan algebra.
-    """
+    """"
     return (geometric_product(a, b) + geometric_product(b, a)) * 0.5
 
 
-# ── Pseudoscalar ─────────────────────────────────────────────────────────────
+
 
 def pseudoscalar(sig: Signature) -> Multivector:
     """The unit pseudoscalar I = e_0 ∧ e_1 ∧ ... ∧ e_{n-1}.
 
     I² = (-1)^(r(r-1)/2 + sum of negative-metric basis)
     Used for Hodge dual: M* = M ⌋ I  (or M I⁻¹).
-    """
+    """"
     n = sig.n
-    blade = (1 << n) - 1  # all n bits set
+    blade = (1 << n) - 1  
     return Multivector({blade: 1.0}, sig)
 
 
 def pseudoscalar_inverse(sig: Signature) -> Multivector:
-    """The inverse of the pseudoscalar, used for right Hodge dual."""
+    """The inverse of the pseudoscalar, used for right Hodge dual.""""
     n = sig.n
     blade = (1 << n) - 1
     I = Multivector({blade: 1.0}, sig)

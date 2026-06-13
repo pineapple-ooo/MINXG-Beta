@@ -3,7 +3,7 @@ agent.py — 自主智能体核心
 
 Agent 是具备角色感知、记忆管理、工具调用、反思能力的自主实体。
 每个 Agent 拥有独立的上下文、记忆层和工具集。
-"""
+""""
 
 import asyncio
 import json
@@ -19,7 +19,7 @@ logger = logging.getLogger("minxg.agent")
 
 @dataclass
 class AgentConfig:
-    """Agent 配置"""
+    """Agent 配置""""
     name: str
     role: str = "assistant"
     system_prompt: str = ""
@@ -47,18 +47,18 @@ class AgentConfig:
 
 
 class AgentMemory:
-    """Agent 专用记忆管理（事件记忆 + 语义记忆 + 工作记忆）"""
+    """Agent 专用记忆管理（事件记忆 + 语义记忆 + 工作记忆）""""
 
     def __init__(self, capacity: int = 5000):
         self.capacity = capacity
-        self._episodic: List[Dict] = []       # 原始对话记录
-        self._semantic: Dict[str, Dict] = {}  # 提炼的知识/事实
-        self._working: List[Dict] = []        # 当前会话工作记忆
+        self._episodic: List[Dict] = []       
+        self._semantic: Dict[str, Dict] = {}  
+        self._working: List[Dict] = []        
         self._stats = {"adds": 0, "compressions": 0, "queries": 0}
 
     def add_event(self, role: str, content: str,
                   timestamp: float = None, meta: Dict = None) -> str:
-        """添加事件到事件记忆"""
+        """添加事件到事件记忆""""
         eid = f"evt_{uuid.uuid4().hex[:10]}"
         event = {
             "id": eid, "role": role, "content": content,
@@ -68,7 +68,7 @@ class AgentMemory:
         self._episodic.append(event)
         self._working.append(event)
         self._stats["adds"] += 1
-        # 容量管理
+        
         if len(self._episodic) > self.capacity:
             self._compress_old()
         if len(self._working) > 100:
@@ -76,18 +76,18 @@ class AgentMemory:
         return eid
 
     def add_fact(self, key: str, content: str, importance: float = 1.0):
-        """添加语义事实"""
+        """添加语义事实""""
         self._semantic[key] = {
             "content": content, "importance": importance,
             "created": time.time(), "accessed": time.time(),
         }
 
     def query(self, text: str, limit: int = 10) -> List[Dict]:
-        """跨所有记忆层搜索相关内容"""
+        """跨所有记忆层搜索相关内容""""
         self._stats["queries"] += 1
         results = []
         q = text.lower()
-        # 搜索语义记忆
+        
         for key, fact in self._semantic.items():
             score = 0.0
             if q in key.lower():
@@ -100,7 +100,7 @@ class AgentMemory:
                     "content": fact["content"],
                     "score": score * fact["importance"],
                 })
-        # 搜索事件记忆（最近优先）
+        
         for evt in reversed(self._episodic):
             if q in evt["content"].lower():
                 results.append({
@@ -114,11 +114,11 @@ class AgentMemory:
         return results[:limit]
 
     def _compress_old(self):
-        """压缩旧事件 → 语义事实"""
+        """压缩旧事件 → 语义事实""""
         to_compress = self._episodic[: len(self._episodic) // 2]
         if not to_compress:
             return
-        # 简单的抽取式压缩：保留关键信息
+        
         key = f"summary_{int(time.time())}"
         content_parts = [e["content"] for e in to_compress if len(e["content"]) > 20]
         if content_parts:
@@ -133,7 +133,7 @@ class AgentMemory:
         self._stats["compressions"] += 1
 
     def get_working_context(self, max_items: int = 20) -> List[Dict]:
-        """获取工作记忆上下文"""
+        """获取工作记忆上下文""""
         return self._working[-max_items:]
 
     def get_stats(self) -> Dict:
@@ -146,14 +146,14 @@ class AgentMemory:
 
 
 class ToolRegistry:
-    """Agent 级别的工具注册表"""
+    """Agent 级别的工具注册表""""
 
     def __init__(self):
         self._tools: Dict[str, Dict] = {}
 
     def register(self, name: str, description: str,
                  parameters: Dict, handler: Callable):
-        """注册一个工具"""
+        """注册一个工具""""
         self._tools[name] = {
             "name": name, "description": description,
             "parameters": parameters, "handler": handler,
@@ -188,7 +188,7 @@ class Agent:
     - 工具自主调用
     - 自我反思与纠错
     - 多轮上下文管理
-    """
+    """"
 
     def __init__(self, config: AgentConfig):
         self.config = config
@@ -203,11 +203,11 @@ class Agent:
 
     def register_tool(self, name: str, description: str,
                       parameters: Dict, handler: Callable):
-        """注册工具到 Agent"""
+        """注册工具到 Agent""""
         self.tool_registry.register(name, description, parameters, handler)
 
     def register_tools_from_dict(self, tools: List[Dict]):
-        """从字典列表批量注册工具"""
+        """从字典列表批量注册工具""""
         for t in tools:
             self.tool_registry.register(
                 t["name"], t.get("description", ""),
@@ -215,7 +215,7 @@ class Agent:
             )
 
     def add_message(self, role: str, content: str, meta: Dict = None):
-        """添加消息到对话历史"""
+        """添加消息到对话历史""""
         msg = {"role": role, "content": content,
                "timestamp": time.time(), "meta": meta or {}}
         self._conversation_history.append(msg)
@@ -223,13 +223,13 @@ class Agent:
         self._last_active = time.time()
 
     def get_messages(self, limit: int = 20) -> List[Dict]:
-        """获取最近的消息"""
+        """获取最近的消息""""
         return self._conversation_history[-limit:]
 
     def build_system_prompt(self) -> str:
-        """构建完整的系统提示词"""
+        """构建完整的系统提示词""""
         prompt = self.config.system_prompt or f"You are {self.config.role}."
-        # 注入记忆中的关键事实
+        
         recent_facts = self.memory.query("recent context", limit=5)
         if recent_facts:
             fact_text = "\n".join(f"- {f['content']}" for f in recent_facts)
@@ -237,7 +237,7 @@ class Agent:
         return prompt
 
     def build_messages_for_llm(self, limit: int = 30) -> List[Dict]:
-        """构建发送给 LLM 的消息列表"""
+        """构建发送给 LLM 的消息列表""""
         messages = [{"role": "system", "content": self.build_system_prompt()}]
         for msg in self._conversation_history[-limit:]:
             messages.append({"role": msg["role"], "content": msg["content"]})
@@ -247,10 +247,10 @@ class Agent:
         """
         反思机制：分析上一次行动的结果，决定是否需要修正
         返回修正建议或 None
-        """
+        """"
         if not self.config.reflection_enabled:
             return None
-        # 简单的规则引擎反思
+        
         if "error" in last_result.lower():
             return f"上次操作失败: {last_result[:200]}，考虑替代方案。"
         if len(last_result) < 10:
@@ -258,7 +258,7 @@ class Agent:
         return None
 
     def get_status(self) -> Dict:
-        """获取 Agent 状态"""
+        """获取 Agent 状态""""
         return {
             "id": self.id, "name": self.config.name,
             "role": self.config.role,
@@ -272,7 +272,7 @@ class Agent:
         }
 
     def reset(self):
-        """重置 Agent 状态（保留配置和工具）"""
+        """重置 Agent 状态（保留配置和工具）""""
         self._conversation_history.clear()
         self.memory = AgentMemory(self.config.memory_capacity)
         self._total_calls = 0
@@ -280,7 +280,7 @@ class Agent:
         self._created_at = time.time()
 
     def to_dict(self) -> Dict:
-        """序列化为字典"""
+        """序列化为字典""""
         return {
             "id": self.id,
             "config": self.config.to_dict(),

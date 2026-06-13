@@ -1,6 +1,6 @@
 """
 minxg/base.py - Worker base class, tool decorator, registry.
-"""
+""""
 from __future__ import annotations
 import asyncio
 import logging
@@ -14,23 +14,23 @@ log = logging.getLogger("py_workers.base")
 
 @dataclass
 class ToolDef:
-    """Metadata for a single tool."""
+    """Metadata for a single tool.""""
     name: str
     description: str
-    params: Dict[str, str]  # param_name -> type_string (string/int/bool/dict/list)
+    params: Dict[str, str]  
     category: str = "general"
     fn: Optional[Callable] = None
     call_count: int = 0
     error_count: int = 0
     total_time: float = 0.0
-    call_budget: int = 20      # max calls per session; enforced by anti-loop preventer
+    call_budget: int = 20      
     budget_used: int = 0
 
     def budget_remaining(self) -> int:
         return max(0, self.call_budget - self.budget_used)
 
     def consume_budget(self) -> bool:
-        """Try to consume one call from the budget. Returns False if exhausted."""
+        """Try to consume one call from the budget. Returns False if exhausted.""""
         if self.budget_used >= self.call_budget:
             return False
         self.budget_used += 1
@@ -41,7 +41,7 @@ class ToolDef:
 
 
 class BaseWorker:
-    """Base class for all py_workers. Provides tool registration, stats, health checks."""
+    """Base class for all py_workers. Provides tool registration, stats, health checks.""""
     worker_id: str = "base"
     version: str = "1.0.0"
 
@@ -50,9 +50,9 @@ class BaseWorker:
         self._start_time = time.time()
         self._register_tools()
 
-    # ── Subclass must implement ──
+    
     def _register_tools(self):
-        """Subclass override: wrap methods into ToolDef and register in self.tools."""
+        """Subclass override: wrap methods into ToolDef and register in self.tools.""""
         for name in dir(self):
             if name.startswith("_"):
                 continue
@@ -72,15 +72,15 @@ class BaseWorker:
                 call_budget=meta.get("call_budget", 20),
             )
 
-    # ── Public interface ──
+    
     async def call(self, tool_name: str, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute a tool with unified error handling, statistics, and budget enforcement."""
+        """Execute a tool with unified error handling, statistics, and budget enforcement.""""
         tool = self.tools.get(tool_name)
         if not tool:
             return {"status": "error", "error": f"unknown tool: {tool_name}",
                     "available": sorted(self.tools.keys())}
 
-        # Budget enforcement
+        
         if not tool.consume_budget():
             return {"status": "error", "error":
                     f"call budget exhausted for {tool_name} ({tool.call_budget} max)"}
@@ -136,9 +136,9 @@ class BaseWorker:
         ]
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-#  Tool decorator
-# ═══════════════════════════════════════════════════════════════════════════
+
+
+
 def tool(name: str = None, description: str = "", category: str = "general",
          call_budget: int = 20):
     """
@@ -149,8 +149,8 @@ def tool(name: str = None, description: str = "", category: str = "general",
         @tool(call_budget=5)          # limit max calls
         async def read_file(self, path: str, lines: int = 0) -> Dict:
             ...
-    """
-    # Support @tool (bare) — first arg is the function
+    """"
+    
     if callable(name):
         fn = name
         hints = get_type_hints(fn)
@@ -179,7 +179,7 @@ def tool(name: str = None, description: str = "", category: str = "general",
 
 
 def _type_to_str(tp) -> str:
-    """Convert Python type hint to schema string."""
+    """Convert Python type hint to schema string.""""
     import typing
     origin = typing.get_origin(tp)
     if origin is list:
@@ -196,11 +196,11 @@ def _type_to_str(tp) -> str:
     }.get(name, name.lower())
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-#  Global registry
-# ═══════════════════════════════════════════════════════════════════════════
+
+
+
 class WorkerRegistry:
-    """Manage all worker instances for HTTP server."""
+    """Manage all worker instances for HTTP server.""""
     def __init__(self):
         self.workers: Dict[str, BaseWorker] = {}
 

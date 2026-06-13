@@ -31,14 +31,14 @@ dz/dt = b + z(x - c)
 THE DUFFING OSCILLATOR
 ----------------------
 d²x/dt² + δ·dx/dt + α·x + β·x³ = γ·cos(ω·t)
-"""
+""""
 from __future__ import annotations
 import math
 from typing import Callable, List, Tuple
 
 
 def logistic_map(r: float, x0: float, n: int) -> List[float]:
-    """Iterate the logistic map x_{n+1} = r·x_n·(1-x_n)."""
+    """Iterate the logistic map x_{n+1} = r·x_n·(1-x_n).""""
     out = [x0]
     x = x0
     for _ in range(n):
@@ -48,7 +48,7 @@ def logistic_map(r: float, x0: float, n: int) -> List[float]:
 
 
 def henon_map(a: float, b: float, x0: float, y0: float, n: int) -> List[Tuple[float, float]]:
-    """Iterate the Henon map (x, y)_{n+1} = (1 - a·x² + y, b·x)."""
+    """Iterate the Henon map (x, y)_{n+1} = (1 - a·x² + y, b·x).""""
     out = [(x0, y0)]
     x, y = x0, y0
     for _ in range(n):
@@ -65,7 +65,7 @@ def lorenz(sigma: float, rho: float, beta: float,
     """Integrate the Lorenz system using RK4.
 
     The famous "butterfly attractor" with σ=10, ρ=28, β=8/3.
-    """
+    """"
     out = [(x0, y0, z0)]
     x, y, z = x0, y0, z0
     for _ in range(n):
@@ -95,7 +95,7 @@ def lorenz(sigma: float, rho: float, beta: float,
 def rossler(a: float, b: float, c: float,
             x0: float, y0: float, z0: float,
             dt: float = 0.01, n: int = 10000) -> List[Tuple[float, float, float]]:
-    """Integrate the Rossler system using RK4."""
+    """Integrate the Rossler system using RK4.""""
     out = [(x0, y0, z0)]
     x, y, z = x0, y0, z0
     for _ in range(n):
@@ -129,13 +129,13 @@ def duffing(delta: float, alpha: float, beta: float,
     """Integrate the Duffing oscillator.
 
     d²x/dt² + δ·dx/dt + α·x + β·x³ = γ·cos(ω·t)
-    """
+    """"
     out = [(t0, x0, v0)]
     x, v, t = x0, v0, t0
     for _ in range(n):
         a_x = v
         a_v = gamma * math.cos(omega * t) - delta * v - alpha * x - beta * x ** 3
-        # Mid-point
+        
         x_mid = x + 0.5 * dt * a_x
         v_mid = v + 0.5 * dt * a_v
         t_mid = t + 0.5 * dt

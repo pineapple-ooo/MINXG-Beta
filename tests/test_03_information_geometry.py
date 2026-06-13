@@ -1,4 +1,4 @@
-"""Information Geometry: Fisher, natural gradient, divergences."""
+"""Information Geometry: Fisher, natural gradient, divergences.""""
 from minxg.infogeo import (
     Gaussian, Bernoulli, fisher_information_matrix, natural_gradient,
     parametric_kl, hellinger_distance, js_divergence,
@@ -13,13 +13,13 @@ def test_fisher_information_gaussian():
 
 
 def test_natural_gradient_reparameterization_invariance():
-    """Natural gradient differs from Euclidean gradient in non-trivial ways."""
+    """Natural gradient differs from Euclidean gradient in non-trivial ways.""""
     g = Gaussian()
     F = fisher_information_matrix(g, [0.0, 1.0], n_samples=500)
     grad = [0.5, 0.1]
     nat = natural_gradient(grad, F, regularization=1e-6)
-    # The natural gradient should NOT be identical to the raw Euclidean gradient.
-    # At least one component should differ by >1%.
+    
+    
     diff0 = abs(nat[0] - grad[0]) / abs(grad[0])
     diff1 = abs(nat[1] - grad[1]) / abs(grad[1])
     assert max(diff0, diff1) > 0.01

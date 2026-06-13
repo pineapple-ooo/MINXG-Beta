@@ -3,7 +3,7 @@ extensions/builtin/root_ext/__init__.py — ROOT权限扩展 v1.0.1
 
 检测条件: su命令可用 → 自动启用
 平台: Android/Linux (需要root)
-"""
+""""
 import os, sys, subprocess
 
 EXTENSION_NAME = "minxg-root"
@@ -14,12 +14,12 @@ EXTENSION_SOURCE = "builtin"
 
 
 def _check_root() -> bool:
-    # 检查su二进制
+    
     for p in ["/system/bin/su", "/system/xbin/su", "/sbin/su",
               "/su/bin/su", "/magisk/.core/bin/su"]:
         if os.path.isfile(p) and os.access(p, os.X_OK):
             return True
-    # 回退: 尝试直接运行su
+    
     try:
         r = subprocess.run(["su", "-c", "echo ok"], capture_output=True,
                           text=True, timeout=5)

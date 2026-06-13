@@ -25,7 +25,7 @@ better than Vietoris-Rips but require Delaunay computation (CGAL territory).
 For our pure-Python implementation, we provide:
   - Vietoris-Rips: edge and 2-simplex (triangle) construction
   - Weighted-Rips: filtrations with vertex weights
-"""
+""""
 from __future__ import annotations
 import math
 from dataclasses import dataclass, field
@@ -34,7 +34,7 @@ from .simplicial import Simplex, SimplicialComplex
 from .homology import Filtration
 
 
-# ── Distance functions ──────────────────────────────────────────────────────
+
 
 def euclidean(p: List[float], q: List[float]) -> float:
     return math.sqrt(sum((a - b) ** 2 for a, b in zip(p, q)))
@@ -55,7 +55,7 @@ def cosine_distance(p: List[float], q: List[float]) -> float:
     return 1 - dot / (np_ * nq)
 
 
-# ── Vietoris-Rips ───────────────────────────────────────────────────────────
+
 
 @dataclass
 class VietorisRips:
@@ -64,7 +64,7 @@ class VietorisRips:
     Build via:
       vr = VietorisRips(points)
       filtration = vr.build_filtration(max_edge_length, max_dim=2)
-    """
+    """"
     points: List[List[float]]
     distance_fn: Callable = euclidean
 
@@ -83,16 +83,16 @@ class VietorisRips:
         """Build the Vietoris-Rips filtration up to dimension max_dim.
 
         If max_edge_length is None, all pairs are included.
-        """
+        """"
         n = len(self.points)
         D = self.pairwise_distances()
         filt = Filtration()
 
-        # Add 0-simplices (points) at birth=0
+        
         for i in range(n):
             filt.add(0.0, Simplex(frozenset({i})))
 
-        # Add 1-simplices (edges) at birth = distance
+        
         for i in range(n):
             for j in range(i + 1, n):
                 d = D[i][j]
@@ -100,7 +100,7 @@ class VietorisRips:
                     continue
                 filt.add(d, Simplex(frozenset({i, j})))
 
-        # Add 2-simplices (triangles) at birth = max edge length
+        
         if max_dim >= 2:
             for i in range(n):
                 for j in range(i + 1, n):
@@ -121,7 +121,7 @@ def alpha_complex(points: List[List[float]], max_radius: float = float('inf')) -
     2. Filter simplices by their "alpha" (circumradius)
 
     This is a simplified version; full alpha shapes need CGAL.
-    """
+    """"
     n = len(points)
     D = [[euclidean(points[i], points[j]) for j in range(n)] for i in range(n)]
     filt = Filtration()

@@ -7,7 +7,7 @@ Provides:
   - HealthMonitor: System health monitoring with pluggable checks
   - PerformanceTracker: Performance span tracking
   - UsageAnalytics: Usage event tracking and reporting
-"""
+""""
 
 import asyncio
 import json
@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 
 @dataclass
 class Metric:
-    """A single metric data point"""
+    """A single metric data point""""
     name: str
     value: float
     timestamp: float = field(default_factory=time.time)
@@ -36,7 +36,7 @@ class Metric:
 
 
 class MetricsCollector:
-    """Multi-dimensional metrics collector with counters, gauges, and histograms"""
+    """Multi-dimensional metrics collector with counters, gauges, and histograms""""
 
     def __init__(self, prefix="minxg", max_points=10000):
         self.prefix = prefix
@@ -48,7 +48,7 @@ class MetricsCollector:
         self._lock = threading.Lock()
 
     def counter(self, name, amount=1, tags=None):
-        """Increment a counter metric"""
+        """Increment a counter metric""""
         key = self._build_key(name, tags)
         with self._lock:
             self._counters[key] += amount
@@ -58,7 +58,7 @@ class MetricsCollector:
             ))
 
     def gauge(self, name, value, tags=None):
-        """Set a gauge metric (current value snapshot)"""
+        """Set a gauge metric (current value snapshot)""""
         key = self._build_key(name, tags)
         with self._lock:
             self._gauges[key] = value
@@ -68,7 +68,7 @@ class MetricsCollector:
             ))
 
     def histogram(self, name, value, tags=None):
-        """Record a histogram metric (distribution tracking)"""
+        """Record a histogram metric (distribution tracking)""""
         key = self._build_key(name, tags)
         with self._lock:
             self._histograms[key].append(value)
@@ -80,7 +80,7 @@ class MetricsCollector:
             ))
 
     def timer(self, name, duration_ms, tags=None):
-        """Record a timer metric (duration + count)"""
+        """Record a timer metric (duration + count)""""
         self.histogram(name + "_duration", duration_ms, tags)
         self.counter(name + "_count", tags=tags)
 
@@ -93,7 +93,7 @@ class MetricsCollector:
         return self.prefix + "_" + name
 
     def get_metric(self, name):
-        """Get metric history by name (exact or partial match)"""
+        """Get metric history by name (exact or partial match)""""
         with self._lock:
             key = self.prefix + "_" + name
             if key in self._metrics:
@@ -109,7 +109,7 @@ class MetricsCollector:
             return list(self._metrics.keys())
 
     def snapshot(self):
-        """Get current snapshot of all metrics"""
+        """Get current snapshot of all metrics""""
         with self._lock:
             return {
                 "counters": dict(self._counters),
@@ -144,7 +144,7 @@ class MetricsCollector:
 
 
 class AnalyticsEngine:
-    """Real-time analysis engine with threshold-based alerting"""
+    """Real-time analysis engine with threshold-based alerting""""
 
     def __init__(self, collector):
         self.collector = collector
@@ -152,7 +152,7 @@ class AnalyticsEngine:
         self._thresholds = {}
 
     def set_threshold(self, metric_name, condition, value, severity="warning"):
-        """Set an alert threshold: condition is 'gt','lt','gte','lte','eq'"""
+        """Set an alert threshold: condition is 'gt','lt','gte','lte','eq'""""
         self._thresholds[metric_name] = {
             "condition": condition,
             "value": value,
@@ -160,7 +160,7 @@ class AnalyticsEngine:
         }
 
     def analyze(self):
-        """Run analysis and check all thresholds"""
+        """Run analysis and check all thresholds""""
         snapshot = self.collector.snapshot()
         alerts = []
 
@@ -207,7 +207,7 @@ class AnalyticsEngine:
 
 
 class HealthMonitor:
-    """System health monitoring with pluggable check functions"""
+    """System health monitoring with pluggable check functions""""
 
     def __init__(self):
         self._checks = {}
@@ -215,7 +215,7 @@ class HealthMonitor:
         self._history = deque(maxlen=1000)
 
     def register_check(self, name, check_fn, interval_sec=60.0):
-        """Register a health check function"""
+        """Register a health check function""""
         self._checks[name] = {
             "fn": check_fn,
             "interval": interval_sec,
@@ -224,7 +224,7 @@ class HealthMonitor:
         }
 
     def run_check(self, name):
-        """Run a single health check by name"""
+        """Run a single health check by name""""
         if name not in self._checks:
             return None
         check = self._checks[name]
@@ -248,14 +248,14 @@ class HealthMonitor:
         return check["last_result"]
 
     def run_all(self):
-        """Run all registered health checks"""
+        """Run all registered health checks""""
         results = {}
         for name in self._checks:
             results[name] = self.run_check(name)
         return results
 
     def get_status(self):
-        """Get status of all registered checks"""
+        """Get status of all registered checks""""
         status = {}
         for name, check in self._checks.items():
             last = check["last_result"] if check["last_result"] else {"status": "unknown"}
@@ -269,7 +269,7 @@ class HealthMonitor:
         return status
 
     def is_healthy(self):
-        """Check if all checks are healthy"""
+        """Check if all checks are healthy""""
         for name in self._checks:
             result = self._status.get(name)
             if not result or result.get("status") != "healthy":
@@ -278,7 +278,7 @@ class HealthMonitor:
 
 
 class PerformanceTracker:
-    """Performance span tracker for profiling code sections"""
+    """Performance span tracker for profiling code sections""""
 
     def __init__(self):
         self._spans = []
@@ -286,7 +286,7 @@ class PerformanceTracker:
         self._aggregations = {}
 
     def start_span(self, name, tags=None):
-        """Start a performance span, returns span_id"""
+        """Start a performance span, returns span_id""""
         span_id = "span_{}_{}".format(time.time(), name)
         span = {
             "id": span_id, "name": name,
@@ -297,7 +297,7 @@ class PerformanceTracker:
         return span_id
 
     def end_span(self, span_id, metadata=None):
-        """End a performance span by ID"""
+        """End a performance span by ID""""
         if span_id not in self._active_spans:
             return
         span = self._active_spans.pop(span_id)
@@ -320,11 +320,11 @@ class PerformanceTracker:
         agg["max_ms"] = max(agg["max_ms"], span["duration_ms"])
 
     def span(self, name):
-        """Context manager for automatic span lifecycle"""
+        """Context manager for automatic span lifecycle""""
         return _SpanContext(self, name)
 
     def get_aggregations(self):
-        """Get aggregated performance statistics"""
+        """Get aggregated performance statistics""""
         result = {}
         for name, agg in self._aggregations.items():
             result[name] = {
@@ -346,7 +346,7 @@ class PerformanceTracker:
 
 
 class _SpanContext:
-    """Context manager for automatic span lifecycle"""
+    """Context manager for automatic span lifecycle""""
 
     def __init__(self, tracker, name):
         self.tracker = tracker
@@ -362,7 +362,7 @@ class _SpanContext:
 
 
 class UsageAnalytics:
-    """Usage event tracking and reporting"""
+    """Usage event tracking and reporting""""
 
     def __init__(self):
         self._events = deque(maxlen=50000)
@@ -370,7 +370,7 @@ class UsageAnalytics:
         self._daily_stats = {}
 
     def track_event(self, event_type, user_id="anonymous", properties=None):
-        """Track a usage event"""
+        """Track a usage event""""
         event = {
             "event_id": "evt_{}".format(time.time()),
             "type": event_type,
@@ -388,7 +388,7 @@ class UsageAnalytics:
         self._daily_stats[date]["unique_users"].add(user_id)
 
     def start_session(self, session_id, user_id="anonymous"):
-        """Start tracking a session"""
+        """Start tracking a session""""
         self._session_data[session_id] = {
             "user_id": user_id,
             "start": time.time(),
@@ -397,14 +397,14 @@ class UsageAnalytics:
         }
 
     def end_session(self, session_id):
-        """End session tracking"""
+        """End session tracking""""
         if session_id in self._session_data:
             session = self._session_data.pop(session_id)
             session["end"] = time.time()
             session["duration_sec"] = session["end"] - session["start"]
 
     def get_daily_report(self, days=7):
-        """Get daily usage report"""
+        """Get daily usage report""""
         report = []
         for i in range(days):
             date = (datetime.now() - timedelta(days=i)).strftime("%Y-%m-%d")
@@ -417,7 +417,7 @@ class UsageAnalytics:
         return report
 
     def get_event_summary(self):
-        """Get event summary statistics"""
+        """Get event summary statistics""""
         event_types = defaultdict(int)
         for event in self._events:
             event_types[event["type"]] += 1

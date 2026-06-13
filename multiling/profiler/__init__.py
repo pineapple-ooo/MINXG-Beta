@@ -6,7 +6,7 @@ Provides:
   - MemoryProfiler: Memory usage tracking
   - TimingProfiler: Detailed timing analysis
   - ProfileReport: HTML/text profiling reports
-"""
+""""
 
 import asyncio
 import cProfile
@@ -25,7 +25,7 @@ from collections import defaultdict
 
 @dataclass
 class ProfileEntry:
-    """Single profile measurement"""
+    """Single profile measurement""""
     func_name: str
     file: str
     line: int
@@ -48,7 +48,7 @@ class ProfileEntry:
 
 @dataclass
 class MemorySnapshot:
-    """Memory usage snapshot"""
+    """Memory usage snapshot""""
     timestamp: float = field(default_factory=time.time)
     rss_bytes: int = 0
     heap_objects: int = 0
@@ -64,7 +64,7 @@ class MemorySnapshot:
 
 
 class CodeProfiler:
-    """CPU and call-count profiler"""
+    """CPU and call-count profiler""""
 
     def __init__(self):
         self._profiler = cProfile.Profile()
@@ -72,17 +72,17 @@ class CodeProfiler:
         self._snapshots: List[ProfileEntry] = []
 
     def start(self):
-        """Start profiling"""
+        """Start profiling""""
         self._profiler.enable()
         self._active = True
 
     def stop(self):
-        """Stop profiling"""
+        """Stop profiling""""
         self._profiler.disable()
         self._active = False
 
     def snapshot(self) -> List[ProfileEntry]:
-        """Get current profile snapshot"""
+        """Get current profile snapshot""""
         stream = io.StringIO()
         stats = pstats.Stats(self._profiler, stream=stream)
         stats.strip_dirs().sort_stats("cumulative")
@@ -107,7 +107,7 @@ class CodeProfiler:
         return entries[:50]
 
     def get_report(self, limit: int = 20, sort: str = "cumtime") -> str:
-        """Generate text profiling report"""
+        """Generate text profiling report""""
         entries = self.snapshot()
 
         lines = []
@@ -116,7 +116,7 @@ class CodeProfiler:
         lines.append("=" * 80)
         lines.append("")
 
-        # Sort entries
+        
         if sort == "cumtime":
             entries.sort(key=lambda e: e.cumtime, reverse=True)
         elif sort == "tottime":
@@ -145,7 +145,7 @@ class CodeProfiler:
         return "\n".join(lines)
 
     def profile_function(self, func: Callable) -> Callable:
-        """Decorator to profile a function"""
+        """Decorator to profile a function""""
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             self.start()
@@ -156,7 +156,7 @@ class CodeProfiler:
         return wrapper
 
     def profile_async(self, func: Callable) -> Callable:
-        """Decorator to profile an async function"""
+        """Decorator to profile an async function""""
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             self.start()
@@ -172,14 +172,14 @@ class CodeProfiler:
 
 
 class MemoryProfiler:
-    """Memory usage profiler"""
+    """Memory usage profiler""""
 
     def __init__(self):
         self._snapshots: List[MemorySnapshot] = []
         self._tracking = False
 
     def take_snapshot(self) -> MemorySnapshot:
-        """Take a memory usage snapshot"""
+        """Take a memory usage snapshot""""
         try:
             import resource
             rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024
@@ -201,7 +201,7 @@ class MemoryProfiler:
         return snap
 
     def get_trend(self) -> Dict:
-        """Get memory usage trend"""
+        """Get memory usage trend""""
         if len(self._snapshots) < 2:
             return {"snapshots": len(self._snapshots)}
 
@@ -218,7 +218,7 @@ class MemoryProfiler:
         }
 
     def track(self, func: Callable) -> Callable:
-        """Decorator to track memory around function call"""
+        """Decorator to track memory around function call""""
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             before = self.take_snapshot()
@@ -230,7 +230,7 @@ class MemoryProfiler:
         return wrapper
 
     def get_report(self) -> str:
-        """Generate memory profiling report"""
+        """Generate memory profiling report""""
         trend = self.get_trend()
         lines = [
             "=" * 50,
@@ -249,21 +249,21 @@ class MemoryProfiler:
 
 
 class TimingProfiler:
-    """Detailed timing profiler for code sections"""
+    """Detailed timing profiler for code sections""""
 
     def __init__(self):
         self._timings: Dict[str, List[float]] = defaultdict(list)
 
     def time(self, label: str) -> "TimingProfiler":
-        """Context manager for timing a code section"""
+        """Context manager for timing a code section""""
         return _TimingContext(self, label)
 
     def record(self, label: str, duration_ms: float):
-        """Manually record a timing"""
+        """Manually record a timing""""
         self._timings[label].append(duration_ms)
 
     def time_function(self, func: Callable) -> Callable:
-        """Decorator to time function execution"""
+        """Decorator to time function execution""""
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             start = time.perf_counter()
@@ -274,7 +274,7 @@ class TimingProfiler:
         return wrapper
 
     def time_async(self, func: Callable) -> Callable:
-        """Decorator to time async function execution"""
+        """Decorator to time async function execution""""
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             start = time.perf_counter()
@@ -285,7 +285,7 @@ class TimingProfiler:
         return wrapper
 
     def get_stats(self, label: str = None) -> Dict:
-        """Get timing statistics"""
+        """Get timing statistics""""
         if label:
             return self._compute_stats(label, self._timings.get(label, []))
         return {k: self._compute_stats(k, v) for k, v in self._timings.items()}
@@ -312,7 +312,7 @@ class TimingProfiler:
 
 
 class _TimingContext:
-    """Timing context manager"""
+    """Timing context manager""""
 
     def __init__(self, profiler: TimingProfiler, label: str):
         self.profiler = profiler
@@ -329,7 +329,7 @@ class _TimingContext:
 
 
 class ProfileReport:
-    """Generate profiling reports"""
+    """Generate profiling reports""""
 
     def __init__(self, code_profiler: CodeProfiler = None,
                  mem_profiler: MemoryProfiler = None,
@@ -339,7 +339,7 @@ class ProfileReport:
         self.timing = timing_profiler
 
     def generate_text_report(self) -> str:
-        """Generate comprehensive text report"""
+        """Generate comprehensive text report""""
         lines = ["=" * 80, "PROFILE REPORT", "=" * 80, ""]
 
         if self.memory:
@@ -372,7 +372,7 @@ class ProfileReport:
         return "\n".join(lines)
 
     def generate_html_report(self) -> str:
-        """Generate basic HTML profiling report"""
+        """Generate basic HTML profiling report""""
         parts = [
             "<html><head><title>Profile Report</title>",
             "<style>body{font-family:monospace;margin:20px;} "

@@ -32,19 +32,19 @@ categorical foundation of:
 We implement Yoneda-style operator representation: each operator is encoded
 by its behavior on a fixed test set, producing a "natural embedding" that
 is canonically determined (up to natural isomorphism).
-"""
+""""
 from __future__ import annotations
 from typing import Any, Callable, Dict, List, Tuple
 from .functor import Functor
 
 
-# ── Representable functor ───────────────────────────────────────────────────
+
 
 class Representable(Functor):
     """A representable functor Hom(A, -) for some fixed object A.
 
     Internally stored as a function from B -> Set of morphisms A->B.
-    """
+    """"
 
     def __init__(self, source: str, mapping: Callable[[Any], List[Any]]):
         self.source = source
@@ -53,7 +53,7 @@ class Representable(Functor):
     def fmap(self, f: Callable[[Any], Any]) -> "Representable":
         """fmap(g): Hom(A, B) -> Hom(A, C) for g: B -> C
         Compose: g ∘ h for h: A -> B, so the result is A -> C.
-        """
+        """"
         new_mapping = lambda b: [f(h) for h in self._mapping(b)]
         return Representable(self.source, new_mapping)
 
@@ -61,7 +61,7 @@ class Representable(Functor):
         return self._mapping(target)
 
 
-# ── Yoneda embedding ─────────────────────────────────────────────────────────
+
 
 def yoneda_embedding(operator: Callable, test_inputs: List[Any]) -> List[Any]:
     """The Yoneda embedding: encode an operator by its behavior on a test set.
@@ -77,11 +77,11 @@ def yoneda_embedding(operator: Callable, test_inputs: List[Any]) -> List[Any]:
 
     Returns:
         A list of outputs — the operator's Yoneda representation
-    """
+    """"
     return [operator(x) for x in test_inputs]
 
 
-# ── Natural transformation ───────────────────────────────────────────────────
+
 
 class NaturalTransformation:
     """A natural transformation η: F → G is a family of morphisms
@@ -91,25 +91,25 @@ class NaturalTransformation:
 
     In our context: a "polymorphic operator adapter" that works on multiple
     functor contexts consistently.
-    """
+    """"
 
     def __init__(self, name: str, components: Dict[Any, Callable]):
         self.name = name
-        self.components = components  # type A -> F(A) -> G(A)
+        self.components = components  
 
     def apply(self, a: Any, fa: Any) -> Any:
         return self.components[a](fa)
 
     def verify_naturality(self, f: Callable, a: Any, b: Any, fa: Any, fb: Any) -> bool:
-        """Check naturality: η_B(F(f)(fa)) = G(f)(η_A(fa))."""
+        """Check naturality: η_B(F(f)(fa)) = G(f)(η_A(fa)).""""
         try:
-            lhs = self.apply(b, fb)  # assumes f: A → B and we passed fb = F(f)(fa)
+            lhs = self.apply(b, fb)  
             return True
         except Exception:
             return False
 
 
-# ── Representable ────────────────────────────────────────────────────────────
+
 
 def representable(operator: Callable, all_targets: List[Any]) -> Representable:
     """Build the representable functor Hom(A, -) where A is operator's domain.
@@ -120,9 +120,9 @@ def representable(operator: Callable, all_targets: List[Any]) -> Representable:
 
     Returns:
         A Representable functor that maps each B to [f(x) for x in A's samples]
-    """
-    # For a single operator, we can't actually iterate over all A's; we
-    # record the operator itself as the "morphism" for each target
+    """"
+    
+    
     return Representable(
         source=operator.__name__ if hasattr(operator, "__name__") else str(operator),
         mapping=lambda b: [operator(b)],

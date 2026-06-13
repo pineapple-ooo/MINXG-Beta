@@ -3,7 +3,7 @@ minxg/fiber/operators_fiber.py — Register Fiber Bundle operators
 ==========================================================================
 
 50+ fiber bundle operators. Operator IDs 6000-6499 are reserved.
-"""
+""""
 from __future__ import annotations
 import math
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -19,7 +19,7 @@ def register_fiber_operators():
     reg = OPERATOR_REGISTRY
     op_id = 6000
 
-    # ── Bundle construction (6000-6019) ─────────────────────────────────
+    
     def make_vector_bundle(base_dim, fiber_dim):
         return VectorBundle(int(base_dim), int(fiber_dim))
     reg.register(Operator(op_id, "fiber_vector_bundle", "fiber",
@@ -33,14 +33,14 @@ def register_fiber_operators():
                           ["int", "int", "string"], "bundle", True, make_principal_bundle)); op_id += 1
 
     def make_tangent_bundle(dim, metric_fn_str):
-        """Build a tangent bundle with a string-defined metric function."""
+        """Build a tangent bundle with a string-defined metric function.""""
         metric_callable = eval("lambda p: " + metric_fn_str) if isinstance(metric_fn_str, str) else metric_fn_str
         return TangentBundle(int(dim), RiemannianMetric(metric_callable))
     reg.register(Operator(op_id, "fiber_tangent_bundle", "fiber",
                           "Tangent bundle T(M) with metric",
                           ["int", "string"], "bundle", True, make_tangent_bundle)); op_id += 1
 
-    # Standard metrics
+    
     for name, fn in [
         ("fiber_metric_euclidean_2", lambda p: [[1, 0], [0, 1]]),
         ("fiber_metric_euclidean_3", lambda p: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]),
@@ -53,7 +53,7 @@ def register_fiber_operators():
                               [], "metric", True, fn))
         op_id += 1
 
-    # ── Connection operations (6020-6039) ───────────────────────────────
+    
     def make_connection(dim):
         return Connection(int(dim))
     reg.register(Operator(op_id, "fiber_connection", "fiber",
@@ -61,11 +61,11 @@ def register_fiber_operators():
                           ["int"], "connection", True, make_connection)); op_id += 1
 
     def make_connection_levi_civita(dim, metric_fn_str):
-        """Levi-Civita connection from a metric (Christoffel symbols)."""
+        """Levi-Civita connection from a metric (Christoffel symbols).""""
         metric_callable = eval("lambda p: " + metric_fn_str) if isinstance(metric_fn_str, str) else metric_fn_str
         metric = RiemannianMetric(metric_callable)
         tb = TangentBundle(int(dim), metric)
-        # Return a connection that uses the Levi-Civita Christoffel symbols
+        
         def lc_fn(point):
             return tb.levi_civita(point)
         return Connection(int(dim), lc_fn)
@@ -79,7 +79,7 @@ def register_fiber_operators():
                           "Christoffel symbols Γ^i_jk at a point",
                           ["connection", "array"], "tensor3", True, christoffel_at)); op_id += 1
 
-    # ── Parallel transport (6040-6059) ─────────────────────────────────
+    
     def make_pt(conn, curve_fn_str, t_min, t_max):
         curve = eval("lambda t: " + curve_fn_str) if isinstance(curve_fn_str, str) else curve_fn_str
         return ParallelTransport(conn, curve, float(t_min), float(t_max))
@@ -100,7 +100,7 @@ def register_fiber_operators():
                           "Holonomy: parallel transport around a closed loop",
                           ["transport", "array", "int"], "array", True, pt_holonomy)); op_id += 1
 
-    # ── Curvature (6060-6079) ───────────────────────────────────────────
+    
     def make_curvature(conn):
         return Curvature(conn)
     reg.register(Operator(op_id, "fiber_curvature", "fiber",
@@ -125,7 +125,7 @@ def register_fiber_operators():
                           "Scalar curvature R = g^jl R_jl",
                           ["curvature", "array", "metric"], "number", True, scalar_curvature_at)); op_id += 1
 
-    # ── Section & covariant derivative (6080-6099) ────────────────────
+    
     def make_section(section_fn_str, fiber_dim):
         fn = eval("lambda p: " + section_fn_str) if isinstance(section_fn_str, str) else section_fn_str
         return Section(fn, int(fiber_dim))
@@ -164,7 +164,7 @@ def register_fiber_operators():
                           "Covariant Laplacian Δ s = Σ_i D_i D_i s",
                           ["cov_deriv", "section", "array"], "array", True, laplacian)); op_id += 1
 
-    # ── Tangent bundle (6100-6119) ─────────────────────────────────────
+    
     def geodesic(tb, point, velocity, t_max, n_steps):
         return tb.geodesic(list(point), list(velocity), float(t_max), int(n_steps))
     reg.register(Operator(op_id, "fiber_geodesic", "fiber",
@@ -185,7 +185,7 @@ def register_fiber_operators():
                           "Levi-Civita Christoffel symbols at a point",
                           ["bundle", "array"], "tensor3", True, levi_civita)); op_id += 1
 
-    # ── Frame bundle (6120-6139) ───────────────────────────────────────
+    
     def make_frame_bundle(base_dim, group):
         return FrameBundle(int(base_dim), str(group))
     reg.register(Operator(op_id, "fiber_frame_bundle", "fiber",
@@ -210,7 +210,7 @@ def register_fiber_operators():
                           "Inverse vielbein e^μ_a",
                           ["vielbein", "array"], "matrix", True, vielbein_inverse)); op_id += 1
 
-    # ── Metric operations (6140-6159) ──────────────────────────────────
+    
     def metric_at(m, point):
         return m.at(list(point))
     reg.register(Operator(op_id, "fiber_metric_at", "fiber",
@@ -229,11 +229,11 @@ def register_fiber_operators():
                           "Riemannian norm |v|_g",
                           ["metric", "array", "array"], "number", True, metric_norm)); op_id += 1
 
-    # ── Standard manifolds (6160+) ────────────────────────────────────
+    
     def sphere_n(n):
-        """S^n as a Riemannian manifold."""
+        """S^n as a Riemannian manifold.""""
         dim = int(n) + 1
-        # Standard sphere metric
+        
         return TangentBundle(int(n), RiemannianMetric(
             lambda p: [[1.0 if i == j else 0.0 for j in range(int(n))] for i in range(int(n))]
         ))
@@ -244,7 +244,7 @@ def register_fiber_operators():
         op_id += 1
 
     def hyperbolic_n(n):
-        """H^n as a Riemannian manifold (hyperboloid model)."""
+        """H^n as a Riemannian manifold (hyperboloid model).""""
         dim = int(n)
         return TangentBundle(dim, RiemannianMetric(
             lambda p: [[1.0 if i == j else 0.0 for j in range(dim)] for i in range(dim)]

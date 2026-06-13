@@ -2,7 +2,7 @@
 02 — Category Theory: morphisms, monads, and the Yoneda embedding.
 
 Type-safe operator composition with mathematical guarantees.
-"""
+""""
 import minxg.cat as cat
 from minxg.cat import Maybe, MaybeM, State, IdentityM, yoneda_embedding
 
@@ -15,7 +15,7 @@ assert pipeline(12345) == 5
 print(f"pipeline(42) = {pipeline(42)}")
 
 try:
-    bad = f >> h  # string and float dont match
+    bad = f >> h  
     assert False, "should have raised TypeError"
 except TypeError as e:
     print(f"type error caught: {e}")

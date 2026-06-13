@@ -3,7 +3,7 @@ minxg/infogeo/connection.py — α-Connections (pure Python)
 =================================================================
 
 Amari's α-connection on statistical manifolds — pure Python.
-"""
+""""
 from __future__ import annotations
 import math
 from typing import List, Optional
@@ -14,7 +14,7 @@ from .manifold import (
 
 
 def alpha_connection(manifold: StatisticalManifold, theta, alpha: float) -> List[List[List[float]]]:
-    """Amari's α-connection Christoffel symbols (3-tensor)."""
+    """Amari's α-connection Christoffel symbols (3-tensor).""""
     theta = list(theta)
     d = manifold.family.dim()
     x_samples = manifold.family.sample(theta, manifold.n_samples)
@@ -73,7 +73,7 @@ def m_connection(manifold, theta): return alpha_connection(manifold, theta, -1.0
 
 def parallel_transport(manifold, theta, vector, alpha=0.0,
                        n_steps=50, direction=None) -> List[float]:
-    """Parallel transport V along geodesic in direction d."""
+    """Parallel transport V along geodesic in direction d.""""
     if direction is None:
         n_v = vec_norm(vector) + 1e-12
         direction = vec_scale(vector, 1.0 / n_v)
@@ -93,7 +93,7 @@ def parallel_transport(manifold, theta, vector, alpha=0.0,
 
 
 def exponential_map(manifold, theta, velocity, t=1.0) -> List[float]:
-    """Exponential map on manifold: exp_θ(tv)."""
+    """Exponential map on manifold: exp_θ(tv).""""
     theta = list(theta); velocity = list(velocity)
     n_steps = 50; dt = t / n_steps
     cur = list(theta); v = list(velocity); d = len(v)

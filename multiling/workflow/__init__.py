@@ -7,7 +7,7 @@ workflow.py — DAG 工作流引擎
   - 拓扑排序执行
   - 并行执行支持
   - 失败重试与回滚
-"""
+""""
 
 import asyncio
 import json
@@ -39,7 +39,7 @@ class NodeStatus(Enum):
 
 @dataclass
 class Node:
-    """工作流节点"""
+    """工作流节点""""
     id: str = field(default_factory=lambda: f"node_{uuid.uuid4().hex[:8]}")
     name: str = ""
     node_type: NodeType = NodeType.TASK
@@ -55,7 +55,7 @@ class Node:
     weight: float = 1.0
     metadata: Dict = field(default_factory=dict)
 
-    # 运行时状态
+    
     status: NodeStatus = NodeStatus.PENDING
     result: Any = None
     error: Optional[str] = None
@@ -76,22 +76,22 @@ class Node:
 
 
 class DAG:
-    """有向无环图结构"""
+    """有向无环图结构""""
 
     def __init__(self, name: str = "workflow"):
         self.name = name
         self._nodes: Dict[str, Node] = {}
-        self._adjacency: Dict[str, List[str]] = defaultdict(list)  # source -> [targets]
-        self._reverse: Dict[str, List[str]] = defaultdict(list)    # target -> [sources]
+        self._adjacency: Dict[str, List[str]] = defaultdict(list)  
+        self._reverse: Dict[str, List[str]] = defaultdict(list)    
         self._created_at = time.time()
 
     def add_node(self, node: Node) -> str:
-        """添加节点"""
+        """添加节点""""
         self._nodes[node.id] = node
         return node.id
 
     def add_edge(self, source_id: str, target_id: str):
-        """添加有向边 source -> target"""
+        """添加有向边 source -> target""""
         if source_id not in self._nodes:
             raise ValueError(f"Unknown source node: {source_id}")
         if target_id not in self._nodes:
@@ -99,15 +99,15 @@ class DAG:
         if target_id not in self._adjacency[source_id]:
             self._adjacency[source_id].append(target_id)
             self._reverse[target_id].append(source_id)
-            # 更新节点的依赖
+            
             if source_id not in self._nodes[target_id].depends_on:
                 self._nodes[target_id].depends_on.append(source_id)
 
     def remove_node(self, node_id: str):
-        """移除节点及其关联边"""
+        """移除节点及其关联边""""
         if node_id in self._nodes:
             del self._nodes[node_id]
-            # 清理边
+            
             for targets in self._adjacency.values():
                 if node_id in targets:
                     targets.remove(node_id)
@@ -120,15 +120,15 @@ class DAG:
                     sources.remove(node_id)
 
     def get_upstream(self, node_id: str) -> List[str]:
-        """获取上游节点"""
+        """获取上游节点""""
         return self._reverse.get(node_id, [])
 
     def get_downstream(self, node_id: str) -> List[str]:
-        """获取下游节点"""
+        """获取下游节点""""
         return self._adjacency.get(node_id, [])
 
     def topological_sort(self) -> List[str]:
-        """拓扑排序（Kahn算法）"""
+        """拓扑排序（Kahn算法）""""
         in_degree = {nid: 0 for nid in self._nodes}
         for nid in self._nodes:
             for dep in self._reverse.get(nid, []):
@@ -152,7 +152,7 @@ class DAG:
         return result
 
     def validate(self) -> Tuple[bool, List[str]]:
-        """验证 DAG 有效性（无环、依赖存在）"""
+        """验证 DAG 有效性（无环、依赖存在）""""
         errors = []
         try:
             self.topological_sort()
@@ -167,7 +167,7 @@ class DAG:
         return len(errors) == 0, errors
 
     def reset(self):
-        """重置所有节点状态"""
+        """重置所有节点状态""""
         for node in self._nodes.values():
             node.status = NodeStatus.PENDING
             node.result = None
@@ -196,7 +196,7 @@ class WorkflowEngine:
     - sequential: 严格按拓扑序串行执行
     - parallel: 无依赖节点并行执行
     - hybrid: 默认，并行执行但控制并发度
-    """
+    """"
 
     def __init__(self, max_workers: int = 4, retry_policy: Dict = None):
         self.max_workers = max_workers
@@ -210,15 +210,15 @@ class WorkflowEngine:
         self._context: Dict[str, Any] = {}
 
     def load_dag(self, dag: DAG):
-        """加载 DAG"""
+        """加载 DAG""""
         self._dag = dag
 
     def set_context(self, key: str, value: Any):
-        """设置执行上下文"""
+        """设置执行上下文""""
         self._context[key] = value
 
     def get_context(self, key: str, default=None) -> Any:
-        """获取执行上下文"""
+        """获取执行上下文""""
         return self._context.get(key, default)
 
     async def run(self, mode: str = "hybrid") -> Dict:
@@ -227,7 +227,7 @@ class WorkflowEngine:
 
         Returns:
             {status, results, errors, duration, stats}
-        """
+        """"
         if not self._dag:
             return {"status": "error", "error": "No DAG loaded"}
 
@@ -251,7 +251,7 @@ class WorkflowEngine:
         return result
 
     async def _run_sequential(self) -> Dict:
-        """串行执行"""
+        """串行执行""""
         order = self._dag.topological_sort()
         results = {}
 
@@ -262,7 +262,7 @@ class WorkflowEngine:
             node.attempts += 1
 
             try:
-                # 收集上游结果作为输入
+                
                 upstream_results = {
                     dep_id: self._dag._nodes[dep_id].result
                     for dep_id in self._dag.get_upstream(node_id)
@@ -293,13 +293,13 @@ class WorkflowEngine:
         return {"status": "completed", "results": results}
 
     async def _run_parallel(self) -> Dict:
-        """并行执行所有节点（需满足依赖）"""
+        """并行执行所有节点（需满足依赖）""""
         results = {}
         pending = set(self._dag._nodes.keys())
         completed = set()
 
         while pending:
-            # 找出所有依赖已满足的节点
+            
             ready = [
                 nid for nid in pending
                 if all(dep in completed
@@ -308,7 +308,7 @@ class WorkflowEngine:
             if not ready:
                 break
 
-            # 并行执行
+            
             tasks = {
                 nid: asyncio.create_task(self._execute_node(nid))
                 for nid in ready
@@ -331,16 +331,16 @@ class WorkflowEngine:
         return {"status": status, "results": results}
 
     async def _run_hybrid(self) -> Dict:
-        """混合执行（带并发控制）"""
+        """混合执行（带并发控制）""""
         results = {}
         pending = set(self._dag._nodes.keys())
         completed = set()
-        running = {}  # nid -> task
+        running = {}  
 
         semaphore = asyncio.Semaphore(self.max_workers)
 
         while pending or running:
-            # 启动就绪任务
+            
             ready = [
                 nid for nid in pending
                 if all(dep in completed
@@ -357,12 +357,12 @@ class WorkflowEngine:
             if not running:
                 break
 
-            # 等待任一完成
+            
             done, pending_tasks = await asyncio.wait(
                 running.values(), return_when=asyncio.FIRST_COMPLETED
             )
 
-            # 更新状态
+            
             new_running = {}
             for nid, task in running.items():
                 if task in done:
@@ -380,7 +380,7 @@ class WorkflowEngine:
         return {"status": status, "results": results}
 
     async def _execute_node(self, node_id: str) -> Dict:
-        """执行单个节点"""
+        """执行单个节点""""
         node = self._dag._nodes[node_id]
         node.status = NodeStatus.RUNNING
         node.started_at = time.time()
@@ -426,12 +426,12 @@ class WorkflowEngine:
             return await self._execute_node(node_id)
 
     def _should_retry(self, node: Node) -> bool:
-        """检查是否应该重试"""
+        """检查是否应该重试""""
         return (node.attempts < node.max_retries
                 and node.attempts < self.retry_policy["max_retries"])
 
     def _log_execution(self, node: Node, status: str):
-        """记录执行日志"""
+        """记录执行日志""""
         self._execution_log.append({
             "node_id": node.id, "node_name": node.name,
             "status": status,
@@ -443,7 +443,7 @@ class WorkflowEngine:
         })
 
     def _get_stats(self) -> Dict:
-        """获取执行统计"""
+        """获取执行统计""""
         total = len(self._dag._nodes) if self._dag else 0
         success = sum(1 for n in self._dag._nodes.values()
                      if n.status == NodeStatus.SUCCESS)
@@ -461,14 +461,14 @@ class WorkflowEngine:
         return self._execution_log.copy()
 
 
-# ── 内置工作流模板 ─────────────────────────────────────────────────
+
 
 class WorkflowTemplates:
-    """内置工作流模板"""
+    """内置工作流模板""""
 
     @staticmethod
     def etl_pipeline(source_func, transform_func, load_func) -> DAG:
-        """ETL 数据管道模板"""
+        """ETL 数据管道模板""""
         dag = DAG("etl_pipeline")
 
         source = Node(
@@ -494,7 +494,7 @@ class WorkflowTemplates:
 
     @staticmethod
     def parallel_processing(tasks: List[Tuple[str, Callable]]) -> DAG:
-        """并行处理模板"""
+        """并行处理模板""""
         dag = DAG("parallel_processing")
 
         aggregator = Node(
@@ -513,7 +513,7 @@ class WorkflowTemplates:
     @staticmethod
     def ml_pipeline(preprocess_func, train_func, evaluate_func,
                     deploy_func=None) -> DAG:
-        """机器学习管道模板"""
+        """机器学习管道模板""""
         dag = DAG("ml_pipeline")
 
         nodes = {
@@ -537,7 +537,7 @@ class WorkflowTemplates:
 
     @staticmethod
     def decision_tree(condition_func, true_func, false_func) -> DAG:
-        """条件分支模板"""
+        """条件分支模板""""
         dag = DAG("decision_tree")
 
         condition = Node(

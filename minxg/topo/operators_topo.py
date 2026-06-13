@@ -3,7 +3,7 @@ minxg/topo/operators_topo.py — Register Topological operators
 ====================================================================
 
 100+ topological operators. Operator IDs 8000-8499 are reserved.
-"""
+""""
 from __future__ import annotations
 import math
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -16,7 +16,7 @@ from .mapper import mapper_algorithm, cover, _single_link_cluster
 
 
 def _to_complex(data: Dict) -> SimplicialComplex:
-    """Reconstruct a SimplicialComplex from a dict."""
+    """Reconstruct a SimplicialComplex from a dict.""""
     c = SimplicialComplex()
     for s in data.get("simplices", []):
         c.add(Simplex(frozenset(s)))
@@ -52,7 +52,7 @@ def register_topo_operators():
     reg = OPERATOR_REGISTRY
     op_id = 8000
 
-    # ── Simplex & complex construction (8000-8019) ─────────────────────
+    
     def make_simplex(vertices):
         return {"vertices": sorted(list(vertices))}
     reg.register(Operator(op_id, "topo_make_simplex", "topo",
@@ -75,9 +75,9 @@ def register_topo_operators():
                           "Empty simplicial complex",
                           [], "complex", True, empty_complex)); op_id += 1
 
-    # ── Standard complexes (8020-8039) ──────────────────────────────────
+    
     def simplex_n(n):
-        """A single (n-1)-simplex with n vertices."""
+        """A single (n-1)-simplex with n vertices.""""
         c = SimplicialComplex()
         s = Simplex(frozenset(range(n)))
         c.add(s)
@@ -89,7 +89,7 @@ def register_topo_operators():
         op_id += 1
 
     def sphere_n(n):
-        """An n-sphere: boundary of an (n+1)-simplex."""
+        """An n-sphere: boundary of an (n+1)-simplex.""""
         c = SimplicialComplex()
         s = Simplex(frozenset(range(n + 2)))
         c.add(s)
@@ -106,7 +106,7 @@ def register_topo_operators():
         """A simplicial model of the torus with 4 vertices, 5 edges, 2 triangles.
 
         Uses a wedge of 2 triangles sharing an edge.
-        """
+        """"
         c = SimplicialComplex()
         c.add(Simplex(frozenset({0})))
         c.add(Simplex(frozenset({0, 1})))
@@ -119,11 +119,11 @@ def register_topo_operators():
                           [], "complex", True, torus)); op_id += 1
 
     def klein_bottle():
-        """A minimal triangulation of the Klein bottle (8 vertices)."""
+        """A minimal triangulation of the Klein bottle (8 vertices).""""
         c = SimplicialComplex()
         for v in range(8):
             c.add(Simplex(frozenset({v})))
-        # 16 triangles for the minimal Klein bottle
+        
         triangles = [
             (0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 5),
             (0, 5, 6), (0, 6, 7), (0, 1, 7), (1, 2, 5),
@@ -135,7 +135,7 @@ def register_topo_operators():
         return _from_complex(c)
 
     def projective_plane():
-        """A minimal triangulation of RP² (6 vertices, 10 triangles)."""
+        """A minimal triangulation of RP² (6 vertices, 10 triangles).""""
         c = SimplicialComplex()
         for v in range(6):
             c.add(Simplex(frozenset({v})))
@@ -150,7 +150,7 @@ def register_topo_operators():
                           "Triangulated RP² (non-orientable, β_0=1, β_1=0, β_2=0)",
                           [], "complex", True, projective_plane)); op_id += 1
 
-    # ── Complex queries (8040-8059) ─────────────────────────────────────
+    
     def n_simplices(c_data, k):
         c = _to_complex(c_data)
         return c.n_simplices(int(k))
@@ -198,7 +198,7 @@ def register_topo_operators():
                           "Boundary operator ∂_k as matrix",
                           ["complex", "int"], "matrix", True, boundary_matrix)); op_id += 1
 
-    # ── Betti numbers & Euler (8060-8079) ───────────────────────────────
+    
     def betti_op(c_data, max_dim):
         return _to_complex(c_data).betti_numbers()[:int(max_dim) + 1]
     reg.register(Operator(op_id, "topo_betti_numbers", "topo",
@@ -217,7 +217,7 @@ def register_topo_operators():
                           "Euler characteristic χ = Σ (-1)^k n_k",
                           ["complex"], "int", True, euler_op)); op_id += 1
 
-    # Standard Betti lookups for the standard complexes
+    
     for name, fn in [
         ("topo_b0", lambda c: _to_complex(c).betti_number(0)),
         ("topo_b1", lambda c: _to_complex(c).betti_number(1)),
@@ -229,7 +229,7 @@ def register_topo_operators():
                               ["complex"], "int", True, fn))
         op_id += 1
 
-    # ── Persistent homology (8080-8099) ────────────────────────────────
+    
     def persistent_op(filt_data, max_dim):
         filt = _to_filtration(filt_data)
         features = persistent_homology(filt, int(max_dim))
@@ -239,7 +239,7 @@ def register_topo_operators():
                           ["filtration", "int"], "features", True, persistent_op)); op_id += 1
 
     def make_filtration(items):
-        """items: list of [birth, vertices]"""
+        """items: list of [birth, vertices]""""
         f = Filtration()
         for birth, verts in items:
             f.add(float(birth), Simplex(frozenset(verts)))
@@ -249,7 +249,7 @@ def register_topo_operators():
                           "Build a filtration",
                           ["list"], "filtration", True, make_filtration)); op_id += 1
 
-    # ── Vietoris-Rips (8100-8119) ──────────────────────────────────────
+    
     def vietoris_rips(points, max_edge, max_dim):
         vr = VietorisRips(_to_points(points))
         filt = vr.build_filtration(max_edge_length=float(max_edge) if max_edge != 0 else None,
@@ -266,7 +266,7 @@ def register_topo_operators():
                           "Pairwise Euclidean distances between points",
                           ["list"], "matrix", True, pairwise_distances)); op_id += 1
 
-    # Distances
+    
     def dist_euclidean(p, q): return euclidean(list(p), list(q))
     def dist_chebyshev(p, q): return chebyshev(list(p), list(q))
     def dist_manhattan(p, q): return manhattan(list(p), list(q))
@@ -282,14 +282,14 @@ def register_topo_operators():
                               ["array", "array"], "number", True, fn))
         op_id += 1
 
-    # ── Alpha complex (8120-8129) ─────────────────────────────────────
+    
     def alpha_op(points, max_radius):
         return _from_filtration(alpha_complex(_to_points(points), float(max_radius)))
     reg.register(Operator(op_id, "topo_alpha_complex", "topo",
                           "Build alpha-complex filtration",
                           ["list", "number"], "filtration", True, alpha_op)); op_id += 1
 
-    # ── Persistence diagram & image (8130-8149) ──────────────────────
+    
     def make_diagram(points_list):
         d = PersistenceDiagram()
         for b, dd in points_list:
@@ -339,12 +339,12 @@ def register_topo_operators():
                           ["diagram", "diagram", "int"], "number", True, wasserstein)); op_id += 1
 
     def bottleneck(dgm1, dgm2):
-        return wasserstein(dgm1, dgm2, 9999)  # L^∞ approximation
+        return wasserstein(dgm1, dgm2, 9999)  
     reg.register(Operator(op_id, "topo_bottleneck", "topo",
                           "Bottleneck distance between diagrams (L^∞)",
                           ["diagram", "diagram"], "number", True, bottleneck)); op_id += 1
 
-    # ── Mapper (8150-8169) ───────────────────────────────────────────
+    
     def mapper_op(points, filter_fn, n_int, overlap, eps):
         result = mapper_algorithm(
             _to_points(points),
@@ -365,7 +365,7 @@ def register_topo_operators():
                           "Generate an overlapping cover of [f_min, f_max]",
                           ["int", "number", "number", "number"], "list", True, cover_op)); op_id += 1
 
-    # ── Simplex operations (8170-8189) ──────────────────────────────
+    
     def dim_of_simplex(s):
         return Simplex(frozenset(s)).dimension
     reg.register(Operator(op_id, "topo_simplex_dim", "topo",
@@ -394,7 +394,7 @@ def register_topo_operators():
                           "Add a simplex (and all its faces) to the complex",
                           ["complex", "array"], "complex", True, add_simplex)); op_id += 1
 
-    # ── Standard complexes Betti numbers (preset queries) (8190+) ──
+    
     presets = [
         ("topo_sphere_1_betti", [1, 0, 0], "Betti numbers of 1-sphere (circle)"),
         ("topo_sphere_2_betti", [1, 0, 1], "Betti numbers of 2-sphere"),

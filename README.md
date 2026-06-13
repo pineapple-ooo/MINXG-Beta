@@ -1,6 +1,8 @@
-# MINXG — Multi-Language AI Orchestration Framework
+# MINXG-Beta — Multi-Language AI Orchestration Framework
 
-> **Six mathematical pillars. 376 operators. 100% pure Python.震碎其他 AI Agent 世界观.**
+> **Six mathematical pillars. 376 operators. Native C/C++/Go acceleration. Pure-Python runtime.**
+
+**Project name**: `MINXG-Beta`  ·  **Python package name**: `minxg`  ·  **CLI command**: `minxg`
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)

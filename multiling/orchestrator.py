@@ -6,7 +6,7 @@ Enhanced with true infinite context support via:
 - Token budget management with sliding window
 - Hierarchical memory layers (episodic + semantic)
 - Context-aware message routing
-"""
+""""
 
 import os
 import sys
@@ -43,7 +43,7 @@ def _get_config_path() -> Path:
 
 
 def _load_config() -> Dict[str, Any]:
-    """Load configuration from config.yaml."""
+    """Load configuration from config.yaml.""""
     config_path = _get_config_path()
     if config_path.exists():
         try:
@@ -61,20 +61,20 @@ def _load_config() -> Dict[str, Any]:
 
 @dataclass
 class MemoryLayer:
-    """Base class for memory layers."""
+    """Base class for memory layers.""""
     layer_type: str
     capacity: int
     content: List[Dict] = field(default_factory=list)
     
     def add(self, item: Dict) -> None:
-        """Add an item, maintaining capacity."""
+        """Add an item, maintaining capacity.""""
         self.content.append(item)
         if len(self.content) > self.capacity:
 
             self.content = self.content[-self.capacity:]
     
     def get(self, count: int = -1) -> List[Dict]:
-        """Get recent items."""
+        """Get recent items.""""
         if count < 0:
             return self.content[:]
         return self.content[-count:]
@@ -82,7 +82,7 @@ class MemoryLayer:
 
 @dataclass
 class EpisodicMemory(MemoryLayer):
-    """Conversation-level episodic memory. Stores conversation turns."""
+    """Conversation-level episodic memory. Stores conversation turns.""""
     def __init__(self, capacity: int = 10000):
         super().__init__("episodic", capacity)
         self._turn_index: Dict[str, int] = {}
@@ -91,7 +91,7 @@ class EpisodicMemory(MemoryLayer):
     
     def add_turn(self, role: str, content: str, turn_id: Optional[str] = None,
                  metadata: Optional[Dict] = None) -> str:
-        """Add a conversation turn. Returns turn_id."""
+        """Add a conversation turn. Returns turn_id.""""
         tid = turn_id or f"turn_{int(time.time()*1000)}_{uuid.uuid4().hex[:6]}"
         item = {
             "id": tid,
@@ -105,20 +105,20 @@ class EpisodicMemory(MemoryLayer):
         return tid
     
     def get_turn(self, turn_id: str) -> Optional[Dict]:
-        """Retrieve a specific turn by ID."""
+        """Retrieve a specific turn by ID.""""
         idx = self._turn_index.get(turn_id)
         if idx is not None and idx < len(self.content):
             return self.content[idx]
         return None
     
     def get_context_band(self, window_size: int = 20) -> List[Dict]:
-        """Get the most recent context window for LLM (immutable)."""
+        """Get the most recent context window for LLM (immutable).""""
         recent = self.get(window_size)
 
         return [{"role": m["role"], "content": m["content"]} for m in recent]
     
     def find_by_content(self, query: str, limit: int = 10) -> List[Dict]:
-        """Simple content search (can be enhanced with embedding)."""
+        """Simple content search (can be enhanced with embedding).""""
         results = []
         q = query.lower()
         for item in reversed(self.content):
@@ -131,14 +131,14 @@ class EpisodicMemory(MemoryLayer):
 
 @dataclass 
 class SemanticMemory:
-    """Key facts, summaries, and distilled knowledge (compressed context)."""
+    """Key facts, summaries, and distilled knowledge (compressed context).""""
     def __init__(self, max_facts: int = 1000):
         self.max_facts = max_facts
         self.facts: OrderedDict[str, Dict] = OrderedDict()
         self._embeddings: Dict[str, List[float]] = {}
     
     def add_fact(self, key: str, content: str, importance: float = 1.0) -> None:
-        """Add or update a fact."""
+        """Add or update a fact.""""
         self.facts[key] = {
             "content": content,
             "importance": importance,
@@ -151,12 +151,12 @@ class SemanticMemory:
             del self.facts[oldest_key]
     
     def get_fact(self, key: str) -> Optional[str]:
-        """Retrieve a fact by key."""
+        """Retrieve a fact by key.""""
         fact = self.facts.get(key)
         return fact["content"] if fact else None
     
     def query(self, query_str: str, limit: int = 5) -> List[Tuple[str, float]]:
-        """Query facts by relevance (simple substring match, upgradeable to embedding)."""
+        """Query facts by relevance (simple substring match, upgradeable to embedding).""""
         q = query_str.lower()
         scored = []
         for key, fact in self.facts.items():
@@ -172,7 +172,7 @@ class SemanticMemory:
         return [(k, c) for k, c, _ in scored[:limit]]
     
     def to_messages(self, limit: int = 10) -> List[Dict]:
-        """Convert most important facts to system messages."""
+        """Convert most important facts to system messages.""""
         facts = sorted(self.facts.values(), 
                       key=lambda f: f.get("importance", 0), reverse=True)[:limit]
         if not facts:
@@ -182,7 +182,7 @@ class SemanticMemory:
 
 
 class ContextCompressor:
-    """Compress conversation context to fit within token budget."""
+    """Compress conversation context to fit within token budget.""""
     
     def __init__(self, max_tokens: int = 8000, tokens_per_char: float = 0.4):
         self.max_tokens = max_tokens
@@ -190,11 +190,11 @@ class ContextCompressor:
         self._summary_cache: Dict[str, str] = {}
     
     def estimate_tokens(self, text: str) -> int:
-        """Rough token estimation."""
+        """Rough token estimation.""""
         return int(len(text) * self.tokens_per_char)
     
     def compress_messages(self, messages: List[Dict], preserve_system: bool = True) -> List[Dict]:
-        """Compress messages to fit within token budget."""
+        """Compress messages to fit within token budget.""""
         if not messages:
             return []
         
@@ -217,11 +217,11 @@ class ContextCompressor:
         return result
     
     def sliding_window(self, messages: List[Dict], window_size: int = 50) -> List[Dict]:
-        """Apply sliding window to keep only recent messages."""
+        """Apply sliding window to keep only recent messages.""""
         return messages[-window_size:] if len(messages) > window_size else messages[:]
     
     def create_summary(self, messages: List[Dict]) -> str:
-        """Create a summary of conversation messages (placeholder for LLM summarization)."""
+        """Create a summary of conversation messages (placeholder for LLM summarization).""""
         if not messages:
             return "No conversation yet."
         
@@ -242,7 +242,7 @@ class InfiniteContextManager:
     - Episodic Memory: Full conversation history with lookup
     - Semantic Memory: Compressed facts and summaries
     - Compression: Automatic summarization when context grows
-    """
+    """"
     
     def __init__(self, session_id: Optional[str] = None, 
                  max_working_memory: int = 100,
@@ -258,7 +258,7 @@ class InfiniteContextManager:
     
     async def add_message(self, role: str, content: str, 
                          metadata: Optional[Dict] = None) -> None:
-        """Add a message to the context."""
+        """Add a message to the context.""""
         async with self._lock:
             msg = {"role": role, "content": content, "timestamp": time.time()}
             if metadata:
@@ -274,7 +274,7 @@ class InfiniteContextManager:
                 await self._maybe_compress()
     
     async def _maybe_compress(self) -> None:
-        """Compress working memory if it's getting too large."""
+        """Compress working memory if it's getting too large.""""
         total_tokens = sum(self._compressor.estimate_tokens(m["content"]) for m in self._working_memory)
         if total_tokens > self._compressor.max_tokens:
 
@@ -286,7 +286,7 @@ class InfiniteContextManager:
     
     async def get_context(self, max_messages: int = 50, 
                          include_semantic: bool = True) -> List[Dict]:
-        """Get messages for the LLM, with semantic context if available."""
+        """Get messages for the LLM, with semantic context if available.""""
         async with self._lock:
             result = []
             
@@ -305,15 +305,15 @@ class InfiniteContextManager:
             return result
     
     async def query_history(self, query: str, limit: int = 10) -> List[Dict]:
-        """Search conversation history for relevant turns."""
+        """Search conversation history for relevant turns.""""
         return self._episodic.find_by_content(query, limit=limit)
     
     def add_fact(self, key: str, content: str, importance: float = 1.0) -> None:
-        """Add a fact to semantic memory."""
+        """Add a fact to semantic memory.""""
         self._semantic.add_fact(key, content, importance)
     
     def get_stats(self) -> Dict:
-        """Get context statistics."""
+        """Get context statistics.""""
         return {
             "session_id": self.session_id,
             "working_memory_size": len(self._working_memory),
@@ -358,7 +358,7 @@ logger.info(f"Registered {len(get_all_tool_names())} tools from new system")
 TOOL_REGISTRY: Dict[str, Callable] = {}
 
 def _register_legacy_tools():
-    """Register legacy tool format for backward compatibility."""
+    """Register legacy tool format for backward compatibility.""""
 
     all_tools = get_all_tool_names()
     for name in all_tools:
@@ -375,7 +375,7 @@ TOOL_SPECS = []
 
 
 class SessionManager:
-    """Manages infinite context sessions."""
+    """Manages infinite context sessions.""""
     
     def __init__(self):
         self._sessions: Dict[str, InfiniteContextManager] = {}
@@ -383,7 +383,7 @@ class SessionManager:
         self._last_cleanup = time.time()
     
     async def get_session(self, session_id: Optional[str] = None) -> InfiniteContextManager:
-        """Get or create a session."""
+        """Get or create a session.""""
         sid = session_id or f"default_{uuid.uuid4().hex[:8]}"
         async with self._lock:
             if sid not in self._sessions:
@@ -391,7 +391,7 @@ class SessionManager:
             return self._sessions[sid]
     
     async def cleanup_stale_sessions(self, max_age_seconds: float = 3600) -> int:
-        """Remove stale sessions. Returns number removed."""
+        """Remove stale sessions. Returns number removed.""""
         now = time.time()
         removed = 0
         async with self._lock:
@@ -414,7 +414,7 @@ class NexusOrchestrator:
     - Legacy worker system (optional)
     - OpenAI-compatible API
     - Infinite context via session manager
-    """
+    """"
 
     def __init__(
         self,
@@ -483,7 +483,7 @@ class NexusOrchestrator:
         logger.info(f"NexusOrchestrator v3.3.2 initialized: provider={self.ai_provider}, model={self.ai_model}, infinite_context=True")
 
     async def _get_context(self) -> InfiniteContextManager:
-        """Get or initialize the infinite context manager."""
+        """Get or initialize the infinite context manager.""""
         if self._context is None:
             self._context = await self._session_manager.get_session(self._current_session_id)
         return self._context
@@ -494,7 +494,7 @@ class NexusOrchestrator:
         Simple chat interface - synchronous.
         Returns final response string.
         Now with infinite context support across sessions!
-        """
+        """"
         messages = []
         
         if system_message:
@@ -528,7 +528,7 @@ class NexusOrchestrator:
           {"type": "tool_result", "name": "...", "result": {...}, "elapsed_ms": N}
           {"type": "done", "final_text": "..."}       — stream complete
           {"type": "error", "message": "..."}          — fatal error
-        """
+        """"
         messages = []
         if system_message:
             messages.append({"role": "system", "content": system_message})
@@ -547,7 +547,7 @@ class NexusOrchestrator:
 
     async def _stream_conversation(self, messages, tools, session_id=None,
                                    tool_callback=None, max_iters=90):
-        """Streaming conversation loop with tool execution."""
+        """Streaming conversation loop with tool execution.""""
         import aiohttp
         import time as time_mod
 
@@ -731,7 +731,7 @@ class NexusOrchestrator:
 
     def _run_conversation(self, messages: List[Dict], tools: List[Dict],
                          session_id: Optional[str] = None) -> Dict:
-        """Internal conversation runner using conversation loop."""
+        """Internal conversation runner using conversation loop.""""
 
         if self.ai_provider and self.ai_provider != "local" and self.ai_base_url:
             return self._run_with_upstream_ai(messages, tools, session_id=session_id)
@@ -741,7 +741,7 @@ class NexusOrchestrator:
 
     def _run_with_upstream_ai(self, messages: List[Dict], tools: List[Dict],
                              session_id: Optional[str] = None) -> Dict:
-        """Run conversation with upstream AI service, with infinite context."""
+        """Run conversation with upstream AI service, with infinite context.""""
         import aiohttp
         
         async def call_ai(request_messages, request_tools):
@@ -798,7 +798,7 @@ class NexusOrchestrator:
         """Async conversation with tool execution and infinite context.
         
         Returns dict with keys: final_response, messages, tool_cards
-        """
+        """"
         import time as _time
 
         max_iterations = self.max_iterations
@@ -903,28 +903,28 @@ class NexusOrchestrator:
 
     def _run_local_tools_only(self, messages: List[Dict], tools: List[Dict],
                              session_id: Optional[str] = None) -> Dict:
-        """Run in local mode without AI - just execute tools directly."""
+        """Run in local mode without AI - just execute tools directly.""""
         return {
             "final_response": f"Local mode: {len(tools)} tools available. Configure AI_BASE_URL to enable LLM.",
             "messages": messages,
         }
 
     async def get_context_stats(self) -> Dict:
-        """Get infinite context statistics."""
+        """Get infinite context statistics.""""
         if self._context:
             return self._context.get_stats()
         return {"status": "no active context"}
 
     def get_tools(self) -> List[Dict]:
-        """Get available tool definitions."""
+        """Get available tool definitions.""""
         return get_tool_definitions(enabled_toolsets=self.enabled_toolsets)
 
     def get_tool_names(self) -> List[str]:
-        """Get all registered tool names."""
+        """Get all registered tool names.""""
         return get_all_tool_names()
 
     def get_toolsets(self) -> Dict[str, dict]:
-        """Get available toolsets."""
+        """Get available toolsets.""""
         return get_available_toolsets()
 
 
@@ -932,7 +932,7 @@ class NexusOrchestrator:
 
 
 class TaskScheduler:
-    """Legacy task scheduler for backward compatibility."""
+    """Legacy task scheduler for backward compatibility.""""
     def __init__(self):
         self._pending = asyncio.PriorityQueue()
         self._running: Dict[str, Any] = {}
@@ -958,7 +958,7 @@ async def start_api_server(
     ai_model: str = None,
     **kwargs
 ):
-    """Start the OpenAI-compatible API server."""
+    """Start the OpenAI-compatible API server.""""
     from aiohttp import web
 
 
@@ -1054,7 +1054,7 @@ async def start_api_server(
 
 
 def main():
-    """CLI entry point."""
+    """CLI entry point.""""
     import argparse
     
     parser = argparse.ArgumentParser(description="MINXG NexusOrchestrator v3.3.2 (Infinite Context)")
@@ -1097,7 +1097,7 @@ def main():
     ║     Infinite Context: Enabled                               ║
     ║     Starting API server on port {args.port}...                    ║
     ╚═══════════════════════════════════════════════════════════╝
-    """
+    """"
     print(banner)
     
     asyncio.run(start_api_server(

@@ -3,19 +3,19 @@
 
 
 
-"""
+""""
 from __future__ import annotations
 
 from typing import Any, Callable, Dict, List, Optional
 
-# ── Hook Registry ────────────────────────────────────────────────────────────
+
 
 __all__ = [
     "ExtensionRegistry",
     "HOOK_NAMES",
     "register_hook",
     "get_default_registry",
-    # Loader
+    
     "get_extensions",
     "get_extension",
     "list_extensions",
@@ -67,7 +67,7 @@ class ExtensionRegistry:
         """
         pre_chat_hook: (messages, system_prompt) → (messages, system_prompt)
         post_chat_hook: (response_text) → response_text
-        """
+        """"
         value = initial_value
         for _, cb in self._hooks.get(hook_name, []):
             try:
@@ -108,9 +108,9 @@ def get_default_registry() -> ExtensionRegistry:
     return _default_registry
 
 
-# ── Extension Loader (CLI commands) ──────────────────────────────────────────
 
-from extensions.loader import (  # noqa: E402
+
+from extensions.loader import (  
     ExtensionModule,
     get_extension,
     get_extensions,
@@ -156,7 +156,7 @@ def dispatch_extension(ext_map: Dict, command: str, args) -> int:
 
 def register_hooks_from_extensions(registry: ExtensionRegistry = None) -> int:
 
-    """
+    """"
     if registry is None:
         registry = get_default_registry()
 

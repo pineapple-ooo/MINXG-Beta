@@ -1,7 +1,7 @@
 """
 demo_extension — ZIP代码扫描器扩展
 功能: 扫描ZIP包内所有代码文件，提取路径结构+代码摘要，生成报告
-"""
+""""
 from __future__ import annotations
 import json
 import os
@@ -13,9 +13,9 @@ from typing import Any, Dict, List, Optional
 __version__ = "1.0.0"
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# API适配器: 模拟 py_workers.BaseWorker 接口
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 CODE_EXTENSIONS = {
     ".py", ".js", ".ts", ".tsx", ".jsx", ".go", ".rs", ".java", ".kt",
@@ -29,7 +29,7 @@ SKIP_PATTERNS = {"__pycache__", "node_modules", ".git", ".svn", "vendor",
 
 
 class ZipCodeScanner:
-    """扫描ZIP包内的代码文件，提取路径和摘要。"""
+    """扫描ZIP包内的代码文件，提取路径和摘要。""""
 
     def __init__(self, zip_path: str):
         self.zip_path = os.path.expanduser(zip_path)
@@ -75,7 +75,7 @@ class ZipCodeScanner:
                         lang = ext.lstrip('.')
                         languages[lang] = languages.get(lang, 0) + 1
 
-                        # Build directory tree
+                        
                         parts = name.split('/')
                         node = structure
                         for part in parts[:-1]:
@@ -102,14 +102,14 @@ class ZipCodeScanner:
         }
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# register(api) — 扩展入口点
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 def register(api):
-    """扩展入口: 被MINXG加载时自动调用。"""
+    """扩展入口: 被MINXG加载时自动调用。""""
 
-    # 注册一个CLI命令
+    
     api.register_command("zipscan", {
         "name": "zipscan",
         "description": "扫描ZIP包内代码文件，生成路径+代码统计报告",
@@ -117,9 +117,9 @@ def register(api):
         "handler": _cli_scan,
     })
 
-    # 注册工具 (如果MINXG工具系统已加载)
+    
     try:
-        from py_workers.base import BaseWorker, tool
+        from minxg.base import BaseWorker, tool
 
         class _ZipScannerWorker(BaseWorker):
             worker_id = "zip_scanner"
@@ -138,14 +138,14 @@ def register(api):
             category="archive",
         )
     except ImportError:
-        pass  # 非MINXG环境
+        pass  
 
     api.log("info", f"zipscan extension v{__version__} loaded")
     return True
 
 
 def _cli_scan(args, api=None):
-    """CLI命令处理函数。"""
+    """CLI命令处理函数。""""
     if not args.files or len(args.files) < 1:
         print("Usage: minxg ext zipscan <zip_path> [--format json|text]")
         return 1
@@ -169,7 +169,7 @@ def _cli_scan(args, api=None):
 
 
 def _print_report(r: Dict[str, Any]):
-    """打印人类可读的报告。"""
+    """打印人类可读的报告。""""
     print(f"""
 ╔══════════════════════════════════════════════════════════════╗
 ║             ZIP Code Scanner — Scan Report                  ║
@@ -178,7 +178,7 @@ def _print_report(r: Dict[str, Any]):
 ║ Total files in archive : {r['total_files_in_zip']:<6}                        ║
 ║ Code files detected    : {r['code_files_found']:<6}                        ║
 ║ Total lines of code    : {str(r['total_lines_of_code']):<6}                        ║
-╠══════════════════════════════════════════════════════════════╣""")
+╠══════════════════════════════════════════════════════════════╣"""")
 
     print("║ Languages detected:")
     for lang, count in sorted(r["languages_detected"].items(),

@@ -14,7 +14,7 @@ Different notions of "dimension" for fractals:
 For self-similar fractals like the Cantor set, Sierpinski, Koch curve, the
 fractal dimension is known analytically. For strange attractors, we estimate
 via box-counting.
-"""
+""""
 from __future__ import annotations
 import math
 from typing import Callable, List, Tuple
@@ -28,12 +28,12 @@ def box_counting_dimension(points: List[Tuple[float, ...]],
     D = lim_{ε→0} log(N(ε)) / log(1/ε)
 
     where N(ε) is the number of ε-boxes that contain at least one point.
-    """
+    """"
     if not points:
         return 0.0
     dim = len(points[0])
     if epsilons is None:
-        # Use a range of epsilons
+        
         max_coord = max(max(abs(c) for c in p) for p in points)
         eps_max = max_coord * 2 if max_coord > 0 else 1.0
         epsilons = [eps_max * (0.5 ** i) for i in range(2, 10)]
@@ -52,7 +52,7 @@ def box_counting_dimension(points: List[Tuple[float, ...]],
 
     if len(log_inv_eps) < 2:
         return 0.0
-    # Linear regression: log(N) = D · log(1/ε) + c
+    
     n = len(log_inv_eps)
     sum_x = sum(log_inv_eps)
     sum_y = sum(log_count)
@@ -70,7 +70,7 @@ def hausdorff_dimension(points: List[Tuple[float, ...]],
 
     For practical purposes, this is close to box-counting dimension. We use
     a finer covering: instead of fixed-size boxes, we use ε-balls.
-    """
+    """"
     return box_counting_dimension(points, epsilons)
 
 
@@ -82,34 +82,34 @@ def correlation_dimension(points: List[Tuple[float, ...]],
     where C(ε) = (2/N(N-1)) Σ_{i<j} I(d(x_i, x_j) < ε)
 
     For strange attractors, D_2 is often between 1 and the embedding dimension.
-    """
+    """"
     n = len(points)
     if n < 2:
         return 0.0
-    # Compute distances
+    
     distances = []
-    for i in range(min(n, 200)):  # subsample
+    for i in range(min(n, 200)):  
         for j in range(i + 1, min(n, 200)):
             d = math.sqrt(sum((a - b) ** 2 for a, b in zip(points[i], points[j])))
             distances.append(d)
     if not distances:
         return 0.0
     distances.sort()
-    # Compute correlation sums at different scales
+    
     epsilons = []
     corr_sums = []
     for k in range(1, 10):
         eps_idx = int(0.1 * k * len(distances))
         if eps_idx < len(distances):
             eps = distances[eps_idx]
-            # Count pairs within eps
+            
             count = sum(1 for d in distances if d < eps)
             if count > 0:
                 epsilons.append(math.log(1.0 / eps) if eps > 0 else 0)
                 corr_sums.append(math.log(count / len(distances)))
     if len(epsilons) < 2:
         return 0.0
-    # Linear regression
+    
     n_pts = len(epsilons)
     sum_x = sum(epsilons)
     sum_y = sum(corr_sums)
@@ -126,7 +126,7 @@ def kaplan_yorke_dimension(lyapunov_spectrum: List[float]) -> float:
 
     D_KY = j + (λ_1 + ... + λ_j) / |λ_{j+1}|
     where j is the largest integer such that Σ_{i=1}^j λ_i ≥ 0.
-    """
+    """"
     cum = 0.0
     for j, lam in enumerate(lyapunov_spectrum):
         if cum + lam >= 0:
@@ -135,4 +135,4 @@ def kaplan_yorke_dimension(lyapunov_spectrum: List[float]) -> float:
             if j == 0:
                 return 0.0
             return j + cum / abs(lam)
-    return len(lyapunov_spectrum)  # all positive
+    return len(lyapunov_spectrum)  

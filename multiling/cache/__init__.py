@@ -7,7 +7,7 @@ Provides:
   - TimedCache: Time-based expiration cache
   - LayeredCache: Multi-layer cache (memory -> disk -> remote)
   - Cache metrics and monitoring
-"""
+""""
 
 import asyncio
 import hashlib
@@ -23,15 +23,15 @@ from dataclasses import dataclass, field
 
 @dataclass
 class CacheEntry:
-    """A single cache entry with metadata"""
+    """A single cache entry with metadata""""
     key: str
     value: Any
-    ttl: float = 0          # Time-to-live in seconds (0 = no expiry)
+    ttl: float = 0          
     created: float = field(default_factory=time.time)
     accessed: float = field(default_factory=time.time)
     hits: int = 0
     tags: List[str] = field(default_factory=list)
-    priority: int = 0       # For eviction priority
+    priority: int = 0       
 
     def is_expired(self) -> bool:
         if self.ttl <= 0:
@@ -49,7 +49,7 @@ class CacheEntry:
 
 
 class MemoryCache:
-    """Thread-safe in-memory LRU cache with TTL support"""
+    """Thread-safe in-memory LRU cache with TTL support""""
 
     def __init__(self, max_size: int = 1000, default_ttl: float = 300.0):
         self.max_size = max_size
@@ -62,7 +62,7 @@ class MemoryCache:
         }
 
     def get(self, key: str, default=None) -> Any:
-        """Get value from cache, returns default if not found or expired"""
+        """Get value from cache, returns default if not found or expired""""
         with self._lock:
             entry = self._cache.get(key)
             if entry is None:
@@ -73,17 +73,17 @@ class MemoryCache:
                 self._stats["expirations"] += 1
                 self._stats["misses"] += 1
                 return default
-            # Update access time and hit count
+            
             entry.accessed = time.time()
             entry.hits += 1
             self._stats["hits"] += 1
-            # Move to end (most recently used)
+            
             self._cache.move_to_end(key)
             return entry.value
 
     def set(self, key: str, value: Any, ttl: float = None,
             tags: List[str] = None, priority: int = 0):
-        """Set a cache entry"""
+        """Set a cache entry""""
         if ttl is None:
             ttl = self.default_ttl
         entry = CacheEntry(
@@ -94,27 +94,27 @@ class MemoryCache:
             if key in self._cache:
                 self._cache.move_to_end(key)
             self._cache[key] = entry
-            # Evict if over capacity
+            
             while len(self._cache) > self.max_size:
                 self._evict_one()
             self._stats["sets"] += 1
 
     def _evict_one(self):
-        """Evict lowest priority / oldest entry"""
-        # First try expired entries
+        """Evict lowest priority / oldest entry""""
+        
         for key, entry in self._cache.items():
             if entry.is_expired():
                 del self._cache[key]
                 self._stats["evictions"] += 1
                 return
-        # Then lowest priority
+        
         min_priority = min(e.priority for e in self._cache.values())
         for key, entry in self._cache.items():
             if entry.priority == min_priority:
                 del self._cache[key]
                 self._stats["evictions"] += 1
                 return
-        # Finally LRU (first item)
+        
         self._cache.popitem(last=False)
         self._stats["evictions"] += 1
 
@@ -136,7 +136,7 @@ class MemoryCache:
             return entry is not None and not entry.is_expired()
 
     def touch(self, key: str) -> bool:
-        """Update access time without returning value"""
+        """Update access time without returning value""""
         with self._lock:
             entry = self._cache.get(key)
             if entry and not entry.is_expired():
@@ -156,7 +156,7 @@ class MemoryCache:
             }
 
     def get_by_tag(self, tag: str) -> List[Tuple[str, Any]]:
-        """Get all entries with a specific tag"""
+        """Get all entries with a specific tag""""
         with self._lock:
             results = []
             for key, entry in self._cache.items():
@@ -165,7 +165,7 @@ class MemoryCache:
             return results
 
     def expire_check(self) -> int:
-        """Manually expire old entries, returns count of expired"""
+        """Manually expire old entries, returns count of expired""""
         count = 0
         with self._lock:
             expired_keys = [k for k, e in self._cache.items() if e.is_expired()]
@@ -177,7 +177,7 @@ class MemoryCache:
 
 
 class TimedCache(MemoryCache):
-    """Cache with automatic periodic cleanup"""
+    """Cache with automatic periodic cleanup""""
 
     def __init__(self, max_size=1000, default_ttl=300.0,
                  cleanup_interval=60.0):
@@ -187,7 +187,7 @@ class TimedCache(MemoryCache):
         self._auto_cleanup = True
 
     def get(self, key, default=None):
-        # Auto-cleanup check
+        
         if self._auto_cleanup and time.time() - self._last_cleanup > self.cleanup_interval:
             self.expire_check()
             self._last_cleanup = time.time()
@@ -199,7 +199,7 @@ class LayeredCache:
     Multi-layer cache: memory -> disk -> remote
 
     Reads cascade through layers, writes go to all layers.
-    """
+    """"
 
     def __init__(self, name="default", memory_max=1000, disk_path="./cache"):
         self.name = name
@@ -213,20 +213,20 @@ class LayeredCache:
         return os.path.join(self.disk_path, f"{safe_key}.cache")
 
     def get(self, key: str, default=None) -> Any:
-        # Layer 1: Memory
+        
         val = self.memory.get(key)
         if val is not None:
             self._stats["memory_hits"] += 1
             return val
 
-        # Layer 2: Disk
+        
         disk_key = self._disk_key(key)
         if os.path.exists(disk_key):
             try:
                 with open(disk_key, "rb") as f:
                     entry = pickle.load(f)
                 if not entry.is_expired():
-                    # Backfill memory cache
+                    
                     self.memory.set(key, entry.value,
                                    ttl=entry.ttl, tags=entry.tags)
                     self._stats["disk_hits"] += 1
@@ -239,7 +239,7 @@ class LayeredCache:
 
     def set(self, key: str, value: Any, ttl: float = 300.0,
             tags: List[str] = None, priority: int = 0):
-        # Write to all layers
+        
         self.memory.set(key, value, ttl=ttl, tags=tags, priority=priority)
         entry = CacheEntry(key=key, value=value, ttl=ttl,
                           tags=tags or [], priority=priority)
@@ -258,7 +258,7 @@ class LayeredCache:
 
     def clear(self):
         self.memory.clear()
-        # Clear disk cache
+        
         for f in os.listdir(self.disk_path):
             if f.endswith(".cache"):
                 os.remove(os.path.join(self.disk_path, f))

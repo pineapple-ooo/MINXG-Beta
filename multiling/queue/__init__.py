@@ -6,7 +6,7 @@ Provides:
   - EventBus: In-memory pub/sub event bus
   - TaskQueue: Priority task queue with workers
   - DeadLetterQueue: Failed message handling
-"""
+""""
 
 import asyncio
 import json
@@ -21,7 +21,7 @@ import heapq
 
 @dataclass
 class Message:
-    """Queue message with headers and payload"""
+    """Queue message with headers and payload""""
     id: str = field(default_factory=lambda: "msg_" + uuid.uuid4().hex[:12])
     channel: str = "default"
     payload: Any = None
@@ -50,7 +50,7 @@ class EventBus:
     - Pattern matching (wildcard)
     - Async and sync handlers
     - Once-off subscriptions
-    """
+    """"
 
     def __init__(self):
         self._subscribers: Dict[str, List[Dict]] = defaultdict(list)
@@ -59,7 +59,7 @@ class EventBus:
         self._stats = {"published": 0, "delivered": 0, "failed": 0}
 
     def subscribe(self, topic: str, handler: Callable, once: bool = False):
-        """Subscribe to a topic. Returns subscription ID."""
+        """Subscribe to a topic. Returns subscription ID.""""
         sub_id = uuid.uuid4().hex[:12]
         self._subscribers[topic].append({
             "id": sub_id, "handler": handler,
@@ -68,7 +68,7 @@ class EventBus:
         return sub_id
 
     def subscribe_pattern(self, pattern: str, handler: Callable):
-        """Subscribe with wildcard pattern (e.g., 'user.*.created')"""
+        """Subscribe with wildcard pattern (e.g., 'user.*.created')""""
         sub_id = uuid.uuid4().hex[:12]
         self._pattern_subscribers.append({
             "id": sub_id, "pattern": pattern,
@@ -77,7 +77,7 @@ class EventBus:
         return sub_id
 
     def unsubscribe(self, sub_id: str):
-        """Unsubscribe by ID"""
+        """Unsubscribe by ID""""
         for topic, subs in self._subscribers.items():
             self._subscribers[topic] = [s for s in subs if s["id"] != sub_id]
         self._pattern_subscribers = [s for s in self._pattern_subscribers
@@ -85,7 +85,7 @@ class EventBus:
 
     def publish(self, topic: str, data: Any = None, headers: Dict = None,
                 async_dispatch: bool = False) -> Message:
-        """Publish an event to a topic"""
+        """Publish an event to a topic""""
         msg = Message(
             channel=topic, payload=data,
             headers=headers or {},
@@ -93,7 +93,7 @@ class EventBus:
         self._history.append(msg)
         self._stats["published"] += 1
 
-        # Find matching subscribers
+        
         matched = []
         for sub in self._subscribers.get(topic, []):
             if sub["active"]:
@@ -116,7 +116,7 @@ class EventBus:
 
     async def publish_async(self, topic: str, data: Any = None,
                             headers: Dict = None) -> Message:
-        """Async publish with awaitable delivery"""
+        """Async publish with awaitable delivery""""
         msg = Message(channel=topic, payload=data, headers=headers or {})
         self._history.append(msg)
         self._stats["published"] += 1
@@ -134,7 +134,7 @@ class EventBus:
         return msg
 
     def _dispatch(self, sub: Dict, msg: Message):
-        """Dispatch to subscriber handler"""
+        """Dispatch to subscriber handler""""
         handler = sub["handler"]
         if asyncio.iscoroutinefunction(handler):
             raise RuntimeError("Use async_dispatch=True for async handlers")
@@ -145,11 +145,11 @@ class EventBus:
         return result
 
     def _dispatch_sync(self, sub: Dict, msg: Message):
-        """Synchronous dispatch wrapper"""
+        """Synchronous dispatch wrapper""""
         return self._dispatch(sub, msg)
 
     def _match_pattern(self, pattern: str, topic: str) -> bool:
-        """Match topic against pattern with wildcards"""
+        """Match topic against pattern with wildcards""""
         pattern_parts = pattern.split(".")
         topic_parts = topic.split("")
         if len(pattern_parts) != len(topic_parts):
@@ -179,7 +179,7 @@ class TaskQueue:
     - Delayed execution support
     - Retry with exponential backoff
     - Worker pool for concurrent processing
-    """
+    """"
 
     def __init__(self, name: str = "default", max_workers: int = 4,
                  max_retries: int = 3):
@@ -197,13 +197,13 @@ class TaskQueue:
         self._stats = {"enqueued": 0, "processed": 0, "failed": 0}
 
     def set_handler(self, handler: Callable):
-        """Set the task handler function"""
+        """Set the task handler function""""
         self._handler = handler
 
     async def enqueue(self, payload: Any, priority: int = 5,
                       delay_seconds: float = 0, channel: str = None,
                       headers: Dict = None) -> str:
-        """Add a task to the queue"""
+        """Add a task to the queue""""
         msg = Message(
             payload=payload, priority=priority,
             channel=channel or self.name,
@@ -216,7 +216,7 @@ class TaskQueue:
         return msg.id
 
     async def start(self):
-        """Start worker pool"""
+        """Start worker pool""""
         self._running = True
         self._workers = [
             asyncio.create_task(self._worker(i))
@@ -224,7 +224,7 @@ class TaskQueue:
         ]
 
     async def stop(self, wait: bool = True):
-        """Stop worker pool"""
+        """Stop worker pool""""
         self._running = False
         if wait:
             for w in self._workers:
@@ -233,7 +233,7 @@ class TaskQueue:
         self._workers.clear()
 
     async def _worker(self, worker_id: int):
-        """Worker coroutine that processes tasks"""
+        """Worker coroutine that processes tasks""""
         while self._running:
             try:
                 msg = await self._dequeue()
@@ -247,10 +247,10 @@ class TaskQueue:
                 pass
 
     async def _dequeue(self) -> Optional[Message]:
-        """Get next task from queue"""
+        """Get next task from queue""""
         async with self._lock:
             now = time.time()
-            # Find ready task
+            
             for i, (priority, ts, msg) in enumerate(self._queue):
                 if msg.delay_until <= now:
                     self._queue.pop(i)
@@ -260,7 +260,7 @@ class TaskQueue:
             return None
 
     async def _process(self, msg: Message):
-        """Process a single task"""
+        """Process a single task""""
         if not self._handler:
             self._failed.append(msg)
             self._stats["failed"] += 1
@@ -277,7 +277,7 @@ class TaskQueue:
         except Exception as e:
             msg.retry_count += 1
             if msg.retry_count < msg.max_retries:
-                # Re-enqueue with delay (exponential backoff)
+                
                 delay = min(2 ** msg.retry_count, 60)
                 msg.delay_until = time.time() + delay
                 async with self._lock:
@@ -306,14 +306,14 @@ class TaskQueue:
 
 
 class DeadLetterQueue:
-    """Dead letter queue for permanently failed messages"""
+    """Dead letter queue for permanently failed messages""""
 
     def __init__(self, max_size: int = 1000):
         self.max_size = max_size
         self._messages: deque = deque(maxlen=max_size)
 
     def add(self, msg: Message, error: str, original_queue: str = ""):
-        """Add failed message to dead letter queue"""
+        """Add failed message to dead letter queue""""
         entry = {
             "message": msg.to_dict(),
             "error": error,
@@ -323,11 +323,11 @@ class DeadLetterQueue:
         self._messages.append(entry)
 
     def get_all(self, limit: int = 50) -> List[Dict]:
-        """Get all dead letter messages"""
+        """Get all dead letter messages""""
         return list(self._messages)[-limit:]
 
     def retry(self, index: int = -1) -> Optional[Dict]:
-        """Retry a dead letter message"""
+        """Retry a dead letter message""""
         if not self._messages:
             return None
         entry = list(self._messages)[index]

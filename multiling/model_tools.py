@@ -15,7 +15,7 @@ Public API:
     get_toolset_for_tool(name) -> str
     get_available_toolsets() -> dict
     check_toolset_requirements() -> dict
-"""
+""""
 
 import json
 import logging
@@ -28,9 +28,9 @@ from multiling.toolsets import resolve_toolset, validate_toolset
 logger = logging.getLogger(__name__)
 
 
-# =============================================================================
-# Async Bridging
-# =============================================================================
+
+
+
 
 _tool_loop = None
 _tool_loop_lock = threading.Lock()
@@ -38,7 +38,7 @@ _worker_thread_local = threading.local()
 
 
 def _get_tool_loop():
-    """Return a long-lived event loop for running async tool handlers."""
+    """Return a long-lived event loop for running async tool handlers.""""
     global _tool_loop
     with _tool_loop_lock:
         if _tool_loop is None or _tool_loop.is_closed():
@@ -48,7 +48,7 @@ def _get_tool_loop():
 
 
 def _get_worker_loop():
-    """Return a persistent event loop for the current worker thread."""
+    """Return a persistent event loop for the current worker thread.""""
     loop = getattr(_worker_thread_local, 'loop', None)
     if loop is None or loop.is_closed():
         import asyncio
@@ -59,7 +59,7 @@ def _get_worker_loop():
 
 
 def _run_async(coro):
-    """Run an async coroutine from a sync context."""
+    """Run an async coroutine from a sync context.""""
     import asyncio
     
     try:
@@ -114,23 +114,23 @@ def _run_async(coro):
         return loop.run_until_complete(coro)
 
 
-# ============================================================================
-# Enhanced Error Handling, Caching, and Tool Chain Management
-# ============================================================================
+
+
+
 
 class ToolExecutionContext:
-    """Track tool execution chain for debugging and context preservation."""
+    """Track tool execution chain for debugging and context preservation.""""
     
     def __init__(self, max_chain_length: int = 100):
         self.max_chain_length = max_chain_length
         self._chain: List[Dict] = []
         self._lock = asyncio.Lock()
         self._results_cache: Dict[str, Any] = {}
-        self._cache_ttl: float = 30.0  # seconds
+        self._cache_ttl: float = 30.0  
     
     async def record(self, tool_name: str, args: Dict, result: Dict, 
                      duration_ms: float = 0.0) -> None:
-        """Record a tool execution in the chain."""
+        """Record a tool execution in the chain.""""
         entry = {
             "tool": tool_name,
             "args": self._safe_args(args),
@@ -143,7 +143,7 @@ class ToolExecutionContext:
             if len(self._chain) > self.max_chain_length:
                 self._chain = self._chain[-self.max_chain_length:]
             
-            # Cache result for deduplication
+            
             cache_key = f"{tool_name}:{hashlib.sha256(json.dumps(args, sort_keys=True).encode()).hexdigest()[:16]}"
             self._results_cache[cache_key] = {
                 "result": result,
@@ -151,7 +151,7 @@ class ToolExecutionContext:
             }
     
     def _safe_args(self, args: Dict) -> Dict:
-        """Strip sensitive data from logged args."""
+        """Strip sensitive data from logged args.""""
         safe = {}
         for k, v in args.items():
             if k.lower() in ("api_key", "password", "secret", "token"):
@@ -161,17 +161,17 @@ class ToolExecutionContext:
         return safe
     
     def _preview(self, result: Dict, max_len: int = 200) -> str:
-        """Create a short preview of result."""
+        """Create a short preview of result.""""
         s = json.dumps(result)
         return s[:max_len] + "..." if len(s) > max_len else s
     
     async def get_chain_summary(self, limit: int = 10) -> List[Dict]:
-        """Get recent tool chain activity."""
+        """Get recent tool chain activity.""""
         async with self._lock:
             return self._chain[-limit:]
     
     def check_cache(self, tool_name: str, args: Dict) -> Optional[Dict]:
-        """Check if result is cached and not stale."""
+        """Check if result is cached and not stale.""""
         cache_key = f"{tool_name}:{hashlib.sha256(json.dumps(args, sort_keys=True).encode()).hexdigest()[:16]}"
         cached = self._results_cache.get(cache_key)
         if cached and (time.time() - cached["timestamp"]) < self._cache_ttl:
@@ -179,33 +179,33 @@ class ToolExecutionContext:
         return None
 
 
-# ============================================================================
-# Error sanitization
-# ============================================================================
+
+
+
 
 def _sanitize_tool_error(raw: str) -> str:
-    """Strip framing tokens / CDATA / fences from exception strings."""
+    """Strip framing tokens / CDATA / fences from exception strings.""""
     import re
-    # Remove common artifact wrappers
+    
     cleaned = re.sub(r'\[/?(?:code|errors?|trace)\]', '', raw, flags=re.IGNORECASE)
-    # Collapse excessive whitespace
+    
     cleaned = re.sub(r'\s+', ' ', cleaned).strip()
-    # Truncate to something reasonable
+    
     if len(cleaned) > 500:
         cleaned = cleaned[:500] + '...'
     return cleaned
 
 
-# =============================================================================
-# Tool discovery
-# =============================================================================
+
+
+
 
 _discovered = False
 _discovered_lock = threading.Lock()
 
 
 def ensure_tools_discovered():
-    """Discover and import all builtin tools. Idempotent."""
+    """Discover and import all builtin tools. Idempotent.""""
     global _discovered
     with _discovered_lock:
         if _discovered:
@@ -219,14 +219,14 @@ def get_tool_definitions(
     disabled_toolsets: List[str] = None,
     quiet: bool = False,
 ) -> List[dict]:
-    """Return OpenAI-format tool schemas for enabled toolsets."""
+    """Return OpenAI-format tool schemas for enabled toolsets.""""
     ensure_tools_discovered()
 
     all_tools = registry.get_all_tool_names()
     if not all_tools:
         return []
 
-    # Build effective toolset list
+    
     if enabled_toolsets:
         effective = []
         for ts in enabled_toolsets:
@@ -234,11 +234,11 @@ def get_tool_definitions(
             if resolved:
                 effective.append(resolved)
             else:
-                effective.append(ts)  # treat as toolset name directly
+                effective.append(ts)  
     else:
         effective = registry.get_registered_toolset_names()
 
-    # Filter out disabled toolsets
+    
     if disabled_toolsets:
         for ts in disabled_toolsets:
             resolved = resolve_toolset(ts) or ts
@@ -246,12 +246,12 @@ def get_tool_definitions(
                 if alias == resolved or target == resolved:
                     disabled_toolsets = disabled_toolsets + [alias, target]
 
-    # Get tool names for each toolset
+    
     tool_names: Set[str] = set()
     for ts in effective:
         if disabled_toolsets and ts in disabled_toolsets:
             continue
-        # Handle toolset aliases
+        
         alias_target = registry.get_toolset_alias_target(ts)
         if alias_target:
             ts = alias_target
@@ -267,29 +267,29 @@ def handle_function_call(function_name: str, function_args: dict, task_id: str =
     If ``guard`` is provided (AntiLoopGuard instance), pre-checks and records
     the call through the anti-loop pipeline before/after execution.
     When guard blocks a call, returns a JSON error string.
-    """
+    """"
     import time as _time_mod
 
     ensure_tools_discovered()
 
-    # ── Anti-loop pre-check ──
+    
     if guard is not None:
         from src.ai.safety.guard import AntiLoopGuard
         allowed, reason = guard.pre_check(function_name, function_args)
         if not allowed and reason != "cached":
-            # Blocked — return error
+            
             return json.dumps({"error": f"Tool call blocked: {reason}",
                                "blocked": True})
 
-    # ── Execute ──
+    
     t0 = _time_mod.time()
 
-    # First try exact match
+    
     entry = registry.get_entry(function_name)
     if entry:
         result_str = registry.dispatch(function_name, function_args, task_id=task_id)
     else:
-        # Try without underscores
+        
         matched = False
         for name in registry.get_all_tool_names():
             if name.replace("_", "") == function_name.replace("_", ""):
@@ -299,9 +299,9 @@ def handle_function_call(function_name: str, function_args: dict, task_id: str =
         if not matched:
             result_str = json.dumps({"error": f"Unknown tool: {function_name}"})
 
-    elapsed = (_time_mod.time() - t0) * 1000  # ms
+    elapsed = (_time_mod.time() - t0) * 1000  
 
-    # ── Anti-loop post-recording ──
+    
     if guard is not None:
         try:
             result_obj = json.loads(result_str)
@@ -317,29 +317,29 @@ def handle_function_call(function_name: str, function_args: dict, task_id: str =
 
 
 def get_all_tool_names() -> List[str]:
-    """Return all registered tool names."""
+    """Return all registered tool names.""""
     ensure_tools_discovered()
     return registry.get_all_tool_names()
 
 
 def get_toolset_for_tool(name: str) -> Optional[str]:
-    """Return the toolset a tool belongs to."""
+    """Return the toolset a tool belongs to.""""
     return registry.get_toolset_for_tool(name)
 
 
 def get_available_toolsets() -> Dict[str, dict]:
-    """Return toolset metadata."""
+    """Return toolset metadata.""""
     ensure_tools_discovered()
     return registry.get_available_toolsets()
 
 
 def check_toolset_requirements() -> Dict[str, bool]:
-    """Check which toolsets have their requirements met."""
+    """Check which toolsets have their requirements met.""""
     ensure_tools_discovered()
     return registry.check_toolset_requirements()
 
 
-# Legacy compatibility - build maps from registry
+
 def _build_maps():
     ensure_tools_discovered()
     return registry.get_tool_to_toolset_map(), registry.check_toolset_requirements()
@@ -350,7 +350,7 @@ TOOLSET_REQUIREMENTS: Dict[str, bool] = {}
 
 
 def refresh_tool_maps():
-    """Refresh the global tool->toolset map and requirements."""
+    """Refresh the global tool->toolset map and requirements.""""
     global TOOL_TO_TOOLSET_MAP, TOOLSET_REQUIREMENTS
     TOOL_TO_TOOLSET_MAP, TOOLSET_REQUIREMENTS = _build_maps()
 

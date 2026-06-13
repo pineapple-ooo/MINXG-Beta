@@ -8,7 +8,7 @@ and category.
 
 When C++ native operators are loaded (via libminxg_operators.so), they
 execute 10-100x faster than pure Python. Falls back gracefully.
-"""
+""""
 from __future__ import annotations
 import math
 import json
@@ -18,12 +18,12 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from .base import BaseWorker, tool
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Operator Registry — maps operator IDs to implementations
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 class Operator:
-    """A single operator in the engine."""
+    """A single operator in the engine.""""
     __slots__ = ("op_id", "name", "category", "description", "input_types",
                  "output_type", "is_pure", "fn")
 
@@ -47,7 +47,7 @@ class Operator:
 
 
 class OperatorRegistry:
-    """Registry of all operators, indexed by ID and name."""
+    """Registry of all operators, indexed by ID and name.""""
 
     def __init__(self):
         self._by_id: Dict[int, Operator] = {}
@@ -57,7 +57,7 @@ class OperatorRegistry:
 
     def register(self, op: Operator):
         if op.op_id in self._by_id:
-            return  # Silently skip duplicates (allows re-imports)
+            return  
         if not hasattr(self, '_registered_ids'):
             self._registered_ids = set()
         if op.op_id in self._registered_ids:
@@ -88,19 +88,19 @@ class OperatorRegistry:
         return {cat: len(ids) for cat, ids in self._categories.items()}
 
 
-# Global operator registry
+
 OPERATOR_REGISTRY = OperatorRegistry()
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Built-in operators (core set, expandable to 10,000)
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 def _register_core_operators():
-    """Register core Python operators. C++ native operators override these."""
+    """Register core Python operators. C++ native operators override these.""""
     ops = []
 
-    # ── Math operators (0000-1999) ──
+    
     ops.append(Operator(0, "add", "math", "Add two numbers", ["float", "float"], "float", True,
                         lambda a, b: a + b))
     ops.append(Operator(1, "sub", "math", "Subtract b from a", ["float", "float"], "float", True,
@@ -143,7 +143,7 @@ def _register_core_operators():
     ops.append(Operator(19, "rad2deg", "math", "Radians to degrees", ["float"], "float", True,
                         lambda a: math.degrees(a)))
 
-    # ── Text operators (2000-3499) ──
+    
     ops.append(Operator(2000, "upper", "text", "Convert to uppercase", ["string"], "string", True,
                         lambda s: s.upper()))
     ops.append(Operator(2001, "lower", "text", "Convert to lowercase", ["string"], "string", True,
@@ -184,7 +184,7 @@ def _register_core_operators():
                         ["string", "string"], "int", True,
                         lambda a, b: _levenshtein(a, b)))
 
-    # ── Data operators (3500-5499) ──
+    
     ops.append(Operator(3500, "list_len", "data", "List length", ["list"], "int", True,
                         lambda l: len(l)))
     ops.append(Operator(3501, "list_get", "data", "Get element at index", ["list", "int"], "any", True,
@@ -210,7 +210,7 @@ def _register_core_operators():
     ops.append(Operator(3511, "dict_values", "data", "Dictionary values", ["dict"], "list", True,
                         lambda d: list(d.values())))
 
-    # ── Logic operators (5500-6999) ──
+    
     ops.append(Operator(5500, "and", "logic", "Logical AND", ["bool", "bool"], "bool", True,
                         lambda a, b: a and b))
     ops.append(Operator(5501, "or", "logic", "Logical OR", ["bool", "bool"], "bool", True,
@@ -239,7 +239,7 @@ def _register_core_operators():
     ops.append(Operator(5512, "is_type", "logic", "Check value type", ["any", "string"], "bool", True,
                         lambda v, t: type(v).__name__ == t))
 
-    # ── System operators (9000-9999) ──
+    
     ops.append(Operator(9000, "file_read", "system", "Read file content", ["string"], "string", False,
                         lambda p: _op_file_read(p)))
     ops.append(Operator(9001, "file_write", "system", "Write content to file", ["string", "string"], "bool", False,
@@ -258,7 +258,7 @@ def _register_core_operators():
 
 
 def _levenshtein(a: str, b: str) -> int:
-    """Compute Levenshtein edit distance."""
+    """Compute Levenshtein edit distance.""""
     if len(a) < len(b):
         return _levenshtein(b, a)
     if len(b) == 0:
@@ -290,29 +290,29 @@ def _op_file_write(path: str, content: str) -> bool:
         return False
 
 
-# ── Initialize on import ──
+
 _register_core_operators()
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Operator Graph — chain operators into pipelines
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 class OperatorGraph:
-    """A DAG of operators that can be executed as a pipeline."""
+    """A DAG of operators that can be executed as a pipeline.""""
 
     def __init__(self):
-        self.nodes: List[Tuple[int, list]] = []  # (op_id, [input_refs])
+        self.nodes: List[Tuple[int, list]] = []  
         self._cache: Dict[int, Any] = {}
 
     def add_node(self, op_id: int, inputs: List[int] = None) -> int:
-        """Add an operator node. Returns node index."""
+        """Add an operator node. Returns node index.""""
         idx = len(self.nodes)
         self.nodes.append((op_id, inputs or []))
         return idx
 
     def execute(self) -> List[Any]:
-        """Execute the pipeline and return results."""
+        """Execute the pipeline and return results.""""
         results = {}
         outputs = []
         for idx, (op_id, inputs) in enumerate(self.nodes):
@@ -320,7 +320,7 @@ class OperatorGraph:
             if not op:
                 results[idx] = None
                 continue
-            # Resolve inputs
+            
             resolved = []
             for inp_idx in inputs:
                 resolved.append(results.get(inp_idx, None))
@@ -330,12 +330,12 @@ class OperatorGraph:
         return outputs
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Worker
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 class OperatorWorker(BaseWorker):
-    """Operator engine: execute operators by ID or name, list operators, run pipelines."""
+    """Operator engine: execute operators by ID or name, list operators, run pipelines.""""
     worker_id = "operator"
     version = "1.0.0"
 
@@ -398,7 +398,7 @@ class OperatorWorker(BaseWorker):
 
     def _operator_exec(self, operator: str, args: List[Any] = None) -> Dict[str, Any]:
         op = None
-        # Try by ID first
+        
         try:
             op_id = int(operator)
             op = OPERATOR_REGISTRY.get_by_id(op_id)

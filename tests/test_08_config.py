@@ -1,4 +1,4 @@
-"""Centralized config: minxg.yaml is the source of truth."""
+"""Centralized config: minxg.yaml is the source of truth.""""
 import pytest
 import minxg
 from minxg.operators import OPERATOR_REGISTRY

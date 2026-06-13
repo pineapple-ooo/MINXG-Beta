@@ -3,7 +3,7 @@ minxg/infogeo/divergence.py — Information Divergences (pure Python)
 ============================================================================
 
 All divergences implemented in pure Python without numpy.
-"""
+""""
 from __future__ import annotations
 import math
 from typing import Callable, List
@@ -11,7 +11,7 @@ from .manifold import DistributionFamily
 
 
 def kl_divergence(p_samples, q_log_prob, support=(-10, 10)) -> float:
-    """KL(p || q) via samples from p (KDE-estimated log p)."""
+    """KL(p || q) via samples from p (KDE-estimated log p).""""
     p_samples = list(p_samples)
     n = len(p_samples)
     if n == 0: return 0.0
@@ -33,7 +33,7 @@ def kl_divergence(p_samples, q_log_prob, support=(-10, 10)) -> float:
 
 
 def parametric_kl(p_dist, q_dist, theta_p, theta_q, n_samples: int = 1000) -> float:
-    """KL(p || q) for parametric distributions."""
+    """KL(p || q) for parametric distributions.""""
     x = p_dist.sample(theta_p, n_samples)
     total = 0.0
     for xi in x:
@@ -47,7 +47,7 @@ def _logsumexp_2(a: float, b: float) -> float:
 
 
 def js_divergence(p_dist, q_dist, theta_p, theta_q, n_samples: int = 1000) -> float:
-    """Jensen-Shannon divergence (symmetric, bounded in [0, ln 2])."""
+    """Jensen-Shannon divergence (symmetric, bounded in [0, ln 2]).""""
     p_samples = p_dist.sample(theta_p, n_samples // 2)
     q_samples = q_dist.sample(theta_q, n_samples // 2)
 
@@ -66,7 +66,7 @@ def js_divergence(p_dist, q_dist, theta_p, theta_q, n_samples: int = 1000) -> fl
 
 def renyi_divergence(p_dist, q_dist, theta_p, theta_q, alpha: float = 2.0,
                      n_samples: int = 1000) -> float:
-    """Rényi α-divergence. α=1 recovers KL."""
+    """Rényi α-divergence. α=1 recovers KL.""""
     if abs(alpha - 1) < 1e-9:
         return parametric_kl(p_dist, q_dist, theta_p, theta_q, n_samples)
     samples = p_dist.sample(theta_p, n_samples)
@@ -81,7 +81,7 @@ def renyi_divergence(p_dist, q_dist, theta_p, theta_q, alpha: float = 2.0,
 
 
 def bregman_divergence(phi: Callable, x, y) -> float:
-    """Bregman divergence D_Φ(x, y) = Φ(x) - Φ(y) - <∇Φ(y), x - y>."""
+    """Bregman divergence D_Φ(x, y) = Φ(x) - Φ(y) - <∇Φ(y), x - y>.""""
     x = list(x); y = list(y)
     eps = 1e-6
     d = len(x)
@@ -97,7 +97,7 @@ def bregman_divergence(phi: Callable, x, y) -> float:
 
 
 def total_variation(p_dist, q_dist, theta_p, theta_q, n_samples: int = 2000) -> float:
-    """Total variation distance."""
+    """Total variation distance.""""
     p_samples = p_dist.sample(theta_p, n_samples // 2)
     q_samples = q_dist.sample(theta_q, n_samples // 2)
     total = 0.0
@@ -111,7 +111,7 @@ def total_variation(p_dist, q_dist, theta_p, theta_q, n_samples: int = 2000) -> 
 
 
 def hellinger_distance(p_dist, q_dist, theta_p, theta_q, n_samples: int = 2000) -> float:
-    """Hellinger distance in [0, 1]."""
+    """Hellinger distance in [0, 1].""""
     p_samples = p_dist.sample(theta_p, n_samples // 2)
     q_samples = q_dist.sample(theta_q, n_samples // 2)
     total = 0.0

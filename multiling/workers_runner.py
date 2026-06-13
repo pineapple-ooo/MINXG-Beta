@@ -2,7 +2,7 @@
   python -m py_workers.server --port 19011
   python -m py_workers.server --workers fs_io system network
   python -m py_workers.workers_runner --status
-"""
+""""
 import os
 import sys
 import asyncio
@@ -18,12 +18,12 @@ log = logging.getLogger("workers_runner")
 def check_deps() -> dict:
     result = {"python": True, "aiohttp": False, "py_workers": False}
     try:
-        import aiohttp  # noqa
+        import aiohttp  
         result["aiohttp"] = True
     except ImportError:
         pass
     try:
-        import py_workers  # noqa
+        import py_workers  
         result["py_workers"] = True
     except ImportError:
         pass

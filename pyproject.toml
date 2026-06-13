@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "minxg"
-version = "0.0.1a0"
-description = "MINXG - Multi-Language AI Orchestration Framework — pure Python tool cluster"
+name = "minxg-beta"
+version = "0.10.0"
+description = "MINXG-Beta — Multi-Language AI Orchestration Framework. Six mathematical pillars. 376 operators. Python + C/C++/Go."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "MINXG Team" }]

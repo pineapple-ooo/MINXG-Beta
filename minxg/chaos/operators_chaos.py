@@ -3,7 +3,7 @@ minxg/chaos/operators_chaos.py — Register Chaos & Dynamical Systems operators
 =====================================================================================
 
 50+ chaos theory operators. Operator IDs 8500-8999 are reserved.
-"""
+""""
 from __future__ import annotations
 import math
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -27,7 +27,7 @@ def register_chaos_operators():
     reg = OPERATOR_REGISTRY
     op_id = 8500
 
-    # ── Logistic map (8500-8509) ──────────────────────────────────────
+    
     def log_op(r, x0, n):
         return logistic_map(float(r), float(x0), int(n))
     reg.register(Operator(op_id, "chaos_logistic", "chaos",
@@ -35,22 +35,22 @@ def register_chaos_operators():
                           ["number", "number", "int"], "array", True, log_op)); op_id += 1
 
     def log_iter(r, x0, n, k):
-        """Iterate k times and return final value."""
+        """Iterate k times and return final value.""""
         return logistic_map(float(r), float(x0), int(n))[-1] if k == 'all' else logistic_map(float(r), float(x0), int(n))[int(k)]
     reg.register(Operator(op_id, "chaos_logistic_at", "chaos",
                           "Logistic map value at step k",
                           ["number", "number", "int", "int"], "number", True, log_iter)); op_id += 1
 
     def log_fixed_point(r):
-        """Fixed point(s) of logistic map: r·x·(1-x) = x."""
-        # x = 0 and x = 1 - 1/r
+        """Fixed point(s) of logistic map: r·x·(1-x) = x.""""
+        
         if r == 0: return [0.0]
         return [0.0, 1.0 - 1.0 / r]
     reg.register(Operator(op_id, "chaos_logistic_fixed", "chaos",
                           "Fixed points of logistic map",
                           ["number"], "array", True, log_fixed_point)); op_id += 1
 
-    # ── Henon map (8510-8519) ────────────────────────────────────────
+    
     def henon_op(a, b, x0, y0, n):
         return henon_map(float(a), float(b), float(x0), float(y0), int(n))
     reg.register(Operator(op_id, "chaos_henon", "chaos",
@@ -58,7 +58,7 @@ def register_chaos_operators():
                           ["number", "number", "number", "number", "int"],
                           "list", True, henon_op)); op_id += 1
 
-    # ── Lorenz (8520-8529) ───────────────────────────────────────────
+    
     def lorenz_op(sigma, rho, beta, x0, y0, z0, dt, n):
         return lorenz(float(sigma), float(rho), float(beta),
                       float(x0), float(y0), float(z0), float(dt), int(n))
@@ -68,13 +68,13 @@ def register_chaos_operators():
                           "list", True, lorenz_op)); op_id += 1
 
     def lorenz_classic(x0, y0, z0, n):
-        """The famous 'butterfly' Lorenz attractor with σ=10, ρ=28, β=8/3."""
+        """The famous 'butterfly' Lorenz attractor with σ=10, ρ=28, β=8/3.""""
         return lorenz(10.0, 28.0, 8.0 / 3.0, float(x0), float(y0), float(z0), 0.01, int(n))
     reg.register(Operator(op_id, "chaos_lorenz_classic", "chaos",
                           "Classic Lorenz attractor (σ=10, ρ=28, β=8/3)",
                           ["number", "number", "number", "int"], "list", True, lorenz_classic)); op_id += 1
 
-    # ── Rossler (8530-8539) ──────────────────────────────────────────
+    
     def rossler_op(a, b, c, x0, y0, z0, dt, n):
         return rossler(float(a), float(b), float(c),
                        float(x0), float(y0), float(z0), float(dt), int(n))
@@ -89,7 +89,7 @@ def register_chaos_operators():
                           "Classic Rossler attractor (a=0.2, b=0.2, c=5.7)",
                           ["number", "number", "number", "int"], "list", True, rossler_classic)); op_id += 1
 
-    # ── Duffing (8540-8544) ─────────────────────────────────────────
+    
     def duffing_op(delta, alpha, beta, gamma, omega, x0, v0, dt, n):
         return duffing(float(delta), float(alpha), float(beta),
                        float(gamma), float(omega), float(x0), float(v0),
@@ -99,7 +99,7 @@ def register_chaos_operators():
                           ["number", "number", "number", "number", "number", "number", "number", "number", "int"],
                           "list", True, duffing_op)); op_id += 1
 
-    # ── Lyapunov (8545-8559) ────────────────────────────────────────
+    
     def lyap_op(r, n):
         return logistic_lyapunov(float(r), int(n))
     reg.register(Operator(op_id, "chaos_logistic_lyapunov", "chaos",
@@ -107,7 +107,7 @@ def register_chaos_operators():
                           ["number", "int"], "number", True, lyap_op)); op_id += 1
 
     def generic_lyap(f_str, fp_str, x0, n, transient):
-        """Generic 1D Lyapunov exponent from string function definitions."""
+        """Generic 1D Lyapunov exponent from string function definitions.""""
         f = eval("lambda x: " + f_str) if isinstance(f_str, str) else f_str
         fp = eval("lambda x: " + fp_str) if isinstance(fp_str, str) else fp_str
         return lyapunov_exponent(f, fp, float(x0), int(n), int(transient))
@@ -122,7 +122,7 @@ def register_chaos_operators():
                           "Kaplan-Yorke (Lyapunov) dimension from spectrum",
                           ["array"], "number", True, kaplan_yorke_op)); op_id += 1
 
-    # ── Bifurcation (8560-8569) ─────────────────────────────────────
+    
     def bifur_op(r_min, r_max, n_params):
         return logistic_bifurcation(float(r_min), float(r_max), int(n_params))
     reg.register(Operator(op_id, "chaos_logistic_bifurcation", "chaos",
@@ -130,14 +130,14 @@ def register_chaos_operators():
                           ["number", "number", "int"], "list", True, bifur_op)); op_id += 1
 
     def feigenbaum_constant():
-        """The Feigenbaum constant δ ≈ 4.6692016... — universal ratio of period-doubling bifurcations."""
-        # Analytically known; this is a lookup operator
+        """The Feigenbaum constant δ ≈ 4.6692016... — universal ratio of period-doubling bifurcations.""""
+        
         return 4.66920160910299067185320382046620161725818557747576863274
     reg.register(Operator(op_id, "chaos_feigenbaum", "chaos",
                           "The Feigenbaum constant (universal chaos parameter)",
                           [], "number", True, feigenbaum_constant)); op_id += 1
 
-    # ── Fractal dimensions (8570-8579) ──────────────────────────────
+    
     def box_dim_op(points, n_eps):
         pts = [tuple(p) for p in points]
         eps_max = max(max(abs(c) for c in p) for p in pts) * 2 if pts else 1.0
@@ -163,7 +163,7 @@ def register_chaos_operators():
                           "Correlation dimension (Grassberger-Procaccia)",
                           ["list", "int"], "number", True, corr_dim_op)); op_id += 1
 
-    # ── Classic fractals (8580-8599) ────────────────────────────────
+    
     def sierp_op(n, seed):
         if seed != 0:
             import random
@@ -210,7 +210,7 @@ def register_chaos_operators():
                           ["int", "int"], "list", True, cantor_op)); op_id += 1
 
     def ifs_op(n_funcs, n_points, seed):
-        """Generic IFS from n contractions."""
+        """Generic IFS from n contractions.""""
         if seed != 0:
             import random
             random.seed(int(seed))

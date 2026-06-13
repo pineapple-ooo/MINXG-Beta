@@ -12,7 +12,7 @@ diverge:
 
 For 1D maps: λ = lim (1/n) Σ log|f'(x_i)|
 For 2D+ maps: there are multiple exponents (Lyapunov SPECTRUM), sum = -Λ (Lyapunov)
-"""
+""""
 from __future__ import annotations
 import math
 from typing import Callable, List, Tuple
@@ -30,7 +30,7 @@ def lyapunov_exponent(f: Callable[[float], float], f_prime: Callable[[float], fl
         x0: initial condition
         n: number of iterations
         transient: iterations to discard (let the trajectory settle on attractor)
-    """
+    """"
     x = x0
     for _ in range(transient):
         x = f(x)
@@ -52,29 +52,29 @@ def lyapunov_spectrum(orbit_fn: Callable[[List[float]], List[float]],
 
     Uses the standard algorithm: maintain d nearby trajectories perturbed
     along d orthogonal directions, periodically re-orthogonalize.
-    """
-    # For maps, use Benettin's algorithm
+    """"
+    
     x = list(x0)
     Q = [[1.0 if i == j else 0.0 for j in range(dim)] for i in range(dim)]
     log_stretches = [[] for _ in range(dim)]
 
-    # Transient
+    
     for _ in range(transient):
         x = orbit_fn(x)
 
     for _ in range(n):
-        # Evolve the orbit
+        
         x = orbit_fn(x)
-        # Evolve the tangent vectors (for maps, just apply the Jacobian)
-        # Without explicit Jacobian, finite differences
+        
+        
         for j in range(dim):
             x_pert = [x[k] + dt * Q[k][j] for k in range(dim)]
             x_pert = orbit_fn(x_pert)
             for i in range(dim):
                 Q[i][j] = (x_pert[i] - x[i]) / dt
-        # Gram-Schmidt orthogonalize
+        
         for j in range(dim):
-            # Subtract projections onto previous vectors
+            
             for k in range(j):
                 dot = sum(Q[i][j] * Q[i][k] for i in range(dim))
                 for i in range(dim):
@@ -92,7 +92,7 @@ def logistic_lyapunov(r: float, n: int = 10000) -> float:
     """Lyapunov exponent of the logistic map at parameter r.
 
     The Feigenbaum-Coullet-Tresser constant: λ changes sign at r ≈ 3.5699.
-    """
+    """"
     f = lambda x: r * x * (1 - x)
     fp = lambda x: r * (1 - 2 * x)
     return lyapunov_exponent(f, fp, 0.5, n=n)

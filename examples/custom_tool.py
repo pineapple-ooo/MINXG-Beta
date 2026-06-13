@@ -4,14 +4,14 @@
 - 创建和注册自定义工具
 - 使用认证授权系统
 - 组合多个模块构建完整应用
-"""
+""""
 
 import sys
 sys.path.insert(0, '/storage/emulated/0/multiling')
 
 
 def demo_custom_tools():
-    """自定义工具演示"""
+    """自定义工具演示""""
     print("\n--- 自定义工具演示 ---")
 
     from multiling.toolsets import ToolSet, tool
@@ -27,7 +27,7 @@ def demo_custom_tools():
 
         Returns:
             包含结果的字典
-        """
+        """"
         try:
 
             import re
@@ -48,7 +48,7 @@ def demo_custom_tools():
 
         Returns:
             问候语字符串
-        """
+        """"
         greetings = {
             "zh": f"你好，{name}！欢迎使用 MINXG。",
             "en": f"Hello, {name}! Welcome to MINXG.",
@@ -67,7 +67,7 @@ def demo_custom_tools():
 
 
 def demo_auth_system():
-    """认证授权系统演示"""
+    """认证授权系统演示""""
     print("\n--- 认证授权系统演示 ---")
 
     from multiling.auth import (
@@ -111,7 +111,7 @@ def demo_auth_system():
 
 
 def demo_cache_system():
-    """缓存系统演示"""
+    """缓存系统演示""""
     print("\n--- 缓存系统演示 ---")
 
     from multiling.cache import MemoryCache, LayeredCache
@@ -137,7 +137,7 @@ def demo_cache_system():
 
 
 def demo_full_integration():
-    """完整集成演示 - 组合多个模块"""
+    """完整集成演示 - 组合多个模块""""
     print("\n--- 完整集成演示 ---")
 
     from multiling.config import create_default_config

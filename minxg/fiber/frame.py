@@ -15,7 +15,7 @@ The frame bundle is the natural setting for:
   - SPIN STRUCTURES (needed to define spinors on curved manifolds)
   - CARTAN'S MOVING FRAME (a way to compute curvature)
   - GAUGE THEORIES (where the frame is the gauge field)
-"""
+""""
 from __future__ import annotations
 import math
 from dataclasses import dataclass
@@ -31,7 +31,7 @@ class Vielbein:
     e^a_μ: at each point, gives an orthonormal basis {e_0, e_1, ...} for T_p M.
     The flat index 'a' labels the basis vector; the curved index 'μ' is the
     coordinate in the basis.
-    """
+    """"
     vielbein_fn: Callable[[List[float]], List[List[float]]]
     inverse_fn: Optional[Callable[[List[float]], List[List[float]]]] = None
 
@@ -41,7 +41,7 @@ class Vielbein:
     def inverse(self, point: List[float]) -> List[List[float]]:
         if self.inverse_fn is not None:
             return self.inverse_fn(point)
-        # Compute via Gauss-Jordan
+        
         e = self.vielbein_fn(point)
         n = len(e)
         aug = [row + [1.0 if i == j else 0.0 for j in range(n)] for i, row in enumerate(e)]
@@ -68,26 +68,26 @@ def vielbein(point: List[float], metric: RiemannianMetric) -> Vielbein:
     For a Euclidean metric, the vielbein is just the identity (after
     orthogonalization). For non-trivial metrics, the vielbein encodes
     the metric structure.
-    """
+    """"
     n = len(point)
     g = metric.at(point)
-    # Gram-Schmidt
+    
     e = [[0.0] * n for _ in range(n)]
-    # Use the metric as a guide
+    
     for i in range(n):
-        # Start with e_i
+        
         e[i][i] = 1.0
-        # Subtract projections onto previous vectors
+        
         for j in range(i):
             dot = sum(g[k][l] * e[i][k] * e[j][l] for k in range(n) for l in range(n))
             for k in range(n):
                 e[i][k] -= dot * e[j][k]
-        # Normalize
+        
         norm_sq = sum(g[k][l] * e[i][k] * e[i][l] for k in range(n) for l in range(n))
         norm = math.sqrt(max(norm_sq, 1e-12))
         for k in range(n):
             e[i][k] /= norm
-    return Vielbein(lambda p: e)  # constant for now
+    return Vielbein(lambda p: e)  
 
 
 class FrameBundle(PrincipalBundle):
@@ -95,10 +95,10 @@ class FrameBundle(PrincipalBundle):
 
     The fiber at each point p is the set of all bases (frames) of T_p M.
     A vielbein is a global section.
-    """
+    """"
     def __init__(self, base_dim: int, group: str = "GL"):
         super().__init__(base_dim, base_dim * base_dim, group + f"({base_dim})")
 
     def orthonormal_frame(self, point: List[float], metric: RiemannianMetric) -> Vielbein:
-        """Construct an orthonormal frame at the point."""
+        """Construct an orthonormal frame at the point.""""
         return vielbein(point, metric)

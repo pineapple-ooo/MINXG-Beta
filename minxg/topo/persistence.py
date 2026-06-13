@@ -11,14 +11,14 @@ diagram, suitable for machine learning. (Adams et al. 2017)
 
 The WASserstein DISTANCE between persistence diagrams is a metric on
 topological features. The bottleneck distance is the L^∞ version.
-"""
+""""
 from __future__ import annotations
 import math
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
 
-# ── Persistence diagram ─────────────────────────────────────────────────────
+
 
 @dataclass
 class PersistenceDiagram:
@@ -27,9 +27,9 @@ class PersistenceDiagram:
     Includes a special "diagonal" — every diagram has the trivial pairing
     (b, b) representing features of zero persistence. This is used in
     the Wasserstein distance computation.
-    """
+    """"
     points: List[Tuple[float, float]] = field(default_factory=list)
-    infinite_points: List[Tuple[float, float]] = field(default_factory=list)  # (birth, ∞)
+    infinite_points: List[Tuple[float, float]] = field(default_factory=list)  
 
     def add(self, birth: float, death: float) -> None:
         if death == float('inf'):
@@ -48,7 +48,7 @@ class PersistenceDiagram:
         return self.points + self.infinite_points
 
     def max_persistence(self) -> float:
-        """The largest persistence (d - b) of any feature."""
+        """The largest persistence (d - b) of any feature.""""
         all_pts = self.points + [(b, 1e10) for b, _ in self.infinite_points]
         if not all_pts: return 0.0
         return max(d - b for b, d in all_pts)
@@ -57,7 +57,7 @@ class PersistenceDiagram:
         return [d - b for b, d in self.points] + [1e10 for _, _ in self.infinite_points]
 
 
-# ── Persistence image ───────────────────────────────────────────────────────
+
 
 @dataclass
 class PersistenceImage:
@@ -67,18 +67,18 @@ class PersistenceImage:
     each (birth, persistence) point in the diagram. The result is a
     fixed-size vector (typically 32x32 or 64x64) that can be fed to
     neural networks or other ML models.
-    """
+    """"
     diagram: PersistenceDiagram
     resolution: int = 32
     sigma: float = 0.05
-    weight_fn: Optional[callable] = None  # weighting function for persistence
+    weight_fn: Optional[callable] = None  
 
     def vectorize(self) -> List[float]:
-        """Convert the diagram to a flat vector of length resolution^2."""
+        """Convert the diagram to a flat vector of length resolution^2.""""
         if self.weight_fn is None:
-            # Default: linear weighting by persistence
+            
             self.weight_fn = lambda p: p
-        # Domain: birth × persistence
+        
         pts = self.diagram.to_pairs()
         if not pts:
             return [0.0] * (self.resolution * self.resolution)
@@ -88,7 +88,7 @@ class PersistenceImage:
         image = [[0.0] * self.resolution for _ in range(self.resolution)]
         for b, d in pts:
             if d == float('inf'):
-                # Project to (b, p_max)
+                
                 d = b + p_max
             pers = d - b
             if pers <= 0: continue
@@ -100,14 +100,14 @@ class PersistenceImage:
                     image[i][j] += weight * math.exp(
                         -((b - b_coord) ** 2 + (pers - p_coord) ** 2) / (2 * self.sigma ** 2)
                     )
-        # Flatten
+        
         out = []
         for row in image:
             out.extend(row)
         return out
 
 
-# ── Wasserstein distance ────────────────────────────────────────────────────
+
 
 def wasserstein_distance(dgm1: PersistenceDiagram, dgm2: PersistenceDiagram,
                           p: int = 2) -> float:
@@ -117,34 +117,34 @@ def wasserstein_distance(dgm1: PersistenceDiagram, dgm2: PersistenceDiagram,
 
     For p=∞, this is the bottleneck distance. The "diagonal" is added
     to each diagram to make them have the same number of points.
-    """
+    """"
     pts1 = dgm1.to_pairs()
     pts2 = dgm2.to_pairs()
     if not pts1 and not pts2: return 0.0
     if not pts1 or not pts2:
-        # All unmatched — distance is the persistence of the only ones
+        
         pts = pts1 or pts2
         total = sum((d - b) ** p for b, d in pts)
         return total ** (1 / p)
-    # Pad with diagonal points (matching to (b, b))
+    
     n = max(len(pts1), len(pts2))
     while len(pts1) < n:
         pts1.append((0.0, 0.0))
     while len(pts2) < n:
         pts2.append((0.0, 0.0))
-    # Compute the optimal matching — O(n^2) for small n
-    # Use Hungarian algorithm in O(n^3) or simple greedy for n small
+    
+    
     n = len(pts1)
-    # Cost matrix: cost[i][j] = ||pts1[i] - pts2[j]||_∞^p
+    
     cost = [[0.0] * n for _ in range(n)]
     for i in range(n):
         for j in range(n):
             b1, d1 = pts1[i]
             b2, d2 = pts2[j]
-            # Use sup norm on the (b, d) coordinates
+            
             dist = max(abs(b1 - b2), abs(d1 - d2))
             cost[i][j] = dist ** p
-    # Hungarian algorithm (simple O(n^3) implementation)
+    
     return _hungarian(cost) ** (1 / p)
 
 
@@ -152,7 +152,7 @@ def _hungarian(cost: List[List[float]]) -> float:
     """Hungarian algorithm for minimum-weight perfect matching.
 
     O(n^3) — fine for small diagrams (< 100 points).
-    """
+    """"
     n = len(cost)
     if n == 0: return 0.0
     INF = float('inf')
@@ -194,7 +194,7 @@ def _hungarian(cost: List[List[float]]) -> float:
             j0 = j1
             if j0 == 0:
                 break
-    # Total cost
+    
     total = 0.0
     for j in range(1, n + 1):
         if p[j] != 0:

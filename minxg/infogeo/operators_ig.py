@@ -3,7 +3,7 @@ minxg/infogeo/operators_ig.py — Register Information Geometry operators
 ================================================================================
 
 100+ information-geometry operators. Operator IDs 7000-7499 are reserved.
-"""
+""""
 from __future__ import annotations
 import math
 from typing import Any, Callable, Dict, List, Optional
@@ -45,7 +45,7 @@ def register_ig_operators():
     reg = OPERATOR_REGISTRY
     op_id = 7000
 
-    # ── Distribution family construction (7000-7019) ─────────────────
+    
     for name, factory in [
         ("ig_bernoulli", lambda: Bernoulli()),
         ("ig_gaussian", lambda: Gaussian()),
@@ -65,7 +65,7 @@ def register_ig_operators():
                           "Categorical distribution with k classes",
                           ["int"], "distribution", True, make_categorical_n)); op_id += 1
 
-    # ── Manifold operations (7020-7039) ──────────────────────────────
+    
     def make_manifold(dist_name, k, n_samples):
         dist = _make_dist(dist_name, k)
         return StatisticalManifold(family=dist, n_samples=int(n_samples))
@@ -103,7 +103,7 @@ def register_ig_operators():
                           "Parameter space dimension",
                           ["manifold"], "int", True, manifold_dim)); op_id += 1
 
-    # ── Fisher & natural gradient (7040-7059) ───────────────────────
+    
     def fisher_op(dist_name, theta, k, n_samples):
         d = _make_dist(dist_name, k)
         return fisher_information_matrix(d, _to_list(theta), int(n_samples))
@@ -138,7 +138,7 @@ def register_ig_operators():
                           ["string", "array", "function", "number", "int", "int"],
                           "array", True, ngd_op)); op_id += 1
 
-    # ── α-connections (7060-7079) ──────────────────────────────────
+    
     def alpha_conn(dist_name, theta, alpha, k, n_samples):
         m = _pack_manifold(dist_name, k, n_samples)
         return alpha_connection(m, _to_list(theta), float(alpha))
@@ -175,7 +175,7 @@ def register_ig_operators():
                           ["string", "array", "array", "number", "int", "int"],
                           "array", True, exp_map_op)); op_id += 1
 
-    # ── Divergences (7080-7099) ────────────────────────────────────
+    
     def kl_op(p_samples, q_log_probs):
         return kl_divergence(_to_list(p_samples), list(q_log_probs))
     reg.register(Operator(op_id, "ig_kl_divergence", "infogeo",
@@ -230,7 +230,7 @@ def register_ig_operators():
                           "Bregman divergence: Φ(x) - Φ(y) - <∇Φ(y), x-y>",
                           ["function", "array", "array"], "number", True, bregman_op)); op_id += 1
 
-    # ── Specific α values (7100-7109) ─────────────────────────────
+    
     for alpha in [0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 5.0, 10.0]:
         reg.register(Operator(op_id, f"ig_renyi_alpha_{alpha}".replace(".", "_"),
                               "infogeo",
@@ -242,7 +242,7 @@ def register_ig_operators():
                                   _to_list(tp), _to_list(tq), a, int(n))))
         op_id += 1
 
-    # ── α-connection specific values (7110-7119) ──────────────────
+    
     for alpha in [-1.0, -0.5, 0.0, 0.5, 1.0]:
         name = f"ig_alpha_conn_{int(alpha*10)}".replace("-", "neg")
         reg.register(Operator(op_id, name, "infogeo",
@@ -252,7 +252,7 @@ def register_ig_operators():
                                   _pack_manifold(d, k, n), _to_list(th), a)))
         op_id += 1
 
-    # ── Distribution operations (7120-7139) ───────────────────────
+    
     def log_prob_op(dist_name, x, theta, k):
         return _make_dist(dist_name, k).log_prob(x, _to_list(theta))
     reg.register(Operator(op_id, "ig_log_prob", "infogeo",
@@ -290,7 +290,7 @@ def register_ig_operators():
                           "Monte Carlo variance estimate",
                           ["string", "array", "int", "int", "int"], "number", True, sample_var_op)); op_id += 1
 
-    # ── Exponential family (7140-7149) ────────────────────────────
+    
     def exp_family_log_A(sufficient_stats_str, theta, n_samples):
         theta = _to_list(theta)
         if len(theta) == 1:
@@ -310,7 +310,7 @@ def register_ig_operators():
                           "Gradient of log-partition ∇A(θ) = E[T(X)]",
                           ["string", "array", "int"], "array", True, exp_family_grad_A)); op_id += 1
 
-    # ── Natural gradient descent one step (7150) ─────────────────
+    
     def ngd_step_op(dist_name, theta, loss_fn, lr, k, n):
         d = _make_dist(dist_name, k)
         theta_arr = _to_list(theta)

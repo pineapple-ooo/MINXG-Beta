@@ -19,7 +19,7 @@ Mapper is used for:
   - Topological feature extraction for ML
   - Understanding the topology of loss landscapes
   - Clustering with topological guarantees
-"""
+""""
 from __future__ import annotations
 import math
 from collections import defaultdict
@@ -37,14 +37,14 @@ def cover(intervals: int, overlap: float = 0.5,
 
     Returns:
         List of (lo, hi) tuples.
-    """
+    """"
     if intervals <= 0:
         return []
     width = (f_max - f_min) / (intervals * (1 - overlap) - overlap + 1)
-    # Hmm let me redo: total = n*w - (n-1)*w*overlap = f_max - f_min
-    # => w = (f_max - f_min) / (n - (n-1)*overlap)
+    
+    
     if abs(1 - overlap) < 1e-9:
-        # Full overlap = single point
+        
         return [(f_min, f_max)]
     w = (f_max - f_min) / (intervals - (intervals - 1) * overlap)
     if w <= 0:
@@ -81,25 +81,25 @@ def mapper_algorithm(points: List[List[float]],
           - 'edges': list of (node_i, node_j) pairs that share a point
           - 'cover': the cover used
           - 'graph': adjacency dict for the graph
-    """
-    # 1. Apply the filter
+    """"
+    
     f_values = [filter_fn(p) for p in points]
     f_min, f_max = min(f_values), max(f_values)
     if f_max - f_min < 1e-12:
         f_max = f_min + 1.0
 
-    # 2. Cover
+    
     intervals = cover(n_intervals, overlap, f_min, f_max)
 
-    # 3. For each interval, cluster the preimage
-    nodes: List[List[int]] = []  # each node is a list of point indices
-    point_to_nodes: Dict[int, List[int]] = defaultdict(list)  # point idx -> list of node ids
+    
+    nodes: List[List[int]] = []  
+    point_to_nodes: Dict[int, List[int]] = defaultdict(list)  
     for i, (lo, hi) in enumerate(intervals):
-        # Points in this interval
+        
         preimage = [j for j, fv in enumerate(f_values) if lo <= fv <= hi]
         if not preimage:
             continue
-        # Cluster the preimage
+        
         if cluster_fn is not None:
             clusters = cluster_fn(preimage, points, cluster_eps)
         else:
@@ -110,7 +110,7 @@ def mapper_algorithm(points: List[List[float]],
             for p in cluster:
                 point_to_nodes[p].append(node_id)
 
-    # 4. Build edges: two nodes share an edge if they share a point
+    
     edges: Set[Tuple[int, int]] = set()
     for p, node_ids in point_to_nodes.items():
         for i in range(len(node_ids)):
@@ -119,7 +119,7 @@ def mapper_algorithm(points: List[List[float]],
                 if a > b: a, b = b, a
                 edges.add((a, b))
 
-    # Build adjacency
+    
     graph: Dict[int, List[int]] = defaultdict(list)
     for a, b in edges:
         graph[a].append(b)
@@ -134,7 +134,7 @@ def mapper_algorithm(points: List[List[float]],
 
 
 def _single_link_cluster(point_ids: List[int], points: List[List[float]], eps: float):
-    """Cluster points using single-linkage (union-find) clustering."""
+    """Cluster points using single-linkage (union-find) clustering.""""
     n = len(point_ids)
     parent = list(range(n))
     def find(x):
@@ -152,7 +152,7 @@ def _single_link_cluster(point_ids: List[int], points: List[List[float]], eps: f
             d_sq = sum((a - b) ** 2 for a, b in zip(pi, pj))
             if d_sq <= eps_sq:
                 union(i, j)
-    # Group
+    
     groups: Dict[int, List[int]] = defaultdict(list)
     for i in range(n):
         groups[find(i)].append(point_ids[i])

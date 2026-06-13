@@ -1,4 +1,4 @@
-"""Geometric Algebra correctness — the bedrock of the GA pillar."""
+"""Geometric Algebra correctness — the bedrock of the GA pillar.""""
 import math
 import pytest
 from minxg.ga import Multivector, Signature, Rotor, Reflector, Dilator
@@ -36,7 +36,7 @@ def test_rotor_rotates_vector_in_plane():
 
 
 def test_rotor_is_orthogonal():
-    """Rotor preserves length: |R(v)| = |v|."""
+    """Rotor preserves length: |R(v)| = |v|.""""
     sig = Signature(3, 0)
     e1 = Multivector({1: 1.0}, sig)
     e3 = Multivector({4: 1.0}, sig)

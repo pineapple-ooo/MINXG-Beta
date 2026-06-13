@@ -2,7 +2,7 @@
 
 
 
-"""
+""""
 from __future__ import annotations
 
 import importlib
@@ -84,7 +84,7 @@ def _extract_targz(tar_path: Path) -> Optional[Path]:
 
 
 def _find_main_py(extract_dir: Path) -> Optional[Path]:
-    """Find the main entry point in an extracted extension directory."""
+    """Find the main entry point in an extracted extension directory.""""
     init_py = extract_dir / "__init__.py"
     if init_py.exists():
         return init_py
@@ -146,7 +146,7 @@ def _load_from_archive(archive_path: Path, source: str) -> List[ExtensionModule]
 
 
 def import_hermes_skill(skill_dir: str) -> Optional[ExtensionModule]:
-    """Import a Hermes skill from SKILL.md directory."""
+    """Import a Hermes skill from SKILL.md directory.""""
     skill_path = Path(skill_dir)
     if not skill_path.exists():
         return None
@@ -174,7 +174,7 @@ def import_hermes_skill(skill_dir: str) -> Optional[ExtensionModule]:
                 pass
 
 EXTENSION_NAME = "{name}"
-EXTENSION_DESCRIPTION = """{description}"""
+EXTENSION_DESCRIPTION = """{description}""""
 EXTENSION_VERSION = "imported"
 EXTENSION_PRIORITY = 60
 EXTENSION_SOURCE = "hermes-import"
@@ -217,7 +217,7 @@ def register_hooks(registry):
 
 
 def import_claude_skill(skill_path: str) -> Optional[ExtensionModule]:
-    """Import a Claude Code skill from directory or config file."""
+    """Import a Claude Code skill from directory or config file.""""
     sp = Path(skill_path)
     if not sp.exists():
         return None
@@ -260,7 +260,7 @@ def handle_command(args) -> int:
 
 
 def import_codex_tool(tool_path: str) -> Optional[ExtensionModule]:
-    """Import a Codex tool definition from JSON file."""
+    """Import a Codex tool definition from JSON file.""""
     tp = Path(tool_path)
     if not tp.exists() or tp.suffix != ".json":
         return None

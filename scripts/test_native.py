@@ -6,7 +6,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def test_import():
-    from py_workers.core_native import (
+    from minxg.five_pillars.scalar.core_native import (
         sha256, sha512, hmac_sha256, hex_encode, hex_decode,
         base64_encode, base64_decode, is_valid_utf8, trim,
         tokenize, word_frequency, file_stat
@@ -14,7 +14,7 @@ def test_import():
     print("[PASS] core_native import")
 
 def test_crypto():
-    from py_workers.core_native import sha256, sha512, hmac_sha256, hex_encode, hex_decode
+    from minxg.five_pillars.scalar.core_native import sha256, sha512, hmac_sha256, hex_encode, hex_decode
 
     h = sha256(b"hello world")
     assert len(h) == 32, f"sha256 length: {len(h)}"
@@ -34,7 +34,7 @@ def test_crypto():
     print("[PASS] hex encode/decode")
 
 def test_encoding():
-    from py_workers.core_native import base64_encode, base64_decode
+    from minxg.five_pillars.scalar.core_native import base64_encode, base64_decode
 
     enc = base64_encode(b"hello world")
     assert enc == "aGVsbG8gd29ybGQ=", f"base64_encode: {enc}"
@@ -43,7 +43,7 @@ def test_encoding():
     print("[PASS] base64 encode/decode")
 
 def test_text():
-    from py_workers.core_native import is_valid_utf8, trim, tokenize
+    from minxg.five_pillars.scalar.core_native import is_valid_utf8, trim, tokenize
 
     assert is_valid_utf8(b"hello world")
     assert is_valid_utf8("你好世界".encode())
@@ -60,7 +60,7 @@ def test_text():
     print("[PASS] tokenize")
 
 def test_word_freq():
-    from py_workers.core_native import word_frequency
+    from minxg.five_pillars.scalar.core_native import word_frequency
 
     freq = word_frequency("the cat and the dog the cat", top_n=3)
     assert freq[0][0] == "the"

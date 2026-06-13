@@ -1,181 +1,142 @@
-"""
-minxg/__init__.py — Worker registry v1.0.0
-"""
+"""minxg — Five-Pillar Operator Architecture v1.1.0
+
+A modular worker platform organized along five mathematical/functional
+operator dimensions. Each pillar is independently importable so that
+editing one module never forces a project-wide rebuild.
+""""
 from .base import BaseWorker, ToolDef, WorkerRegistry
 from . import _config as _cfg_mod
+
 load_config = _cfg_mod.load_config
 get = _cfg_mod.get
 CONFIG = _cfg_mod.CONFIG
 
-# Core I/O
-from .fs_io import FsIoWorker
-from .fs_copy import FsCopyWorker
-from .fs_search import FsSearchWorker
+from .five_pillars.io.fs_io import FsIoWorker
+from .five_pillars.io.fs_copy import FsCopyWorker
+from .five_pillars.io.fs_search import FsSearchWorker
+from .five_pillars.io.network import NetworkWorker
+from .five_pillars.io.network_adv import NetworkAdvWorker
+from .five_pillars.io.media_tools import MediaToolsWorker
+from .five_pillars.io.media_adv import MediaAdvWorker
+from .five_pillars.io.db_tools import DbToolsWorker
+from .five_pillars.io.web_tools import WebToolsWorker
+from .five_pillars.io.web_search import search as web_search  
+from .five_pillars.io.archive_tools import ArchiveWorker
+from .five_pillars.io.cloud_tools import CloudToolsWorker
 
-# System & network
-from .system import SystemWorker
-from .network import NetworkWorker
-from .sh_query import ShQueryWorker
-from .sh_exec import ShExecWorker
-
-# State & session
-from .state_session import StateSessionWorker
-from .state_machine import StateMachineWorker
-from .limits_lock import LimitsLockWorker
-from .limits_break import LimitsBreakWorker
-from .persistence import PersistenceWorker
-from .rules import RulesWorker
-from .events import EventsWorker
-from .hotreload import HotReloadWorker
-
-# Text & encoding
-from .text_tools import TextToolsWorker
-from .encoding_tools import EncodingToolsWorker
-from .math_tools import MathToolsWorker
-from .datetime_tools import DateTimeToolsWorker
-
-# Core tools
-from .ai_tools import AiToolsWorker
-from .media_tools import MediaToolsWorker
-from .data_tools import DataToolsWorker
-from .crypto_tools import CryptoToolsWorker
-from .db_tools import DbToolsWorker
-from .web_tools import WebToolsWorker
-from .template_tools import TemplateToolsWorker
-from .benchmark_tools import BenchmarkToolsWorker
-from .cloud_tools import CloudToolsWorker
-from .security_tools import SecurityToolsWorker
-from .ml_tools import MlToolsWorker
-from .process_tools import ProcessToolsWorker
-
-# Platform & UI
-from .platform_tools import PlatformWorker
-from .notify_tools import NotifyWorker
-from .i18n_tools import I18nWorker
-from .string_tools import StringWorker
-from .version_tools import VersionWorker
-from .color_tools import ColorWorker
-from .markdown_tools import MarkdownWorker
-
-# v1.0.0: New worker modules
-from .archive_tools import ArchiveWorker
-from .network_adv import NetworkAdvWorker
-from .dev_tools import DevToolsWorker
-from .media_adv import MediaAdvWorker
-from .adb_tools import AdbWorker
-from .root_tools import RootWorker
-from .operators import OperatorWorker
-
-# Platform registry
-from .platform_registry import (
+from .five_pillars.dispatch.system import SystemWorker
+from .five_pillars.dispatch.sh_query import ShQueryWorker
+from .five_pillars.dispatch.sh_exec import ShExecWorker
+from .five_pillars.dispatch.process_tools import ProcessToolsWorker
+from .five_pillars.dispatch.limits_lock import LimitsLockWorker
+from .five_pillars.dispatch.limits_break import LimitsBreakWorker
+from .five_pillars.dispatch.platform_tools import PlatformWorker
+from .five_pillars.dispatch.platform_registry import (
     CURRENT_PLATFORM, detect_platform, get_available_tools,
     get_tools_by_category, get_system_capabilities,
 )
+from .five_pillars.dispatch.adb_tools import AdbWorker
+from .five_pillars.dispatch.root_tools import RootWorker
+from .five_pillars.dispatch.dev_tools import DevToolsWorker
+from .five_pillars.dispatch.security_tools import SecurityToolsWorker
+from .five_pillars.dispatch.go_client import GoGatewayClient as GoBridge
+from .five_pillars.dispatch.notify_tools import NotifyWorker
+
+from .five_pillars.transform.state_session import StateSessionWorker
+from .five_pillars.transform.state_machine import StateMachineWorker
+from .five_pillars.transform.persistence import PersistenceWorker
+from .five_pillars.transform.rules import RulesWorker
+from .five_pillars.transform.events import EventsWorker
+from .five_pillars.transform.hotreload import HotReloadWorker
+from .five_pillars.transform.ai_tools import AiToolsWorker
+
+from .five_pillars.scalar.text_tools import TextToolsWorker
+from .five_pillars.scalar.datetime_tools import DateTimeToolsWorker
+from .five_pillars.scalar.math_tools import MathToolsWorker
+from .five_pillars.scalar.string_tools import StringWorker
+from .five_pillars.scalar.version_tools import VersionWorker
+from .five_pillars.scalar.color_tools import ColorWorker
+from .five_pillars.scalar.markdown_tools import MarkdownWorker
+
+from .five_pillars.aggregate.encoding_tools import EncodingToolsWorker
+from .five_pillars.aggregate.crypto_tools import CryptoToolsWorker
+from .five_pillars.aggregate.data_tools import DataToolsWorker
+from .five_pillars.aggregate.template_tools import TemplateToolsWorker
+from .five_pillars.aggregate.i18n_tools import I18nWorker
+from .five_pillars.aggregate.ml_tools import MlToolsWorker
+from .five_pillars.aggregate.benchmark_tools import BenchmarkToolsWorker
+
+from .operators import OperatorWorker
 
 __all__ = [
     "BaseWorker", "ToolDef", "WorkerRegistry",
-
-    # Core I/O
     "FsIoWorker", "FsCopyWorker", "FsSearchWorker",
-
-    # System & network
-    "SystemWorker", "NetworkWorker", "ShQueryWorker", "ShExecWorker",
-
-    # State & session
+    "NetworkWorker", "NetworkAdvWorker",
+    "MediaToolsWorker", "MediaAdvWorker",
+    "DbToolsWorker", "WebToolsWorker", "WebSearchWorker",
+    "ArchiveWorker", "CloudToolsWorker",
+    "SystemWorker", "ShQueryWorker", "ShExecWorker", "ProcessToolsWorker",
+    "LimitsLockWorker", "LimitsBreakWorker", "PlatformWorker",
+    "AdbWorker", "RootWorker", "DevToolsWorker",
+    "SecurityToolsWorker", "GoBridge", "NotifyWorker",
     "StateSessionWorker", "StateMachineWorker",
-    "LimitsLockWorker", "LimitsBreakWorker",
     "PersistenceWorker", "RulesWorker", "EventsWorker", "HotReloadWorker",
-
-    # Text & encoding
-    "TextToolsWorker", "EncodingToolsWorker", "MathToolsWorker", "DateTimeToolsWorker",
-
-    # Core tools
-    "AiToolsWorker", "MediaToolsWorker", "DataToolsWorker",
-    "CryptoToolsWorker", "DbToolsWorker", "WebToolsWorker",
-    "TemplateToolsWorker", "BenchmarkToolsWorker", "CloudToolsWorker",
-    "SecurityToolsWorker", "MlToolsWorker", "ProcessToolsWorker",
-
-    # Platform & UI
-    "PlatformWorker", "NotifyWorker", "I18nWorker",
+    "AiToolsWorker",
+    "TextToolsWorker", "DateTimeToolsWorker", "MathToolsWorker",
     "StringWorker", "VersionWorker", "ColorWorker", "MarkdownWorker",
-
-    # v1.0.0 new
-    "ArchiveWorker", "NetworkAdvWorker", "DevToolsWorker",
-    "MediaAdvWorker", "AdbWorker", "RootWorker", "OperatorWorker",
-
-    # Platform registry
+    "EncodingToolsWorker", "CryptoToolsWorker", "DataToolsWorker",
+    "TemplateToolsWorker", "I18nWorker",
+    "MlToolsWorker", "BenchmarkToolsWorker",
+    "OperatorWorker",
     "CURRENT_PLATFORM", "detect_platform", "get_available_tools",
     "get_tools_by_category", "get_system_capabilities",
 ]
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Mathematical Pillar Sub-packages (auto-registered on import)
-# ═══════════════════════════════════════════════════════════════════════════════
-# These sub-packages register their operators with OPERATOR_REGISTRY on import.
-# They define the five mathematical pillars of MINXG operator architecture:
-#   - GA:      Geometric Algebra (Clifford Algebra)
-#   - CAT:     Category Theory (morphisms, functors, monads)
-#   - IG:      Information Geometry (Fisher metric, α-connections)
-#   - TOPO:    Algebraic Topology (persistent homology, simplicial complexes)
-#   - CHAOS:   Dynamical Systems & Fractals (Lyapunov, IFS, attractors)
-
-# Import order matters: each sub-package registers on import
 try:
     from . import ga
     from .ga import operators_ga as _ga_ops
     GA_OPERATORS = _ga_ops.GA_OPERATOR_COUNT
-except ImportError as e:
+except ImportError:
     GA_OPERATORS = 0
-    import warnings
-    warnings.warn(f"GA operators not loaded: {e}")
 
 try:
     from . import cat
     from .cat import operators_cat as _cat_ops
     CAT_OPERATORS = _cat_ops.CAT_OPERATOR_COUNT
-except ImportError as e:
+except ImportError:
     CAT_OPERATORS = 0
-    import warnings
-    warnings.warn(f"CAT operators not loaded: {e}")
 
 try:
     from . import infogeo
     from .infogeo import operators_ig as _ig_ops
     IG_OPERATORS = _ig_ops.IG_OPERATOR_COUNT
-except ImportError as e:
+except ImportError:
     IG_OPERATORS = 0
-    import warnings
-    warnings.warn(f"IG operators not loaded: {e}")
 
 try:
     from . import topo
     from .topo import operators_topo as _topo_ops
     TOPO_OPERATORS = _topo_ops.TOPO_OPERATOR_COUNT
-except ImportError as e:
+except ImportError:
     TOPO_OPERATORS = 0
-    import warnings
-    warnings.warn(f"TOPO operators not loaded: {e}")
 
 try:
     from . import chaos
     from .chaos import operators_chaos as _chaos_ops
     CHAOS_OPERATORS = _chaos_ops.CHAOS_OPERATOR_COUNT
-except ImportError as e:
+except ImportError:
     CHAOS_OPERATORS = 0
-    import warnings
-    warnings.warn(f"CHAOS operators not loaded: {e}")
 
 try:
     from . import fiber
     from .fiber import operators_fiber as _fiber_ops
     FIBER_OPERATORS = _fiber_ops.FIBER_OPERATOR_COUNT
-except ImportError as e:
+except ImportError:
     FIBER_OPERATORS = 0
-    import warnings
-    warnings.warn(f"FIBER operators not loaded: {e}")
 
 TOTAL_MATHEMATICAL_OPERATORS = (
-    GA_OPERATORS + CAT_OPERATORS + IG_OPERATORS + TOPO_OPERATORS + CHAOS_OPERATORS + FIBER_OPERATORS
+    GA_OPERATORS + CAT_OPERATORS + IG_OPERATORS
+    + TOPO_OPERATORS + CHAOS_OPERATORS + FIBER_OPERATORS
 )
