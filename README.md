@@ -12,15 +12,36 @@ One small pip install. Pure Python. Runs on Termux.
 The Python package's distribution name is **`minxg-beta`** and the
 top-level import is **`minxg`**.
 
-For now, install from the source tree (after cloning):
+### One-liner (any platform)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Disability-Human/MINXG-Beta/main/install.sh | bash
+```
+
+That single command:
+- detects your platform (Termux / Linux / macOS / WSL),
+- clones the full repo to `~/.minxg-src`,
+- pip-installs everything in editable mode so the `minxg` console
+  script lands on `$PATH`,
+- compiles the optional C extensions if a compiler is present,
+- prints a status table at the end.
+
+Variants:
+
+```bash
+# custom clone dir
+MINXG_DIR=/opt/minxg curl -fsSL https://raw.githubusercontent.com/Disability-Human/MINXG-Beta/main/install.sh | bash
+
+# explicit repo URL (when forking)
+REPO_URL=https://github.com/you/minxg.git curl -fsSL https://raw.githubusercontent.com/Disability-Human/MINXG-Beta/main/install.sh | bash
+```
+
+### Local clone (developer)
 
 ```bash
 git clone https://github.com/<owner>/minxg.git
 cd minxg
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e .
-```
+bash install.sh          # picks up the existing clone, skips the git step
 
 After install:
 

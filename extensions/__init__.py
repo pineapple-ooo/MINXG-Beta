@@ -125,7 +125,10 @@ from extensions.loader import (
 
 
 def register_cli_extensions(subparsers) -> Dict[str, ExtensionModule]:
+    """Discover CLI commands from every loaded extension.
 
+    Each extension's ``register_cli(subparsers)`` is invoked, then
+    command dispatch is returned in the ext_map keyed by extension name.
     """
     ext_map: Dict[str, ExtensionModule] = {}
     try:
@@ -154,8 +157,10 @@ def dispatch_extension(ext_map: Dict, command: str, args) -> int:
         return 1
 
 
-def register_hooks_from_extensions(registry: ExtensionRegistry = None) -> int:
+def register_hooks_from_extensions(registry=None) -> int:
+    """Discover and call register_hooks() on every loaded extension.
 
+    Forward-compat: caller may pass their own registry, or rely on the default.
     """
     if registry is None:
         registry = get_default_registry()

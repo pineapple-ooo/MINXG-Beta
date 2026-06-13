@@ -536,6 +536,25 @@ Examples:
                     help="Sub-command: start, stop, status")
 
 
+    # `start` — top-level convenience alias for `gateway start`.
+    # Why: setup.py's user-facing banner (and prior minxg versions) advertise
+    # `minxg start` as the entry point. Restoring this alias avoids breaking
+    # muscle memory and the original install script's quick-start hints.
+    start_parser = subparsers.add_parser(
+        "start",
+        help="Start the MINXG gateway (alias for 'gateway start')",
+        description="Convenience alias: 'minxg start' is identical to 'minxg gateway start'.",
+    )
+    start_parser.add_argument(
+        "--foreground", action="store_true",
+        help="Run gateway in foreground instead of backgrounded",
+    )
+    start_parser.add_argument(
+        "--port", type=int, default=None,
+        help="Override gateway port (default: from config)",
+    )
+
+
     up = subparsers.add_parser("update", help=T("cmd_update"))
     up.add_argument("--force", action="store_true", help="Force update")
     up.add_argument("--enable", action="store_true", help="Enable hot reload")
@@ -555,7 +574,8 @@ Examples:
     from extensions import register_cli_extensions
     ext_map: Dict = {}
     try:
-        ext_map = register_cli_extensions(subparsers)
+        from extensions import register_cli_extensions as _rce
+        ext_map = _rce(subparsers)
     except Exception as e:
         print_dim(f"(Extension loading skipped: {e})")
 
@@ -625,6 +645,12 @@ Examples:
         if sub == "status":
             return gateway_status(args)
         return gateway_foreground(args)
+    if cmd == "start":
+        # `minxg start` → forward to gateway_start (or foreground variant).
+        from multiligua_cli.gateway_cli import gateway_start, gateway_foreground
+        if getattr(args, "foreground", False):
+            return gateway_foreground(args)
+        return gateway_start(args)
     if cmd == "update":
         from multiligua_cli.utils import print_warning
         print_warning("The 'update' subcommand has been removed in this build.")

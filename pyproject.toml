@@ -62,9 +62,9 @@ dev = [
 minxg = "multiligua_cli.main:main"
 
 [project.urls]
-Homepage = "https://github.com/minxg-source/minxg"
-Documentation = "https://minxg-source.github.io/docs"
-Repository = "https://github.com/minxg-source/minxg"
+Homepage = "https://github.com/Disability-Human/MINXG-Beta"
+Documentation = "https://Disability-Human.github.io/MINXG-Beta-docs"
+Repository = "https://github.com/Disability-Human/MINXG-Beta"
 
 [tool.setuptools.packages.find]
 where = ["."]
