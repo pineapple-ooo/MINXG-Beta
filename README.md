@@ -9,15 +9,46 @@ One small pip install. Pure Python. Runs on Termux.
 
 ## Install
 
-```
-pip install minxg-beta
+The Python package's distribution name is **`minxg-beta`** and the
+top-level import is **`minxg`**.
+
+For now, install from the source tree (after cloning):
+
+```bash
+git clone https://github.com/<owner>/minxg.git
+cd minxg
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
 ```
 
-Optional native acceleration (speeds up crypto + IO workers):
+After install:
 
+```python
+import minxg
+print(minxg.VERSION)         # "1.2.0"
+print(minxg.detect_platform())
 ```
-pip install "minxg-beta[fast]"
+
+Verified end-to-end on Termux/Android (`Python 3.13`) and Linux:
+```bash
+$ pip install -e .
+Successfully installed minxg-beta-1.2.0
+
+$ python3 -c "import minxg; print(minxg.VERSION, len(minxg.__all__), 'workers;', minxg.TOTAL_MATHEMATICAL_OPERATORS, 'math ops')"
+1.2.0 55 workers; 306 math ops
 ```
+
+**PyPI publication is on the roadmap but not yet done.** Until the
+package shows up on PyPI under the `minxg-beta` name, the source-
+tree mode above is the supported install path.
+
+The codebase has no compiled dependencies on install; everything in
+`minxg/five_pillars/`, `minxg/driver/`, `minxg/contracts/`,
+`minxg/self_evolution/`, `minxg/polyglot/`, `minxg/lossless/`,
+`minxg/twin/`, `minxg/lens/`, and the six mathematical pillars is
+pure Python. The Termux/Android pipeline has been verified end-to-
+end, including the loader of optional C/C++/Go native modules.
 
 ## Quick start
 
