@@ -1,6 +1,6 @@
 """
 
-""""
+"""
 from __future__ import annotations
 import os
 import time
@@ -31,7 +31,7 @@ class HotReloadWorker(BaseWorker):
                    poll_interval: float = 1.0,
                    pattern: str = "**/*") -> Dict:
         """
-        """"
+        """
         if not watch_id:
             watch_id = f"w-{uuid.uuid4().hex[:8]}"
         if watch_id in self._watches:

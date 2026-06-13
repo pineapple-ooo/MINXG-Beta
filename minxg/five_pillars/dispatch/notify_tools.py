@@ -1,4 +1,4 @@
-"""Notification tools — send notifications across platforms.""""
+"""Notification tools — send notifications across platforms."""
 from minxg.base import BaseWorker, tool
 
 class NotifyWorker(BaseWorker):
@@ -7,13 +7,13 @@ class NotifyWorker(BaseWorker):
 
     @tool
     async def notify_terminal(self, message: str = "", title: str = "MINXG") -> dict:
-        """Send a terminal notification (bell + message).""""
+        """Send a terminal notification (bell + message)."""
         print(f"\a[{title}] {message}")
         return {"sent": True, "method": "terminal_bell"}
 
     @tool
     async def notify_desktop(self, message: str = "", title: str = "MINXG") -> dict:
-        """Send desktop notification (Linux notify-send / macOS osascript).""""
+        """Send desktop notification (Linux notify-send / macOS osascript)."""
         import subprocess, shutil
         if shutil.which("notify-send"):
             subprocess.run(["notify-send", title, message], timeout=5)
@@ -25,7 +25,7 @@ class NotifyWorker(BaseWorker):
 
     @tool
     async def notify_sound(self, frequency: int = 800, duration_ms: int = 200) -> dict:
-        """Play a system beep/sound.""""
+        """Play a system beep/sound."""
         import sys
         if sys.platform == "win32":
             import winsound
@@ -36,7 +36,7 @@ class NotifyWorker(BaseWorker):
 
     @tool
     async def clipboard_copy(self, text: str) -> dict:
-        """Copy text to system clipboard.""""
+        """Copy text to system clipboard."""
         import subprocess, shutil
         for cmd in [["xclip", "-selection", "clipboard"], ["pbcopy"], ["clip"]]:
             if shutil.which(cmd[0]):
@@ -46,7 +46,7 @@ class NotifyWorker(BaseWorker):
 
     @tool
     async def clipboard_paste(self) -> dict:
-        """Paste text from system clipboard.""""
+        """Paste text from system clipboard."""
         import subprocess, shutil
         for cmd in [["xclip", "-selection", "clipboard", "-o"], ["pbpaste"], ["powershell", "Get-Clipboard"]]:
             if shutil.which(cmd[0]):
@@ -56,7 +56,7 @@ class NotifyWorker(BaseWorker):
 
     @tool
     async def progress_bar(self, current: int = 0, total: int = 100, width: int = 40) -> dict:
-        """Render an ASCII progress bar.""""
+        """Render an ASCII progress bar."""
         pct = min(current / max(total, 1), 1.0)
         filled = int(width * pct)
         bar = "█" * filled + "░" * (width - filled)
@@ -64,7 +64,7 @@ class NotifyWorker(BaseWorker):
 
     @tool
     async def spinner_frames(self, style: str = "dots") -> dict:
-        """Get spinner animation frames.""""
+        """Get spinner animation frames."""
         spinners = {
             "dots": ["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"],
             "line": ["|","/","-","\\"],
@@ -75,7 +75,7 @@ class NotifyWorker(BaseWorker):
 
     @tool
     async def countdown_timer(self, seconds: int = 5) -> dict:
-        """Run a countdown timer.""""
+        """Run a countdown timer."""
         import time
         for i in range(seconds, 0, -1):
             print(f"\r⏱ {i}s remaining...", end="", flush=True)

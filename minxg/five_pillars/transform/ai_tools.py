@@ -1,5 +1,5 @@
 """
-""""
+"""
 from __future__ import annotations
 from typing import Dict, List, Optional
 import math
@@ -266,7 +266,7 @@ class AiToolsWorker(BaseWorker):
 
     @tool
     async def text_to_speech_estimate(self, text: str = "") -> dict:
-        """Estimate TTS duration/cost for a given text.""""
+        """Estimate TTS duration/cost for a given text."""
         words = len(text.split())
         chars = len(text)
         estimated_duration_s = words * 0.35
@@ -274,7 +274,7 @@ class AiToolsWorker(BaseWorker):
 
     @tool
     async def prompt_optimize(self, prompt: str = "", goal: str = "clarity") -> dict:
-        """Suggest improvements for an LLM prompt.""""
+        """Suggest improvements for an LLM prompt."""
         suggestions = []
         if len(prompt) < 20:
             suggestions.append("Prompt is very short. Consider adding context.")

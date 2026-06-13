@@ -18,7 +18,7 @@ Memory ownership:
   - Functions returning allocated strings: caller must free with cpp_free()
   - Functions with pre-allocated output buffers: caller owns the buffer
   - Arena/slab allocations: freed at arena destroy
-""""
+"""
 
 import ctypes
 import os
@@ -36,7 +36,7 @@ from pathlib import Path
 
 def _find_lib(name: str) -> str:
     """Find a shared library by name, searching build dirs first.
-    On Android, copies the library to Termux lib dir to bypass linker namespace restrictions.""""
+    On Android, copies the library to Termux lib dir to bypass linker namespace restrictions."""
     base = Path(__file__).resolve().parent.parent
     candidates = [
         base / "build" / name,
@@ -232,12 +232,12 @@ def _ensure_loaded():
 
 
 class NativeError(RuntimeError):
-    """Raised when a native call fails.""""
+    """Raised when a native call fails."""
 
 
 
 def sha256(data: bytes) -> bytes:
-    """Compute SHA-256 via native OpenSSL.""""
+    """Compute SHA-256 via native OpenSSL."""
     lib = _ensure_loaded()
     out = (c_uint8 * 32)()
     rc = lib.cpp_sha256(
@@ -250,7 +250,7 @@ def sha256(data: bytes) -> bytes:
 
 
 def sha512(data: bytes) -> bytes:
-    """Compute SHA-512 via native OpenSSL.""""
+    """Compute SHA-512 via native OpenSSL."""
     lib = _ensure_loaded()
     out = (c_uint8 * 64)()
     rc = lib.cpp_sha512(
@@ -263,7 +263,7 @@ def sha512(data: bytes) -> bytes:
 
 
 def hmac_sha256(key: bytes, data: bytes) -> bytes:
-    """Compute HMAC-SHA256 via native OpenSSL.""""
+    """Compute HMAC-SHA256 via native OpenSSL."""
     lib = _ensure_loaded()
     out = (c_uint8 * 32)()
     rc = lib.cpp_hmac_sha256(
@@ -278,7 +278,7 @@ def hmac_sha256(key: bytes, data: bytes) -> bytes:
 
 def pbkdf2_sha256(password: bytes, salt: bytes, iterations: int = 100000,
                   key_len: int = 32) -> bytes:
-    """Derive key via PBKDF2-HMAC-SHA256.""""
+    """Derive key via PBKDF2-HMAC-SHA256."""
     lib = _ensure_loaded()
     out = (c_uint8 * key_len)()
     rc = lib.cpp_pbkdf2_sha256(
@@ -293,7 +293,7 @@ def pbkdf2_sha256(password: bytes, salt: bytes, iterations: int = 100000,
 
 
 def secure_random(n_bytes: int) -> bytes:
-    """Generate cryptographically secure random bytes.""""
+    """Generate cryptographically secure random bytes."""
     lib = _ensure_loaded()
     out = (c_uint8 * n_bytes)()
     rc = lib.cpp_secure_random(out, n_bytes)
@@ -304,7 +304,7 @@ def secure_random(n_bytes: int) -> bytes:
 
 
 def base64_encode(data: bytes) -> str:
-    """Base64 encode via native OpenSSL BIO.""""
+    """Base64 encode via native OpenSSL BIO."""
     lib = _ensure_loaded()
     enc_len = len(data) * 2 + 10
     out = create_string_buffer(enc_len)
@@ -318,7 +318,7 @@ def base64_encode(data: bytes) -> str:
 
 
 def base64_decode(encoded: str) -> bytes:
-    """Base64 decode via native OpenSSL BIO.""""
+    """Base64 decode via native OpenSSL BIO."""
     lib = _ensure_loaded()
     enc = encoded.encode() if isinstance(encoded, str) else encoded
     out = (c_uint8 * (len(enc) * 3 // 4 + 4))()
@@ -332,7 +332,7 @@ def base64_decode(encoded: str) -> bytes:
 
 
 def hex_encode(data: bytes) -> str:
-    """Hex encode bytes.""""
+    """Hex encode bytes."""
     lib = _ensure_loaded()
     out = create_string_buffer(len(data) * 2 + 1)
     rc = lib.cpp_hex_encode(
@@ -345,7 +345,7 @@ def hex_encode(data: bytes) -> str:
 
 
 def hex_decode(hex_str: str) -> bytes:
-    """Hex decode string to bytes.""""
+    """Hex decode string to bytes."""
     lib = _ensure_loaded()
     out_len = len(hex_str) // 2
     out = (c_uint8 * out_len)()
@@ -359,7 +359,7 @@ def hex_decode(hex_str: str) -> bytes:
 
 
 def url_encode(value: str) -> str:
-    """URL-encode a string via native C.""""
+    """URL-encode a string via native C."""
     lib = _ensure_loaded()
     ptr = lib.cpp_url_encode(value.encode())
     if not ptr:
@@ -372,7 +372,7 @@ def url_encode(value: str) -> str:
 
 
 def url_decode(encoded: str) -> str:
-    """URL-decode a string via native C.""""
+    """URL-decode a string via native C."""
     lib = _ensure_loaded()
     ptr = lib.cpp_url_decode(encoded.encode())
     if not ptr:
@@ -386,14 +386,14 @@ def url_decode(encoded: str) -> str:
 
 
 def is_valid_utf8(data: bytes) -> bool:
-    """Validate UTF-8 via native C.""""
+    """Validate UTF-8 via native C."""
     lib = _ensure_loaded()
     return lib.cpp_utf8_valid(data, len(data)) == 1
 
 
 
 def file_stat(path: str) -> Tuple[bool, int]:
-    """Check if path is a regular file and get size. Returns (is_file, size).""""
+    """Check if path is a regular file and get size. Returns (is_file, size)."""
     lib = _ensure_loaded()
     size = c_uint64(0)
     rc = lib.cpp_file_stat(path.encode(), byref(size))
@@ -405,7 +405,7 @@ def file_stat(path: str) -> Tuple[bool, int]:
 
 
 def file_copy(src: str, dst: str) -> int:
-    """Copy file src→dst via native C (64KB buffer, POSIX). Returns bytes copied.""""
+    """Copy file src→dst via native C (64KB buffer, POSIX). Returns bytes copied."""
     lib = _ensure_loaded()
     out_bytes = c_uint64(0)
     rc = lib.cpp_file_copy(src.encode(), dst.encode(), byref(out_bytes))
@@ -415,7 +415,7 @@ def file_copy(src: str, dst: str) -> int:
 
 
 def file_read(path: str, max_size: int = 16 * 1024 * 1024) -> bytes:
-    """Read file via native C (POSIX read).""""
+    """Read file via native C (POSIX read)."""
     lib = _ensure_loaded()
     out = (c_uint8 * max_size)()
     bytes_read = c_uint64(0)
@@ -426,7 +426,7 @@ def file_read(path: str, max_size: int = 16 * 1024 * 1024) -> bytes:
 
 
 def file_write(path: str, data: bytes) -> None:
-    """Write file via native C (POSIX write, O_TRUNC).""""
+    """Write file via native C (POSIX write, O_TRUNC)."""
     lib = _ensure_loaded()
     rc = lib.cpp_file_write(path.encode(),
                             cast(data, POINTER(c_uint8)), len(data))
@@ -435,7 +435,7 @@ def file_write(path: str, data: bytes) -> None:
 
 
 def mmap_read(path: str) -> Tuple[bytes, int]:
-    """Memory-map a file read-only. Returns (data_view, size). Caller must call mmap_close().""""
+    """Memory-map a file read-only. Returns (data_view, size). Caller must call mmap_close()."""
     lib = _ensure_loaded()
     out_ptr = POINTER(c_uint8)()
     out_size = c_size_t(0)
@@ -447,14 +447,14 @@ def mmap_read(path: str) -> Tuple[bytes, int]:
 
 
 def mmap_close() -> None:
-    """Release all mmap mappings.""""
+    """Release all mmap mappings."""
     lib = _ensure_loaded()
     lib.cpp_mmap_close()
 
 
 
 def csv_info(data: str, delim: str = ",") -> Tuple[int, int]:
-    """Count rows and columns of CSV data.""""
+    """Count rows and columns of CSV data."""
     lib = _ensure_loaded()
     rows = c_int(0)
     cols = c_int(0)
@@ -467,7 +467,7 @@ def csv_info(data: str, delim: str = ",") -> Tuple[int, int]:
 
 
 def csv_cell(data: str, row: int, col: int, delim: str = ",") -> str:
-    """Extract a single cell from CSV data.""""
+    """Extract a single cell from CSV data."""
     lib = _ensure_loaded()
     out = create_string_buffer(65536)
     rc = lib.cpp_csv_cell(data.encode(), len(data.encode()),
@@ -480,7 +480,7 @@ def csv_cell(data: str, row: int, col: int, delim: str = ",") -> str:
 
 
 def tokenize(text: str, max_tokens: int = 100000) -> List[str]:
-    """Tokenize text by whitespace via native C.""""
+    """Tokenize text by whitespace via native C."""
     lib = _ensure_loaded()
     arr = (c_void_p * max_tokens)()
     data = text.encode()
@@ -496,7 +496,7 @@ def tokenize(text: str, max_tokens: int = 100000) -> List[str]:
 
 
 def word_frequency(text: str, top_n: int = 20) -> List[Tuple[str, int]]:
-    """Count word frequencies via native C hash table.""""
+    """Count word frequencies via native C hash table."""
     lib = _ensure_loaded()
     out = create_string_buffer(65536)
     data = text.encode()
@@ -513,7 +513,7 @@ def word_frequency(text: str, top_n: int = 20) -> List[Tuple[str, int]]:
 
 
 def trim(text: str) -> str:
-    """Trim whitespace from both ends via native C.""""
+    """Trim whitespace from both ends via native C."""
     lib = _ensure_loaded()
     out = create_string_buffer(len(text.encode()) + 1)
     data = text.encode()
@@ -526,7 +526,7 @@ def trim(text: str) -> str:
 
 
 def slugify(text: str) -> str:
-    """Convert to URL slug via native C.""""
+    """Convert to URL slug via native C."""
     lib = _ensure_loaded()
     data = text.encode()
     out = create_string_buffer(len(data) + 1)
@@ -537,7 +537,7 @@ def slugify(text: str) -> str:
 
 
 def truncate(text: str, max_len: int = 100, suffix: str = "...") -> str:
-    """Truncate text with suffix via native C.""""
+    """Truncate text with suffix via native C."""
     lib = _ensure_loaded()
     data = text.encode()
     suf = suffix.encode()
@@ -549,7 +549,7 @@ def truncate(text: str, max_len: int = 100, suffix: str = "...") -> str:
 
 
 def extract_urls(text: str, max_urls: int = 100) -> List[str]:
-    """Extract URLs via native C. Returns null-separated string.""""
+    """Extract URLs via native C. Returns null-separated string."""
     lib = _ensure_loaded()
     data = text.encode()
     out = create_string_buffer(65536)
@@ -560,7 +560,7 @@ def extract_urls(text: str, max_urls: int = 100) -> List[str]:
 
 
 def extract_emails(text: str, max_emails: int = 100) -> List[str]:
-    """Extract email addresses via native C.""""
+    """Extract email addresses via native C."""
     lib = _ensure_loaded()
     data = text.encode()
     out = create_string_buffer(65536)
@@ -571,7 +571,7 @@ def extract_emails(text: str, max_emails: int = 100) -> List[str]:
 
 
 def extract_hashtags(text: str, max_tags: int = 100) -> List[str]:
-    """Extract hashtags via native C.""""
+    """Extract hashtags via native C."""
     lib = _ensure_loaded()
     data = text.encode()
     out = create_string_buffer(65536)
@@ -582,7 +582,7 @@ def extract_hashtags(text: str, max_tags: int = 100) -> List[str]:
 
 
 def normalize_whitespace(text: str, line_ending: str = "\n") -> str:
-    """Normalize whitespace via native C. line_ending: 0='\\n', 1='\\r\\n', 2='\\r'""""
+    """Normalize whitespace via native C. line_ending: 0='\\n', 1='\\r\\n', 2='\\r'"""
     lib = _ensure_loaded()
     le_map = {"\n": 0, "\r\n": 1, "\r": 2}
     le = le_map.get(line_ending, 0)
@@ -597,7 +597,7 @@ def normalize_whitespace(text: str, line_ending: str = "\n") -> str:
 
 
 def base_convert(number: str, from_base: int = 10, to_base: int = 16) -> str:
-    """Convert number between bases 2-36 via native C.""""
+    """Convert number between bases 2-36 via native C."""
     lib = _ensure_loaded()
     out = create_string_buffer(256)
     rc = lib.cpp_base_convert(number.encode(), from_base, to_base, out, 256)
@@ -607,7 +607,7 @@ def base_convert(number: str, from_base: int = 10, to_base: int = 16) -> str:
 
 
 def word_freq_hash(text: str, top_n: int = 20) -> List[Tuple[str, int]]:
-    """Count word frequencies via native C hash table (v2, larger table).""""
+    """Count word frequencies via native C hash table (v2, larger table)."""
     lib = _ensure_loaded()
     out = create_string_buffer(65536)
     data = text.encode()
@@ -627,7 +627,7 @@ def word_freq_hash(text: str, top_n: int = 20) -> List[Tuple[str, int]]:
 
 
 def _split_null_separated(buf, count: int) -> List[str]:
-    """Split a ctypes buffer of null-separated strings.""""
+    """Split a ctypes buffer of null-separated strings."""
     results = []
     start = 0
     raw = buf.raw if hasattr(buf, 'raw') else buf.value
@@ -643,7 +643,7 @@ def _split_null_separated(buf, count: int) -> List[str]:
 
 
 def glob(pattern: str, max_results: int = 1000) -> List[str]:
-    """Glob via native POSIX glob().""""
+    """Glob via native POSIX glob()."""
     lib = _ensure_loaded()
     out = create_string_buffer(65536)
     rc = lib.cpp_glob(pattern.encode(), out, 65536, max_results)
@@ -664,7 +664,7 @@ def glob(pattern: str, max_results: int = 1000) -> List[str]:
 
 
 def benchmark(fn, *args, iterations: int = 10000, **kwargs) -> float:
-    """Micro-benchmark a function. Returns microseconds per call.""""
+    """Micro-benchmark a function. Returns microseconds per call."""
     import time
     for _ in range(min(100, iterations // 10)):
         fn(*args, **kwargs)

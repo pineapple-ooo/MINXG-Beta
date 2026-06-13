@@ -27,7 +27,7 @@ A rotor R = exp(-B/2) where B is a bivector. Applying to vector x:
   x' = R x R^(-1) = R x reverse(R)
 
 This works for ALL dimensions, ALL signatures — no special cases.
-""""
+"""
 from __future__ import annotations
 import math
 from typing import Iterable, List, Optional
@@ -41,14 +41,14 @@ class Versor:
     """Base class for all versors (invertible multivectors that act via sandwich).
 
     A versor V acts on a multivector M via: M' = V M V^(-1).
-    """"
+    """
     __slots__ = ("mv",)
 
     def __init__(self, mv: Multivector):
         self.mv = mv
 
     def inverse(self) -> "Versor":
-        """V⁻¹ = reverse(V) / (V * reverse(V)). For rotors this equals just reverse.""""
+        """V⁻¹ = reverse(V) / (V * reverse(V)). For rotors this equals just reverse."""
         r = self.mv.reverse()
         n = geometric_product(self.mv, r)[0]  
         if n == 0:
@@ -59,13 +59,13 @@ class Versor:
         return self.mv.reverse()
 
     def __mul__(self, other):
-        """Versor composition: V1 * V2 acts as V1(V2(x)).""""
+        """Versor composition: V1 * V2 acts as V1(V2(x))."""
         if isinstance(other, Versor):
             return Versor(geometric_product(self.mv, other.mv))
         return NotImplemented
 
     def apply(self, m: Multivector) -> Multivector:
-        """Apply versor to multivector: V m V⁻¹.""""
+        """Apply versor to multivector: V m V⁻¹."""
         inv = self.inverse()  
         return geometric_product(geometric_product(self.mv, m), inv.mv)
 
@@ -85,7 +85,7 @@ class Rotor(Versor):
 
     R rotates vectors in the plane of B by 2*|B| radians.
     R rotates bivectors and higher-grade elements as well.
-    """"
+    """
 
     @classmethod
     def from_bivector(cls, B: Multivector, angle: float) -> "Rotor":
@@ -94,7 +94,7 @@ class Rotor(Versor):
         Args:
             B: unit bivector (B² = -1, B.norm_sq = -1)
             angle: rotation angle in radians
-        """"
+        """
         
         n2 = B.norm_sq
         if abs(n2 + 1) > 1e-9:
@@ -111,7 +111,7 @@ class Rotor(Versor):
 
         Both planes pass through the origin. The rotation angle is the
         principal angle between the planes.
-        """"
+        """
         v1 = Multivector.vector(plane1, sig)
         v2 = Multivector.vector(plane2, sig)
         
@@ -136,14 +136,14 @@ class Rotor(Versor):
 
     @property
     def angle(self) -> float:
-        """Extract the rotation angle.""""
+        """Extract the rotation angle."""
         s = self.mv[0]
         if abs(s) > 1:
             s = max(-1.0, min(1.0, s))
         return 2 * math.acos(s)
 
     def apply_to_vector(self, v: Multivector) -> Multivector:
-        """Convenience: rotate a vector.""""
+        """Convenience: rotate a vector."""
         return self.apply(v)
 
 
@@ -157,7 +157,7 @@ class Reflector(Versor):
 
     Note: scalar part of reflector is 0; this is odd-grade.
     Composition of two reflections = rotation.
-    """"
+    """
     @classmethod
     def from_normal(cls, n: Multivector) -> "Reflector":
         if abs(n.norm_sq - 1) > 1e-9:
@@ -176,10 +176,10 @@ class Translator(Versor):
 
     Requires the signature to have a null direction. For Cl(3,0,1), set
     Signature(3, 0, 1).
-    """"
+    """
     @classmethod
     def from_translation(cls, t: Multivector, sig: Signature) -> "Translator":
-        """Build a translator that moves by vector t.""""
+        """Build a translator that moves by vector t."""
         if sig.r < 1:
             raise ValueError("Translation requires at least one null direction (PGA)")
         e_inf = Multivector({1 << (sig.p + sig.q): 1.0}, sig)
@@ -197,7 +197,7 @@ class Dilator(Versor):
     bivector versors produce directional scaling (stretch one direction,
     compress the orthogonal direction). For uniform scaling we use a
     scalar versor.
-    """"
+    """
     @classmethod
     def from_scale(cls, k: float, sig: Optional[Signature] = None) -> "Dilator":
         if sig is None:
@@ -209,7 +209,7 @@ class Dilator(Versor):
         return d
 
     def apply(self, m: "Multivector") -> "Multivector":
-        """Uniform scaling: returns k * m.""""
+        """Uniform scaling: returns k * m."""
         return m * self.k
 
 
@@ -220,13 +220,13 @@ class Motor(Versor):
 
     M = T R  (translator followed by rotor, or any combination)
     Acts on a point p (in Cl(3,0,1) with e₀ as origin) via M p reverse(M).
-    """"
+    """
     @classmethod
     def compose(cls, rotor: Rotor, translator: Translator) -> "Motor":
         return cls(geometric_product(translator.mv, rotor.mv))
 
     def decompose(self) -> tuple:
-        """Extract (rotor, translator) components.""""
+        """Extract (rotor, translator) components."""
         
         raise NotImplementedError("Motor decomposition requires PGA Cl(3,0,1)")
 
@@ -239,14 +239,14 @@ class MultiVersor:
     In general, the product of two rotors IS another rotor (they form a group),
     but the product of a rotor and a translator is a motor, and so on. A
     MultiVersor tracks arbitrary sums.
-    """"
+    """
     __slots__ = ("terms",)
 
     def __init__(self, terms: List[Versor]):
         self.terms = terms
 
     def apply(self, m: Multivector) -> Multivector:
-        """Apply each versor in order.""""
+        """Apply each versor in order."""
         for v in self.terms:
             m = v.apply(m)
         return m

@@ -1,6 +1,6 @@
 """
 network_ping, network_port_check, network_download, network_http
-""""
+"""
 from __future__ import annotations
 import os
 import re

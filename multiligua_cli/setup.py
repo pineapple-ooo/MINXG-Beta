@@ -297,8 +297,6 @@ def setup_environment(config: Dict[str, Any], existing: Dict[str, Any]) -> None:
     log_idx = log_levels.index(existing_log) if existing_log in log_levels else 1
     selected_log = prompt_choice("Log level", log_levels, log_descs, default=log_idx)
 
-    hot_reload = prompt_yes_no("Enable hot-reload (auto-update)?", default=existing_env.get("hot_reload", True))
-
     debug = prompt_yes_no("Enable debug mode?", default=existing_env.get("debug", False))
 
     workers_port = prompt("Workers RPC port", str(existing_env.get("workers_port", 19001)))
@@ -319,7 +317,6 @@ def setup_environment(config: Dict[str, Any], existing: Dict[str, Any]) -> None:
 
     config["environment"] = {
         "log_level": log_levels[selected_log],
-        "hot_reload": hot_reload,
         "debug": debug,
         "workers_port": int(workers_port) if workers_port.isdigit() else 19001,
         "workers_autostart": workers_autostart,
@@ -330,28 +327,8 @@ def setup_environment(config: Dict[str, Any], existing: Dict[str, Any]) -> None:
 
 
 def setup_hot_reload(config: Dict[str, Any], existing: Dict[str, Any]) -> None:
-    print_step_progress(6, TOTAL_STEPS, "Hot Reload")
-
-    existing_hr = existing.get("hot_reload", {})
-    env_hr = config.get("environment", {}).get("hot_reload", True)
-
-    if not env_hr:
-        print_info("Enable hot-reload (auto-update)?" + " — OFF")
-        config["hot_reload"] = {"enabled": False}
-        return
-
-    repo = prompt("Hot-reload repo URL", existing_hr.get("repo", ""))
-    branch = prompt("Git branch", existing_hr.get("branch", "main"))
-    auto_apply = prompt_yes_no("Auto-apply updates on exit?", default=existing_hr.get("auto_apply", True))
-
-    config["hot_reload"] = {
-        "enabled": True,
-        "repo": repo,
-        "branch": branch,
-        "auto_apply": auto_apply,
-    }
-
-    print_success("Hot-reload configured")
+    config["hot_reload"] = {"enabled": False}
+    print_info("Hot-reload has been removed in this build.")
 
 
 def setup_browser_search(config: Dict[str, Any], existing: Dict[str, Any]) -> None:
@@ -420,7 +397,7 @@ def show_summary(config: Dict[str, Any]) -> None:
     print_kv("Gateway", f"{gw.get('host', '0.0.0.0')}:{gw.get('port', 19001)}")
 
     env = config.get("environment", {})
-    env_str = f"{env.get('log_level', 'INFO')} | hot_reload={env.get('hot_reload', True)} | debug={env.get('debug', False)}"
+    env_str = f"{env.get('log_level', 'INFO')} | debug={env.get('debug', False)}"
     print_kv("Environment", env_str)
 
     perf = config.get("perf", {})

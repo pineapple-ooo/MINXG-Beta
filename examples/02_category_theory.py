@@ -2,7 +2,7 @@
 02 — Category Theory: morphisms, monads, and the Yoneda embedding.
 
 Type-safe operator composition with mathematical guarantees.
-""""
+"""
 import minxg.cat as cat
 from minxg.cat import Maybe, MaybeM, State, IdentityM, yoneda_embedding
 

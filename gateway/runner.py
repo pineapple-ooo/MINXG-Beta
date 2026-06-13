@@ -69,7 +69,7 @@ async def run_gateway(
         try:
             loop.add_signal_handler(sig, _on_signal)
         except (NotImplementedError, ValueError):
-            pass  # Windows / unsupported
+            pass  
 
     await stop_event.wait()
 
@@ -94,12 +94,12 @@ def main():
         print("=== Gateway Environment Check ===")
         deps = {"python": True, "aiohttp": False, "yaml": False}
         try:
-            import aiohttp  # noqa
+            import aiohttp  
             deps["aiohttp"] = True
         except ImportError:
             pass
         try:
-            import yaml  # noqa
+            import yaml  
             deps["yaml"] = True
         except ImportError:
             pass

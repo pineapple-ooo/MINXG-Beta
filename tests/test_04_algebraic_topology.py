@@ -1,4 +1,4 @@
-"""Algebraic Topology: Betti numbers, Euler, persistence.""""
+"""Algebraic Topology: Betti numbers, Euler, persistence."""
 import math
 from minxg.topo import (
     Simplex, SimplicialComplex, VietorisRips, Filtration,

@@ -4,14 +4,14 @@
 - 创建具有角色和能力的智能体
 - 多智能体协作会话
 - 自我反思引擎
-""""
+"""
 
 import sys
 sys.path.insert(0, '/storage/emulated/0/multiling')
 
 
 def demo_single_agent():
-    """单个智能体演示""""
+    """单个智能体演示"""
     print("\n--- 单智能体演示 ---")
 
     from multiling.agent.agent import Agent, AgentConfig
@@ -36,14 +36,14 @@ def fibonacci(n):
     for i in range(2, n):
         result.append(result[-1] + result[-2])
     return result
-''''
+'''
 
     result = agent.step(f"审查以下 Python 代码并指出问题：\n{code}")
     print(f"智能体回复: {result.response[:200]}...")
 
 
 def demo_multi_agent_session():
-    """多智能体会话演示""""
+    """多智能体会话演示"""
     print("\n--- 多智能体会话演示 ---")
 
     from multiling.agent.agent import Agent, AgentConfig
@@ -83,7 +83,7 @@ def demo_multi_agent_session():
 
 
 def demo_role_system():
-    """角色系统演示""""
+    """角色系统演示"""
     print("\n--- 角色系统演示 ---")
 
     from multiling.agent.role import RoleRegistry, Role
@@ -113,14 +113,14 @@ def demo_role_system():
 
 
 def demo_capability_system():
-    """能力系统演示""""
+    """能力系统演示"""
     print("\n--- 能力系统演示 ---")
 
     from multiling.agent.capability import CapabilityRegistry, Capability
 
     @CapabilityRegistry.register("math_solver")
     class MathSolverCapability(Capability):
-        """数学求解能力""""
+        """数学求解能力"""
         name = "math_solver"
         description = "解决数学问题"
         parameters = {
@@ -136,7 +136,7 @@ def demo_capability_system():
 
 
 def demo_reflection_engine():
-    """反思引擎演示""""
+    """反思引擎演示"""
     print("\n--- 反思引擎演示 ---")
 
     from multiling.agent.reflection import ReflectionEngine

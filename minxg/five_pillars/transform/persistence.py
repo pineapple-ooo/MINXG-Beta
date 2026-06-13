@@ -1,6 +1,6 @@
 """
 
-""""
+"""
 from __future__ import annotations
 import os
 import time
@@ -19,7 +19,7 @@ class PersistenceWorker(BaseWorker):
 
     def __init__(self, db_path: str = None):
         """
-        """"
+        """
         self.db_path = db_path
         self._kv: Dict[str, Dict] = {}        
         self._index: Dict[str, Dict[str, set]] = defaultdict(lambda: defaultdict(set))  
@@ -43,7 +43,7 @@ class PersistenceWorker(BaseWorker):
                     ttl_seconds INTEGER,
                     set_at REAL
                 )
-            """")
+            """)
             self._sqlite_conn.commit()
             cur = self._sqlite_conn.execute("SELECT key, value, tags, ttl_seconds, set_at FROM kv_store")
             for key, value, tags_json, ttl, set_at in cur:

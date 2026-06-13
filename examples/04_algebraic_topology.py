@@ -3,7 +3,7 @@
 
 The shape of data: connected components, loops, voids. Persistent
 homology tracks how these features appear and disappear across scales.
-""""
+"""
 import random
 from minxg.topo import (
     Simplex, SimplicialComplex,

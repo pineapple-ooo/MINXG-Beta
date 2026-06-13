@@ -2,7 +2,7 @@
 minxg/dev_tools.py — Development & DevOps tools v1.0.0
 
 Git, Docker, package managers (pip, npm, cargo), build systems (make, cmake).
-""""
+"""
 from __future__ import annotations
 import os
 import subprocess
@@ -12,7 +12,7 @@ from minxg.base import BaseWorker, tool
 
 
 class DevToolsWorker(BaseWorker):
-    """Development tools: git, docker, package managers, build systems.""""
+    """Development tools: git, docker, package managers, build systems."""
     worker_id = "dev_tools"
     version = "1.0.0"
 

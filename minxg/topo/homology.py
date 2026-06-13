@@ -11,7 +11,7 @@ HOMOLOGY is the algebraic-topology tool for detecting "holes":
 PERSISTENT HOMOLOGY tracks how these features APPEAR and DISAPPEAR as
 a parameter (filtration value, scale) changes. Features that persist
 across many scales are "real" structure; short-lived features are noise.
-""""
+"""
 from __future__ import annotations
 import math
 from dataclasses import dataclass, field
@@ -28,7 +28,7 @@ class Filtration:
     Used to compute persistent homology. As we sweep through birth times,
     simplices are added in order of increasing birth, and we track
     homology changes.
-    """"
+    """
     simplices: List[Tuple[float, Simplex]] = field(default_factory=list)
 
     def add(self, birth: float, simplex: Simplex) -> None:
@@ -53,7 +53,7 @@ def persistent_homology(filtration: Filtration, max_dim: int = 2) -> List[Tuple]
     Returns:
         A list of (dimension, birth, death) tuples, one per topological
         feature. Features that never die (in the max range) have death = ∞.
-    """"
+    """
     filtration.sort()
     
     
@@ -128,12 +128,12 @@ def betti_numbers(complex: SimplicialComplex, max_dim: Optional[int] = None) -> 
       β_0 = # connected components
       β_1 = # independent loops
       β_2 = # enclosed voids
-    """"
+    """
     if max_dim is None:
         max_dim = complex.dimension + 1
     return [complex.betti_number(k) for k in range(max_dim + 1)]
 
 
 def euler_characteristic(complex: SimplicialComplex) -> int:
-    """χ = Σ (-1)^k β_k = Σ (-1)^k n_k (Euler-Poincaré formula).""""
+    """χ = Σ (-1)^k β_k = Σ (-1)^k n_k (Euler-Poincaré formula)."""
     return complex.euler_characteristic()

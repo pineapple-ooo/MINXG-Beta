@@ -2,7 +2,7 @@
 minxg/data_tools.py - Data processing tools
 JSON/CSV/XML/YAML/TOML parsing, validation, conversion.
 CSV tools use C++ backend for performance.
-""""
+"""
 from __future__ import annotations
 from typing import Dict, List, Any
 import re
@@ -151,7 +151,7 @@ class DataToolsWorker(BaseWorker):
 
     @tool(description="Get CSV file info (rows, columns, headers, size) via C++", category="csv")
     async def csv_info(self, path: str) -> Dict:
-        """CSV file metadata via C++ backend. Falls back to Python stdlib.""""
+        """CSV file metadata via C++ backend. Falls back to Python stdlib."""
         if _HAS_CPP:
             try:
                 result = _cpp_csv_info(path)
@@ -176,7 +176,7 @@ class DataToolsWorker(BaseWorker):
 
     @tool(description="Get CSV cell value by row/column index via C++", category="csv")
     async def csv_cell(self, path: str, row: int, col: int | str) -> Dict:
-        """Get a specific cell from CSV file. C++ backend if available.""""
+        """Get a specific cell from CSV file. C++ backend if available."""
         if _HAS_CPP:
             try:
                 

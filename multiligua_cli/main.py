@@ -626,8 +626,9 @@ Examples:
             return gateway_status(args)
         return gateway_foreground(args)
     if cmd == "update":
-        from multiligua_cli.hot_reload import run_update_command
-        return run_update_command(args)
+        from multiligua_cli.utils import print_warning
+        print_warning("The 'update' subcommand has been removed in this build.")
+        return 0
     if cmd == "ext":
         ea = getattr(args, "ext_action", None)
         if ea == "list":

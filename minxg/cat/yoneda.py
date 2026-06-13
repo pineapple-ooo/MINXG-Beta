@@ -32,7 +32,7 @@ categorical foundation of:
 We implement Yoneda-style operator representation: each operator is encoded
 by its behavior on a fixed test set, producing a "natural embedding" that
 is canonically determined (up to natural isomorphism).
-""""
+"""
 from __future__ import annotations
 from typing import Any, Callable, Dict, List, Tuple
 from .functor import Functor
@@ -44,7 +44,7 @@ class Representable(Functor):
     """A representable functor Hom(A, -) for some fixed object A.
 
     Internally stored as a function from B -> Set of morphisms A->B.
-    """"
+    """
 
     def __init__(self, source: str, mapping: Callable[[Any], List[Any]]):
         self.source = source
@@ -53,7 +53,7 @@ class Representable(Functor):
     def fmap(self, f: Callable[[Any], Any]) -> "Representable":
         """fmap(g): Hom(A, B) -> Hom(A, C) for g: B -> C
         Compose: g ∘ h for h: A -> B, so the result is A -> C.
-        """"
+        """
         new_mapping = lambda b: [f(h) for h in self._mapping(b)]
         return Representable(self.source, new_mapping)
 
@@ -77,7 +77,7 @@ def yoneda_embedding(operator: Callable, test_inputs: List[Any]) -> List[Any]:
 
     Returns:
         A list of outputs — the operator's Yoneda representation
-    """"
+    """
     return [operator(x) for x in test_inputs]
 
 
@@ -91,7 +91,7 @@ class NaturalTransformation:
 
     In our context: a "polymorphic operator adapter" that works on multiple
     functor contexts consistently.
-    """"
+    """
 
     def __init__(self, name: str, components: Dict[Any, Callable]):
         self.name = name
@@ -101,7 +101,7 @@ class NaturalTransformation:
         return self.components[a](fa)
 
     def verify_naturality(self, f: Callable, a: Any, b: Any, fa: Any, fb: Any) -> bool:
-        """Check naturality: η_B(F(f)(fa)) = G(f)(η_A(fa)).""""
+        """Check naturality: η_B(F(f)(fa)) = G(f)(η_A(fa))."""
         try:
             lhs = self.apply(b, fb)  
             return True
@@ -120,7 +120,7 @@ def representable(operator: Callable, all_targets: List[Any]) -> Representable:
 
     Returns:
         A Representable functor that maps each B to [f(x) for x in A's samples]
-    """"
+    """
     
     
     return Representable(

@@ -17,7 +17,7 @@ Three building blocks:
     Cell          – minimal capability unit (Protocol)
     Registry      – type-keyed provider catalogue (frozen after lock())
     Port          – asynchronous boundary used by Cells and external code
-""""
+"""
 from .cell import Cell, CellMeta, capability, requires
 from .port import Port, Request, Response, PortError, port
 from .registry import Registry, get_registry, reset_registry, cell

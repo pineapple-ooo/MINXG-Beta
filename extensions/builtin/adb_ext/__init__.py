@@ -3,7 +3,7 @@ extensions/builtin/adb_ext/__init__.py — ADB命令扩展 v1.0.1
 
 检测条件: adb命令可用 → 自动启用
 平台: Android/Linux/Windows/macOS (有adb即可)
-""""
+"""
 import os, sys, subprocess
 
 EXTENSION_NAME = "minxg-adb"

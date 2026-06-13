@@ -8,7 +8,7 @@
 5. loader 模块加载
 
 运行: python -m pytest tests/test_extensions.py -v
-""""
+"""
 import os
 import sys
 import unittest
@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 class TestExtensionDiscovery(unittest.TestCase):
-    """测试扩展发现机制。""""
+    """测试扩展发现机制。"""
 
     @classmethod
     def setUpClass(cls):
@@ -31,12 +31,12 @@ class TestExtensionDiscovery(unittest.TestCase):
         cls.extensions = discover_extensions()
 
     def test_at_least_four_extensions_found(self):
-        """至少发现4个扩展 (hello, files, adb, root)。""""
+        """至少发现4个扩展 (hello, files, adb, root)。"""
         self.assertGreaterEqual(len(self.extensions), 4,
                                 f"只发现 {len(self.extensions)} 个扩展，预期 ≥4")
 
     def test_builtin_extensions_present(self):
-        """内置扩展都存在。""""
+        """内置扩展都存在。"""
         names = {e.name for e in self.extensions}
         required = {"hello", "minxg-files", "minxg-adb", "minxg-root"}
         missing = required - names
@@ -44,14 +44,14 @@ class TestExtensionDiscovery(unittest.TestCase):
                          f"缺少内置扩展: {missing}")
 
     def test_all_extensions_have_names(self):
-        """所有扩展都有名称。""""
+        """所有扩展都有名称。"""
         for ext in self.extensions:
             self.assertTrue(ext.name, f"扩展无名称: path={getattr(ext, 'path', '?')}")
             self.assertTrue(ext.description or True,
                             f"{ext.name}: 描述为空 (可接受)")
 
     def test_extensions_have_handler(self):
-        """所有扩展都有 handle_command 函数。""""
+        """所有扩展都有 handle_command 函数。"""
         for ext in self.extensions:
             self.assertTrue(
                 hasattr(ext.module, 'handle_command'),
@@ -60,10 +60,10 @@ class TestExtensionDiscovery(unittest.TestCase):
 
 
 class TestADBRootDetection(unittest.TestCase):
-    """测试ADB/ROOT自动检测逻辑。""""
+    """测试ADB/ROOT自动检测逻辑。"""
 
     def test_adb_extension_has_detection_flag(self):
-        """adb_ext 有 ADB_AVAILABLE 检测标志。""""
+        """adb_ext 有 ADB_AVAILABLE 检测标志。"""
         from extensions.loader import discover_extensions
         for k in list(sys.modules):
             if "extensions" in k:
@@ -81,7 +81,7 @@ class TestADBRootDetection(unittest.TestCase):
                                   f"ADB_AVAILABLE 应为布尔值，实际: {type(val)}")
 
     def test_root_extension_has_detection_flag(self):
-        """root_ext 有 ROOT_AVAILABLE 检测标志。""""
+        """root_ext 有 ROOT_AVAILABLE 检测标志。"""
         from extensions.loader import discover_extensions
         for k in list(sys.modules):
             if "extensions" in k:
@@ -98,7 +98,7 @@ class TestADBRootDetection(unittest.TestCase):
                                   f"ROOT_AVAILABLE 应为布尔值，实际: {type(val)}")
 
     def test_status_in_description(self):
-        """描述中包含状态信息。""""
+        """描述中包含状态信息。"""
         from extensions.loader import discover_extensions
         exts = discover_extensions()
         adb_ext = next((e for e in exts
@@ -116,10 +116,10 @@ class TestADBRootDetection(unittest.TestCase):
 
 
 class TestImportWizard(unittest.TestCase):
-    """测试导入向导。""""
+    """测试导入向导。"""
 
     def test_get_search_paths(self):
-        """搜索路径包含合理目录。""""
+        """搜索路径包含合理目录。"""
         from extensions.import_wizard import _get_search_paths
         paths = _get_search_paths()
         self.assertTrue(len(paths) > 0, "搜索路径为空")
@@ -129,7 +129,7 @@ class TestImportWizard(unittest.TestCase):
                       f"搜索路径不含home: {paths}")
 
     def test_list_import_formats(self):
-        """导入格式列表完整。""""
+        """导入格式列表完整。"""
         from extensions.import_wizard import list_import_formats
         formats = list_import_formats()
         self.assertIn(".py", formats)
@@ -137,14 +137,14 @@ class TestImportWizard(unittest.TestCase):
         self.assertIn(".tar.gz", formats)
 
     def test_import_nonexistent_file(self):
-        """导入不存在的文件返回错误。""""
+        """导入不存在的文件返回错误。"""
         from extensions.import_wizard import import_extension
         result = import_extension("/nonexistent/__path__.zip", interactive=False)
         self.assertEqual(result["status"], "error",
                          f"预期error, 实际: {result}")
 
     def test_import_help_text(self):
-        """帮助文本包含多平台信息。""""
+        """帮助文本包含多平台信息。"""
         from extensions.import_wizard import get_import_help_text
         text = get_import_help_text()
         self.assertIn("导入指南", text or "",
@@ -154,10 +154,10 @@ class TestImportWizard(unittest.TestCase):
 
 
 class TestLoaderReload(unittest.TestCase):
-    """测试扩展热加载。""""
+    """测试扩展热加载。"""
 
     def test_reload_returns_extensions(self):
-        """reload 返回扩展列表。""""
+        """reload 返回扩展列表。"""
         for k in list(sys.modules):
             if k.startswith("extensions"):
                 del sys.modules[k]
@@ -168,7 +168,7 @@ class TestLoaderReload(unittest.TestCase):
                         f"重载后只发现 {len(exts)} 个扩展")
 
     def test_reload_is_idempotent(self):
-        """重复reload结果一致。""""
+        """重复reload结果一致。"""
         exts1 = TestExtensionDiscovery.extensions
         name_set1 = {e.name for e in exts1}
 
@@ -185,17 +185,17 @@ class TestLoaderReload(unittest.TestCase):
 
 
 class TestPlatformDetection(unittest.TestCase):
-    """测试平台检测。""""
+    """测试平台检测。"""
 
     def test_platform_detect(self):
-        """platform检测函数可用。""""
+        """platform检测函数可用。"""
         import platform
         plat = platform.system()
         self.assertIn(plat, ["Android", "Linux", "Darwin", "Windows"],
                       f"未知平台: {plat}")
 
     def test_android_detection(self):
-        """Android检测: Termux环境应返回Android。""""
+        """Android检测: Termux环境应返回Android。"""
         try:
             import importlib
             sys.path.insert(0, str(Path(__file__).parent.parent))

@@ -22,7 +22,7 @@ COMMON FUNCTORS
   - Maybe<A> = Some(a) | Nothing           (optional values)
   - Either<L, R> = Left(l) | Right(r)     (success/failure with error)
   - ListF<A> = [a1, ..., an]              (collections, covariant)
-""""
+"""
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable, Generic, List, Optional, TypeVar, Union, Tuple
@@ -34,11 +34,11 @@ B = TypeVar("B")
 
 
 class Functor(ABC):
-    """Abstract base class: every functor must implement fmap.""""
+    """Abstract base class: every functor must implement fmap."""
 
     @abstractmethod
     def fmap(self, f: Callable[[A], B]) -> "Functor":
-        """Apply f to the contents, preserving structure.""""
+        """Apply f to the contents, preserving structure."""
         raise NotImplementedError
 
 
@@ -46,7 +46,7 @@ class Functor(ABC):
 
 @dataclass
 class Identity(Functor, Generic[A]):
-    """The identity functor: Identity<A> = A. Trivial but useful as a base case.""""
+    """The identity functor: Identity<A> = A. Trivial but useful as a base case."""
     value: A
 
     def fmap(self, f: Callable[[A], B]) -> "Identity[B]":
@@ -69,7 +69,7 @@ class Maybe(Functor, Generic[A]):
     - Nothing() = absent value
 
     Functor laws: fmap(_)(Nothing()) = Nothing(), fmap(f)(Just(a)) = Just(f(a))
-    """"
+    """
     value: Optional[A]
     is_just: bool = True
 
@@ -111,7 +111,7 @@ class Either(Functor, Generic[A, B]):
     - Left(a)  = failure with error a
 
     fmap only operates on Right values; Left is preserved.
-    """"
+    """
     is_right: bool
     value: Union[A, B]
 
@@ -143,7 +143,7 @@ class ListF(Functor, Generic[A]):
     """The List functor: covariant container.
 
     Wraps Python lists with a fmap that applies f to every element.
-    """"
+    """
     items: List[A]
 
     def fmap(self, f: Callable[[A], B]) -> "ListF[B]":
@@ -169,7 +169,7 @@ class Const(Functor, Generic[A, B]):
     """The Const functor: ignores the type parameter, holds a constant.
 
     Used for things like "length of a list" — type changes don't matter.
-    """"
+    """
     value: A
 
     def fmap(self, f: Callable[[B], Any]) -> "Const[A, Any]":
@@ -188,7 +188,7 @@ class Reader(Functor, Generic[A, B]):
     Reader<A, B> = A -> B
 
     fmap(f)(g)(a) = f(g(a))
-    """"
+    """
     run: Callable[[A], B]
 
     def fmap(self, f: Callable[[B], Any]) -> "Reader[A, Any]":
@@ -205,7 +205,7 @@ class Writer(Functor, Generic[A, B]):
     """The Writer functor: value with accumulated log.
 
     Writer<W, A> = (W, A)  where W is a Monoid (logs compose by ⊕)
-    """"
+    """
     log: Any
     value: B
 

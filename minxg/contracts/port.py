@@ -3,7 +3,7 @@
 A Port wraps a callable and serialises/deserialises Request → Response
 payloads. Ports add no shared mutable state to the Cells that use them:
 two Cells that talk through the same Port remain independent.
-""""
+"""
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable, Dict, Optional

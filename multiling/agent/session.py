@@ -3,7 +3,7 @@ session.py — 多智能体协作会话
 
 MultiAgentSession 管理多个 Agent 之间的协作对话，
 支持角色分配、消息路由、冲突检测和共识达成。
-""""
+"""
 
 import asyncio
 import json
@@ -17,7 +17,7 @@ from .agent import Agent
 
 @dataclass
 class AgentMessage:
-    """智能体间通信消息""""
+    """智能体间通信消息"""
     sender: str           
     receiver: str         
     content: str          
@@ -48,7 +48,7 @@ class MultiAgentSession:
     - 协作策略（顺序/并行/投票）
     - 冲突检测与解决
     - 会话状态持久化
-    """"
+    """
 
     def __init__(self, session_id: str = None, max_rounds: int = 100):
         self.session_id = session_id or f"session_{uuid.uuid4().hex[:12]}"
@@ -61,7 +61,7 @@ class MultiAgentSession:
         self._collaboration_log: List[Dict] = []
 
     def register_agent(self, agent: Agent, role: str = None) -> str:
-        """注册 Agent 到会话，可选指定角色""""
+        """注册 Agent 到会话，可选指定角色"""
         if role:
             agent.config.role = role
         self._agents[agent.id] = agent
@@ -69,7 +69,7 @@ class MultiAgentSession:
         return agent.id
 
     def remove_agent(self, agent_id: str):
-        """从会话中移除 Agent""""
+        """从会话中移除 Agent"""
         if agent_id in self._agents:
             del self._agents[agent_id]
 
@@ -82,7 +82,7 @@ class MultiAgentSession:
     def send_message(self, sender_id: str, receiver_id: str,
                      content: str, msg_type: str = "text",
                      tool_name: str = "", tool_args: Dict = None) -> AgentMessage:
-        """发送消息（定向或广播）""""
+        """发送消息（定向或广播）"""
         msg = AgentMessage(
             sender=sender_id,
             receiver=receiver_id if receiver_id else "",
@@ -117,7 +117,7 @@ class MultiAgentSession:
           - sequential: 按注册顺序依次执行
           - parallel: 所有 Agent 并行思考
           - voting: 收集所有意见后投票
-        """"
+        """
         self._round += 1
         if self._round > self.max_rounds:
             self._status = "completed"
@@ -153,7 +153,7 @@ class MultiAgentSession:
         return round_log
 
     async def _execute_agent_turn(self, agent: Agent) -> Dict:
-        """执行单个 Agent 的回合""""
+        """执行单个 Agent 的回合"""
         status = agent.get_status()
         
         messages = agent.build_messages_for_llm(limit=20)
@@ -168,7 +168,7 @@ class MultiAgentSession:
         }
 
     def _resolve_by_voting(self, proposals: List[Dict]) -> Optional[Dict]:
-        """通过投票达成共识（简化版）""""
+        """通过投票达成共识（简化版）"""
         if not proposals:
             return None
         
@@ -179,15 +179,15 @@ class MultiAgentSession:
         }
 
     def get_collaboration_log(self) -> List[Dict]:
-        """获取完整协作日志""""
+        """获取完整协作日志"""
         return self._collaboration_log.copy()
 
     def get_message_history(self, limit: int = 50) -> List[Dict]:
-        """获取消息历史""""
+        """获取消息历史"""
         return [m.to_dict() for m in self._messages[-limit:]]
 
     def get_summary(self) -> Dict:
-        """获取会话摘要""""
+        """获取会话摘要"""
         return {
             "session_id": self.session_id,
             "status": self._status,
@@ -199,7 +199,7 @@ class MultiAgentSession:
         }
 
     def reset(self):
-        """重置会话""""
+        """重置会话"""
         self._messages.clear()
         self._round = 0
         self._collaboration_log.clear()

@@ -1,4 +1,4 @@
-"""End-to-end: pillars compose without breaking each other.""""
+"""End-to-end: pillars compose without breaking each other."""
 import pytest
 import math
 import minxg.cat as cat
@@ -8,7 +8,7 @@ import minxg
 
 
 def test_pipeline_ga_to_cat_to_chaos():
-    """A small pipeline: rotate vector (GA), map to length (CAT), check chaos stability.""""
+    """A small pipeline: rotate vector (GA), map to length (CAT), check chaos stability."""
     sig = Signature(3, 0)
     e1 = Multivector({1: 1.0}, sig)
     e2 = Multivector({2: 1.0}, sig)
@@ -29,7 +29,7 @@ def test_pipeline_ga_to_cat_to_chaos():
 
 
 def test_import_works_after_other_pillar():
-    """Importing pillars in any order should not cause issues.""""
+    """Importing pillars in any order should not cause issues."""
     from minxg.chaos import logistic_lyapunov
     from minxg.topo import SimplicialComplex, Simplex
     from minxg.fiber import TangentBundle
@@ -38,6 +38,6 @@ def test_import_works_after_other_pillar():
 
 
 def test_backward_compat_py_workers_alias():
-    """Old `import py_workers` still works (aliased to minxg).""""
+    """Old `import py_workers` still works (aliased to minxg)."""
     import py_workers
     assert py_workers.__name__ in ("minxg", "py_workers")

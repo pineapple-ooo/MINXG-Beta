@@ -28,11 +28,11 @@ class BM25Index:
         self._docs.append(doc_id)
         self._tokens_list.append(tokens)
         self._doc_len.append(len(tokens))
-        # update df
+        
         for tok in set(tokens):
             self._df[tok] = self._df.get(tok, 0) + 1
         self._avgdl = sum(self._doc_len) / len(self._doc_len) if self._doc_len else 0
-        # update idf
+        
         N = len(self._docs)
         for tok, df in self._df.items():
             self._idf[tok] = math.log((N - df + 0.5) / (df + 0.5) + 1)

@@ -25,7 +25,7 @@ Clifford Signature (p, q, r)
   r = number of null basis vectors (e_i² = 0)
 Default: Cl(4, 0, 0) — Euclidean 4-space. To get 3D, set n=3. To get
 Minkowski spacetime, use (1, 3, 0).
-""""
+"""
 from __future__ import annotations
 import math
 from dataclasses import dataclass, field
@@ -36,7 +36,7 @@ from typing import Dict, Iterator, Tuple, Union, List, Optional, Iterable
 
 @dataclass(frozen=True)
 class Signature:
-    """Clifford algebra signature (p, q, r): p positive, q negative, r null.""""
+    """Clifford algebra signature (p, q, r): p positive, q negative, r null."""
     p: int
     q: int
     r: int = 0
@@ -46,7 +46,7 @@ class Signature:
         return self.p + self.q + self.r
 
     def metric(self, i: int) -> int:
-        """Returns +1, -1, or 0 for basis vector e_i.""""
+        """Returns +1, -1, or 0 for basis vector e_i."""
         if i < self.p:
             return 1
         if i < self.p + self.q:
@@ -57,12 +57,12 @@ class Signature:
 
 
 def grade_of(blade: int) -> int:
-    """Number of basis vectors in a blade (population count).""""
+    """Number of basis vectors in a blade (population count)."""
     return bin(blade).count("1")
 
 
 def basis_grade_index(blade: int) -> Tuple[int, ...]:
-    """Returns the sorted tuple of basis indices in a blade.""""
+    """Returns the sorted tuple of basis indices in a blade."""
     return tuple(i for i in range(16) if blade & (1 << i))
 
 
@@ -70,7 +70,7 @@ def blade_sign(a: int, b: int) -> int:
     """Sign from commuting basis vectors of two blades to canonical order.
 
     Returns +1 or -1 (or 0 if blades share a basis vector).
-    """"
+    """
     if a & b:
         return 0  
     s = 0
@@ -80,7 +80,7 @@ def blade_sign(a: int, b: int) -> int:
 
 
 def blade_outer(blades_a: int, blades_b: int) -> int:
-    """Outer product blade index: OR of the two blade bitmasks.""""
+    """Outer product blade index: OR of the two blade bitmasks."""
     if blades_a & blades_b:
         return 0  
     return blades_a | blades_b
@@ -98,7 +98,7 @@ class Blade:
     The (frozen) dataclass form of an integer blade index. Provided for
     type hints and external interop; arithmetic uses int blade indices
     internally for performance.
-    """"
+    """
     indices: Tuple[int, ...]
 
     def __int__(self) -> int:
@@ -129,7 +129,7 @@ class Multivector:
     >>> e2 = Multivector({2: 1.0}, sig)   # e_1
     >>> e12 = e1.outer(e2)                # e_01
     >>> e12[3]                              # 1.0
-    """"
+    """
     __slots__ = ("coeffs", "sig")
 
     coeffs: Dict[int, float]
@@ -187,7 +187,7 @@ class Multivector:
             self.coeffs[blade] = float(value)
 
     def grade(self, k: int) -> "Multivector":
-        """Return the grade-k part of this multivector.""""
+        """Return the grade-k part of this multivector."""
         return Multivector(
             {b: v for b, v in self.coeffs.items() if grade_of(b) == k},
             self.sig,
@@ -195,7 +195,7 @@ class Multivector:
 
     @property
     def grades(self) -> List[int]:
-        """All grades present in this multivector (sorted).""""
+        """All grades present in this multivector (sorted)."""
         return sorted({grade_of(b) for b in self.coeffs})
 
     
@@ -220,7 +220,7 @@ class Multivector:
         return Multivector({b: -v for b, v in self.coeffs.items()}, self.sig)
 
     def __mul__(self, other: Union["Multivector", Number]) -> "Multivector":
-        """Scalar multiplication OR geometric product (with another Multivector).""""
+        """Scalar multiplication OR geometric product (with another Multivector)."""
         from .algebra import geometric_product
         if isinstance(other, (int, float)):
             return Multivector({b: v * other for b, v in self.coeffs.items()}, self.sig)
@@ -290,7 +290,7 @@ class Multivector:
         """Rearrangement: reverse the order of basis vectors in each blade.
 
         For grade k blade: (-1)^(k(k-1)/2)
-        """"
+        """
         out: Dict[int, float] = {}
         for b, v in self.coeffs.items():
             k = grade_of(b)
@@ -299,7 +299,7 @@ class Multivector:
         return Multivector(out, self.sig)
 
     def grade_invol(self) -> "Multivector":
-        """Grade involution: flip sign of odd-grade components.""""
+        """Grade involution: flip sign of odd-grade components."""
         return Multivector(
             {b: v * (1 if grade_of(b) % 2 == 0 else -1)
              for b, v in self.coeffs.items()},
@@ -310,7 +310,7 @@ class Multivector:
         """Clifford conjugation = grade involution ∘ reverse.
 
         For grade k blade: (-1)^(k(k+1)/2)
-        """"
+        """
         out: Dict[int, float] = {}
         for b, v in self.coeffs.items():
             k = grade_of(b)
@@ -319,7 +319,7 @@ class Multivector:
         return Multivector(out, self.sig)
 
     def conjugate(self) -> "Multivector":
-        """Alias for clifford_conj — context-dependent convention.""""
+        """Alias for clifford_conj — context-dependent convention."""
         return self.clifford_conj()
 
     @property
@@ -328,7 +328,7 @@ class Multivector:
 
         For each grade-k part, |B|²_k = (-1)^(k(k-1)/2) * <B B>_0.
         This is the natural Clifford norm that always gives +1 for unit blades.
-        """"
+        """
         from .algebra import geometric_product
         prod = geometric_product(self, self)
         total = 0.0
@@ -341,7 +341,7 @@ class Multivector:
 
     @property
     def norm(self) -> float:
-        """Norm: |M| = sqrt(|M|²) for positive-definite metrics.""""
+        """Norm: |M| = sqrt(|M|²) for positive-definite metrics."""
         n2 = self.norm_sq
         if n2 < 0:
             return math.sqrt(-n2)  
@@ -354,20 +354,20 @@ class Multivector:
         return self / n
 
     def inverse(self) -> "Multivector":
-        """Inverse: reverse(M) / norm_sq for invertible multivectors.""""
+        """Inverse: reverse(M) / norm_sq for invertible multivectors."""
         n2 = self.norm_sq
         if n2 == 0:
             raise ValueError("Multivector has no inverse (null norm)")
         return self.reverse() / n2
 
     def dual(self) -> "Multivector":
-        """Hodge dual: M * I^(-1)  (right contraction by pseudoscalar).""""
+        """Hodge dual: M * I^(-1)  (right contraction by pseudoscalar)."""
         from .algebra import pseudoscalar
         I = pseudoscalar(self.sig)
         return self * I.inverse()
 
     def exp(self) -> "Multivector":
-        """Multivector exponential via series: e^M = Σ M^n / n!""""
+        """Multivector exponential via series: e^M = Σ M^n / n!"""
         
         result = Multivector.scalar(1.0, self.sig)
         term = Multivector.scalar(1.0, self.sig)
@@ -383,7 +383,7 @@ class Multivector:
         """Multivector logarithm (principal branch).
 
         Uses: log(M) = log(|M|) + log_unit(M)  where log_unit uses atan2.
-        """"
+        """
         
         s = self[0]
         B = self.grade(2)
@@ -400,7 +400,7 @@ class Multivector:
         return Multivector.scalar(math.log(abs_m), self.sig) + Multivector(B.coeffs, self.sig) * (theta / b_norm)
 
     def sqrt(self) -> "Multivector":
-        """Multivector square root via log/exp: √M = exp(0.5 log M).""""
+        """Multivector square root via log/exp: √M = exp(0.5 log M)."""
         return self.log().__mul__(0.5).exp()
 
     
@@ -425,7 +425,7 @@ class Multivector:
 
 
 def _fmt_blade(b: int) -> str:
-    """Format a blade index like '01' for e_0 ∧ e_1.""""
+    """Format a blade index like '01' for e_0 ∧ e_1."""
     if b == 0:
         return "0"
     return "".join(str(i) for i in basis_grade_index(b))

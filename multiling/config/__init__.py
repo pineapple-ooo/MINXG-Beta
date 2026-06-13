@@ -7,7 +7,7 @@ Provides:
   - ConfigSection: Nested configuration sections
   - ConfigWatcher: Hot-reload configuration on file change
   - Validators: Built-in validation rules
-""""
+"""
 
 import asyncio
 import copy
@@ -29,7 +29,7 @@ from pathlib import Path
 
 
 class ValidationError(Exception):
-    """Raised when a config value fails validation""""
+    """Raised when a config value fails validation"""
 
     def __init__(self, key: str, value: Any, rule: str, message: str = ""):
         self.key = key
@@ -40,7 +40,7 @@ class ValidationError(Exception):
 
 
 class Validator:
-    """Built-in validation rules""""
+    """Built-in validation rules"""
 
     @staticmethod
     def required(value: Any) -> Any:
@@ -124,7 +124,7 @@ class Validator:
 
 @dataclass
 class ConfigField:
-    """A single configuration field definition""""
+    """A single configuration field definition"""
     name: str
     default: Any = None
     field_type: type = str
@@ -135,7 +135,7 @@ class ConfigField:
 
 
 class ConfigSection:
-    """A nested configuration section with typed fields""""
+    """A nested configuration section with typed fields"""
 
     def __init__(self, name: str, parent: "ConfigSection" = None):
         self.name = name
@@ -149,7 +149,7 @@ class ConfigSection:
                   field_type: type = str, required: bool = False,
                   validator: Callable = None, description: str = "",
                   sensitive: bool = False) -> "ConfigSection":
-        """Add a typed field to this section""""
+        """Add a typed field to this section"""
         self._fields[name] = ConfigField(
             name=name, default=default, field_type=field_type,
             required=required, validator=validator,
@@ -160,7 +160,7 @@ class ConfigSection:
         return self
 
     def add_child(self, name: str) -> "ConfigSection":
-        """Add a nested sub-section""""
+        """Add a nested sub-section"""
         child = ConfigSection(name, parent=self)
         self._children[name] = child
         return child
@@ -184,7 +184,7 @@ class ConfigSection:
         self.set(name, value)
 
     def set(self, name: str, value: Any, validate: bool = True):
-        """Set a config value with optional validation""""
+        """Set a config value with optional validation"""
         if name in self._fields:
             field_def = self._fields[name]
             
@@ -203,20 +203,20 @@ class ConfigSection:
         self._values[name] = value
 
     def get(self, name: str, default: Any = None) -> Any:
-        """Get a config value""""
+        """Get a config value"""
         return self._values.get(name, default)
 
     def has(self, name: str) -> bool:
         return name in self._values
 
     def path(self, sep: str = ".") -> str:
-        """Get full dotted path of this section""""
+        """Get full dotted path of this section"""
         if self.parent:
             return self.parent.path(sep) + sep + self.name
         return self.name
 
     def flatten(self, prefix: str = "", include_sensitive: bool = False) -> Dict:
-        """Flatten to a simple dict""""
+        """Flatten to a simple dict"""
         result = {}
         for name, val in self._values.items():
             key = prefix + name if prefix else name
@@ -231,7 +231,7 @@ class ConfigSection:
         return result
 
     def to_dict(self, include_sensitive: bool = False) -> dict:
-        """Convert to nested dict""""
+        """Convert to nested dict"""
         result = {}
         for name, val in self._values.items():
             field_def = self._fields.get(name)
@@ -244,7 +244,7 @@ class ConfigSection:
         return result
 
     def validate(self) -> List[ValidationError]:
-        """Validate all fields, returns list of errors""""
+        """Validate all fields, returns list of errors"""
         errors = []
         for name, field_def in self._fields.items():
             if field_def.required and name not in self._values:
@@ -272,7 +272,7 @@ class Config:
         config.load_yaml("config.yaml")
         config.db.host  # Access nested value
         config.set("debug", True)
-    """"
+    """
 
     def __init__(self, name: str = "app"):
         self.name = name
@@ -288,7 +288,7 @@ class Config:
         return self._root
 
     def section(self, name: str, create: bool = True) -> ConfigSection:
-        """Get or create a configuration section""""
+        """Get or create a configuration section"""
         if name in self._root._children:
             return self._root._children[name]
         if create:
@@ -296,7 +296,7 @@ class Config:
         raise KeyError("Section '{}' not found".format(name))
 
     def get(self, path: str, default: Any = None) -> Any:
-        """Get value by dotted path (e.g., 'database.host')""""
+        """Get value by dotted path (e.g., 'database.host')"""
         parts = path.split(".")
         current = self._root
         for part in parts[:-1]:
@@ -307,7 +307,7 @@ class Config:
         return current._values.get(parts[-1], default)
 
     def set(self, path: str, value: Any, validate: bool = True):
-        """Set value by dotted path""""
+        """Set value by dotted path"""
         with self._lock:
             parts = path.split(".")
             current = self._root
@@ -328,7 +328,7 @@ class Config:
         raise AttributeError("No config section or field '{}'".format(name))
 
     def load_dict(self, data: Dict, prefix: str = "", merge: bool = True):
-        """Load config from a flat or nested dict""""
+        """Load config from a flat or nested dict"""
         self._load_dict_recursive(self._root, data, prefix, merge)
 
     def _load_dict_recursive(self, section: ConfigSection, data: Dict,
@@ -344,7 +344,7 @@ class Config:
                 section._values[key] = value
 
     def load_yaml(self, filepath: str, merge: bool = True):
-        """Load configuration from YAML file""""
+        """Load configuration from YAML file"""
         try:
             import yaml
         except ImportError:
@@ -357,7 +357,7 @@ class Config:
         self._recompute_checksum()
 
     def load_json(self, filepath: str, merge: bool = True):
-        """Load configuration from JSON file""""
+        """Load configuration from JSON file"""
         with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
         self.load_dict(data, merge=merge)
@@ -369,7 +369,7 @@ class Config:
 
         Environment variables like APP_DATABASE__HOST map to
         database.host (double underscore = nested separator).
-        """"
+        """
         self._env_prefix = prefix
         for key, value in os.environ.items():
             if key.startswith(prefix):
@@ -384,7 +384,7 @@ class Config:
 
         Expects: --section.key=value format.
         Returns unrecognized args.
-        """"
+        """
         import argparse
         if args is None:
             args = sys.argv[1:]
@@ -399,7 +399,7 @@ class Config:
         return remaining
 
     def reload(self):
-        """Reload from all known sources""""
+        """Reload from all known sources"""
         for source in self._sources:
             if source.endswith(".yaml") or source.endswith(".yml"):
                 self.load_yaml(source, merge=False)
@@ -430,13 +430,13 @@ class Config:
         return self._root.validate()
 
     def export_json(self, filepath: str, include_sensitive: bool = False):
-        """Export config to JSON file""""
+        """Export config to JSON file"""
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(self.to_dict(include_sensitive), f,
                       ensure_ascii=False, indent=2)
 
     def export_env(self, filepath: str):
-        """Export config as shell environment variables""""
+        """Export config as shell environment variables"""
         flat = self.flatten()
         with open(filepath, "w", encoding="utf-8") as f:
             for key, value in sorted(flat.items()):
@@ -446,7 +446,7 @@ class Config:
 
 
 class ConfigWatcher:
-    """Watch a config file for changes and hot-reload""""
+    """Watch a config file for changes and hot-reload"""
 
     def __init__(self, config: Config, filepath: str,
                  interval: float = 2.0):
@@ -458,18 +458,18 @@ class ConfigWatcher:
         self._callbacks: List[Callable] = []
 
     def on_change(self, callback: Callable):
-        """Register callback for config change""""
+        """Register callback for config change"""
         self._callbacks.append(callback)
 
     def start(self):
-        """Start watching (blocking)""""
+        """Start watching (blocking)"""
         self._running = True
         while self._running:
             self._check()
             time.sleep(self.interval)
 
     async def start_async(self):
-        """Start watching (async)""""
+        """Start watching (async)"""
         self._running = True
         while self._running:
             self._check()
@@ -496,7 +496,7 @@ class ConfigWatcher:
 
 
 def create_default_config() -> Config:
-    """Create application config with sensible defaults""""
+    """Create application config with sensible defaults"""
     cfg = Config("minxg")
 
     
@@ -559,7 +559,7 @@ def create_default_config() -> Config:
 
 
 def shlex_quote(s: str) -> str:
-    """Quote string for shell""""
+    """Quote string for shell"""
     if not s:
         return "''"
     if re.match(r'^[a-zA-Z0-9_@%+=:,./-]*$', s):

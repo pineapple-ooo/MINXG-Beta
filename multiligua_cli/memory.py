@@ -33,7 +33,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-# ── Paths ──────────────────────────────────────────────────────────────────
+
 
 MINXG_HOME = Path.home() / ".minxg"
 MEMORY_DIR = MINXG_HOME / "memory"
@@ -44,9 +44,9 @@ def _ensure_dirs():
     MEMORY_DIR.mkdir(parents=True, exist_ok=True)
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# MemoryStore — persistent key-value store (maintained for backward compat)
-# ══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 class MemoryStore:
     """Persistent key-value store for user preferences, facts, and learned
@@ -250,9 +250,9 @@ class MemoryStore:
         return "\n".join(lines)
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# Legacy preference extraction (kept for backward compat)
-# ══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 _PREFERENCE_PATTERNS = [
     (r"(?:用中文|用英文|说中文|说英文|speak|write|respond|reply)\s+(?:in\s+)?(中文|英文|English|Chinese)",
@@ -299,9 +299,9 @@ def extract_preferences(text: str) -> List[dict]:
     return results
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# EvolutionEngine — new Entropic backend with legacy fallback
-# ══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 class EvolutionEngine:
     """Self-learning engine — now powered by the Entropic Evolution Engine.
@@ -325,21 +325,21 @@ class EvolutionEngine:
         self._tool_usage: Dict[str, int] = {}
         self._backend_name = backend
 
-        # Entropic backend (new)
+        
         self._entropic_engine = None
         if backend == "entropic":
             try:
                 from src.ai.memory.entropic_evolution import get_entropic_engine
                 self._entropic_engine = get_entropic_engine()
             except ImportError:
-                # Fallback to legacy mode
+                
                 self._backend_name = "legacy"
 
     @property
     def backend(self) -> str:
         return self._backend_name
 
-    # ── Main learning API ─────────────────────────────────────────────────
+    
 
     def learn_from_exchange(self, user_msg: str, assistant_msg: str = "",
                             tool_calls: List[str] = None) -> int:
@@ -354,7 +354,7 @@ class EvolutionEngine:
                 user_msg, assistant_msg, tool_calls or [])
             return result["behaviors_learned"]
 
-        # ── Legacy fallback ────────────────────────────────────────────
+        
         user_learned = self.learn_from_user_message(user_msg)
         if tool_calls:
             for t in tool_calls:
@@ -368,7 +368,7 @@ class EvolutionEngine:
         if self._entropic_engine:
             return self._entropic_engine.learn_from_user_message(message)
 
-        # Legacy
+        
         extracted = extract_preferences(message)
         saved = 0
         for entry in extracted:
@@ -397,7 +397,7 @@ class EvolutionEngine:
                 tags=["tool", "frequent"],
             )
 
-    # ── Context injection ─────────────────────────────────────────────────
+    
 
     def get_memory_context(self, max_items: int = 5) -> str:
         """Return dual-layer memory context for prompt injection.
@@ -406,10 +406,10 @@ class EvolutionEngine:
         Layer 2 (Entropic/DB Memory): persistent preferences — ~200 tokens.
         """
         if self._entropic_engine:
-            # Entropic engine provides its own formatted context
+            
             return self._entropic_engine.get_memory_context(max_items)
 
-        # Legacy fallback
+        
         layers = []
         try:
             from src.ai.memory.working_memory import get_working_memory
@@ -427,7 +427,7 @@ class EvolutionEngine:
 
         return "\n\n".join(layers) if layers else ""
 
-    # ── Statistics ────────────────────────────────────────────────────────
+    
 
     def get_tool_stats(self) -> Dict[str, int]:
         if self._entropic_engine:
@@ -453,9 +453,9 @@ class EvolutionEngine:
         }
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# Global singletons
-# ══════════════════════════════════════════════════════════════════════════════
+
+
+
 
 _engine: Optional[EvolutionEngine] = None
 

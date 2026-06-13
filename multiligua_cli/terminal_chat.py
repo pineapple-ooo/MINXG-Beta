@@ -42,7 +42,7 @@ def terminal_mode(args) -> int:
     timeout = float(getattr(args, "timeout", 120) or 120)
     messages: list[dict] = []
 
-    # ── HTTP client (stdlib) ─────────────────────────────────────────
+    
 
     def post_chat(user_text: str) -> dict:
         messages.append({"role": "user", "content": user_text})
@@ -65,7 +65,7 @@ def terminal_mode(args) -> int:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return json.loads(resp.read().decode("utf-8"))
 
-    # ── Tool-card renderer ───────────────────────────────────────────
+    
 
     def render_tool_cards(cards: list) -> None:
         if not cards:
@@ -102,7 +102,7 @@ def terminal_mode(args) -> int:
                     print(colorize(f"│   {preview}", Colors.DIM))
             print(colorize("╰" + "─" * 25, Colors.CYAN))
 
-    # ── Welcome ──────────────────────────────────────────────────────
+    
 
     if HAS_RICH:
         from rich.panel import Panel
@@ -125,7 +125,7 @@ def terminal_mode(args) -> int:
         print(colorize(f"Gateway: {base_url}", Colors.DIM))
         print(colorize(f"Session: {session_id}\n", Colors.DIM))
 
-    # ── Main loop ────────────────────────────────────────────────────
+    
 
     while True:
         try:
@@ -153,7 +153,7 @@ def terminal_mode(args) -> int:
                 )
                 continue
 
-            # ── Send to gateway ──────────────────────────────────────
+            
             try:
                 if HAS_RICH:
                     with console.status("[dim]Gateway thinking...[/dim]", spinner="dots"):

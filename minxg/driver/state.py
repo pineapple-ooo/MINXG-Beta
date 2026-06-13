@@ -3,7 +3,7 @@
 A State is a flat mapping of named scalar fields with optional bounds.
 Tensors are stored as a colon-suffixed key (`"velocity.x"`), which keeps
 the manifold flat while still allowing namespaced access.
-""""
+"""
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Dict, Iterable, Optional, Tuple
@@ -15,7 +15,7 @@ class StateError(ValueError):
 
 @dataclass
 class State:
-    """Typed scalar-bag with conservative accessors.""""
+    """Typed scalar-bag with conservative accessors."""
     payload: Dict[str, float] = field(default_factory=dict)
     bounds: Dict[str, Tuple[float, float]] = field(default_factory=dict)
     timestamp: float = 0.0

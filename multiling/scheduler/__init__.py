@@ -6,7 +6,7 @@ Provides:
   - TaskScheduler: Cron/interval/one-shot task scheduler
   - JobManager: Manage scheduled jobs lifecycle
   - Schedule types: cron, interval, date, recurring
-""""
+"""
 
 import asyncio
 import croniter
@@ -37,7 +37,7 @@ class JobStatus(Enum):
 
 @dataclass
 class ScheduledTask:
-    """A scheduled task definition""""
+    """A scheduled task definition"""
     id: str = field(default_factory=lambda: "job_" + uuid.uuid4().hex[:10])
     name: str = ""
     schedule_type: ScheduleType = ScheduleType.INTERVAL
@@ -90,7 +90,7 @@ class TaskScheduler:
     - Automatic retry with backoff
     - Job lifecycle management
     - Async task execution
-    """"
+    """
 
     def __init__(self, name: str = "default"):
         self.name = name
@@ -108,7 +108,7 @@ class TaskScheduler:
 
     def schedule_interval(self, func: Callable, seconds: float,
                           name: str = None, **kwargs) -> str:
-        """Schedule a function to run at fixed intervals""""
+        """Schedule a function to run at fixed intervals"""
         name = name or func.__name__
         task = ScheduledTask(
             name=name, func=func,
@@ -124,7 +124,7 @@ class TaskScheduler:
 
     def schedule_cron(self, func: Callable, cron_expr: str,
                       name: str = None, **kwargs) -> str:
-        """Schedule a function using cron expression""""
+        """Schedule a function using cron expression"""
         name = name or func.__name__
         task = ScheduledTask(
             name=name, func=func,
@@ -140,7 +140,7 @@ class TaskScheduler:
 
     def schedule_once(self, func: Callable, delay_seconds: float = 0,
                       name: str = None, **kwargs) -> str:
-        """Schedule a one-shot task with optional delay""""
+        """Schedule a one-shot task with optional delay"""
         name = name or func.__name__
         task = ScheduledTask(
             name=name, func=func,
@@ -158,7 +158,7 @@ class TaskScheduler:
     def schedule_recurring(self, func: Callable, interval_seconds: float,
                            repeat_count: int, name: str = None,
                            **kwargs) -> str:
-        """Schedule a recurring task with limited repetitions""""
+        """Schedule a recurring task with limited repetitions"""
         task_id = self.schedule_interval(func, interval_seconds, name, **kwargs)
         task = self._jobs[task_id]
         task.schedule_type = ScheduleType.RECURRING
@@ -166,7 +166,7 @@ class TaskScheduler:
         return task_id
 
     def cancel(self, job_id: str) -> bool:
-        """Cancel a scheduled job""""
+        """Cancel a scheduled job"""
         if job_id in self._jobs:
             self._jobs[job_id].status = JobStatus.CANCELLED
             self._stats["total_cancelled"] += 1
@@ -174,14 +174,14 @@ class TaskScheduler:
         return False
 
     def pause(self, job_id: str) -> bool:
-        """Pause a scheduled job""""
+        """Pause a scheduled job"""
         if job_id in self._jobs:
             self._jobs[job_id].status = JobStatus.PAUSED
             return True
         return False
 
     def resume(self, job_id: str) -> bool:
-        """Resume a paused job""""
+        """Resume a paused job"""
         if job_id in self._jobs and self._jobs[job_id].status == JobStatus.PAUSED:
             self._jobs[job_id].status = JobStatus.PENDING
             job = self._jobs[job_id]
@@ -196,18 +196,18 @@ class TaskScheduler:
         return self._jobs.get(job_id)
 
     def list_jobs(self, status_filter: str = None) -> List[Dict]:
-        """List all jobs, optionally filtered by status""""
+        """List all jobs, optionally filtered by status"""
         jobs = list(self._jobs.values())
         if status_filter:
             jobs = [j for j in jobs if j.status.value == status_filter]
         return [j.to_dict() for j in jobs]
 
     def on_complete(self, job_id: str, callback: Callable):
-        """Register callback for job completion""""
+        """Register callback for job completion"""
         self._callbacks[job_id].append(callback)
 
     async def start(self):
-        """Start the scheduler loop""""
+        """Start the scheduler loop"""
         self._running = True
         self._loop = asyncio.get_event_loop()
         while self._running:
@@ -218,11 +218,11 @@ class TaskScheduler:
                 break
 
     def stop(self):
-        """Stop the scheduler loop""""
+        """Stop the scheduler loop"""
         self._running = False
 
     async def _tick(self):
-        """Process due jobs in one tick""""
+        """Process due jobs in one tick"""
         now = time.time()
         for job_id, job in self._jobs.items():
             if not job.enabled:
@@ -290,7 +290,7 @@ class TaskScheduler:
                         job.next_run = now + job.interval_seconds
 
     def _next_cron_run(self, cron_expr: str, after: float = None) -> float:
-        """Calculate next cron run time""""
+        """Calculate next cron run time"""
         try:
             cron = croniter.croniter(cron_expr,
                                      datetime.datetime.fromtimestamp(after or time.time()))
@@ -313,7 +313,7 @@ _default_scheduler: Optional[TaskScheduler] = None
 
 
 def get_default_scheduler() -> TaskScheduler:
-    """Get global default scheduler instance""""
+    """Get global default scheduler instance"""
     global _default_scheduler
     if _default_scheduler is None:
         _default_scheduler = TaskScheduler("global")
@@ -321,7 +321,7 @@ def get_default_scheduler() -> TaskScheduler:
 
 
 def scheduled(seconds: float = 60, name: str = None):
-    """Decorator to schedule a function at fixed intervals""""
+    """Decorator to schedule a function at fixed intervals"""
     def decorator(func: Callable):
         scheduler = get_default_scheduler()
         job_id = scheduler.schedule_interval(func, seconds, name=name)
@@ -331,7 +331,7 @@ def scheduled(seconds: float = 60, name: str = None):
 
 
 def cron_scheduled(cron_expr: str, name: str = None):
-    """Decorator to schedule a function with cron expression""""
+    """Decorator to schedule a function with cron expression"""
     def decorator(func: Callable):
         scheduler = get_default_scheduler()
         job_id = scheduler.schedule_cron(func, cron_expr, name=name)

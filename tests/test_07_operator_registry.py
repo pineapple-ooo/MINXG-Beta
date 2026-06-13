@@ -1,4 +1,4 @@
-"""Operator Registry: all 376 operators correctly registered.""""
+"""Operator Registry: all 376 operators correctly registered."""
 import pytest
 from minxg.operators import OPERATOR_REGISTRY
 import minxg  
@@ -29,7 +29,7 @@ def test_legacy_operators():
 
 
 def test_id_ranges_respect_pillar_allocation():
-    """Verify operator IDs fall in their declared ranges (PROJECT_INDEX §4).""""
+    """Verify operator IDs fall in their declared ranges (PROJECT_INDEX §4)."""
     ranges = {
         "math": (0, 19),
         "text": (2000, 2018),
@@ -57,7 +57,7 @@ def test_lookup_by_name_and_id_consistent():
 
 
 def test_idempotent_registration():
-    """Re-registering a sub-package should not duplicate operators.""""
+    """Re-registering a sub-package should not duplicate operators."""
     import minxg.ga as ga
     initial = OPERATOR_REGISTRY.total_operators
     from minxg.ga import operators_ga

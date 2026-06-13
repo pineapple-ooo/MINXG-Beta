@@ -1,5 +1,5 @@
 """
-""""
+"""
 from __future__ import annotations
 from typing import Dict
 from minxg.base import BaseWorker, tool
@@ -96,13 +96,13 @@ class TemplateToolsWorker(BaseWorker):
   <p>{body}</p>
   <hr>
   <p style="color:#999;font-size:12px">Sent by MINXG</p>
-</div>"""",
+</div>""",
             "formal": f"""<!DOCTYPE html><html><body style="font-family:Georgia;color:#333">
   <div style="border:1px solid #ddd;padding:30px">
     <h1 style="color:#2c3e50">{subject}</h1>
     <p style="line-height:1.8">{body}</p>
   </div>
-</body></html>"""",
+</body></html>""",
         }
         return {"html": templates.get(style, templates["simple"]), "subject": subject, "style": style}
 

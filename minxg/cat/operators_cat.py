@@ -6,7 +6,7 @@ minxg/cat/operators_cat.py — Register CAT (Category-Theoretic) operators
 so they can be safely composed via >>.
 
 Operator IDs in range 4000-4499 are reserved for Categorical operators.
-""""
+"""
 from __future__ import annotations
 import itertools
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -172,7 +172,7 @@ def register_cat_operators():
     def _list_cartesian(l1, l2):
         return [(a, b) for a in l1 for b in l2]
     def _list_cone(l1, l2):
-        """Concatenate two lists, preserving order.""""
+        """Concatenate two lists, preserving order."""
         return list(l1) + list(l2)
     def _list_zip(l1, l2):
         return list(zip(l1, l2))
@@ -251,7 +251,7 @@ def register_cat_operators():
     def _morphism_pure(m): return m.is_pure
     def _morphism_metadata(m): return m.metadata
     def _morphism_lift(f):
-        """Lift a plain function to a Morphism with type 'any'.""""
+        """Lift a plain function to a Morphism with type 'any'."""
         return Morphism(f.__name__ if hasattr(f, '__name__') else "anon",
                         (Type.any(),), Type.any(), f, True)
 
@@ -269,7 +269,7 @@ def register_cat_operators():
     def _yoneda_encode(op, test_inputs):
         return yoneda_embedding(op, test_inputs)
     def _yoneda_distance(rep1, rep2):
-        """Distance between Yoneda representations (Euclidean over outputs).""""
+        """Distance between Yoneda representations (Euclidean over outputs)."""
         if len(rep1) != len(rep2): return float('inf')
         return sum((a - b) ** 2 for a, b in zip(rep1, rep2)) ** 0.5
     def _natural_transform(components):
@@ -291,7 +291,7 @@ def register_cat_operators():
     def _io_from_fn(f): return IO.from_fn(f)
     def _io_run(m): return m.run()
     def _io_sequence(ms):
-        """Sequence IO actions: m1, m2, ... -> IO([v1, v2, ...])""""
+        """Sequence IO actions: m1, m2, ... -> IO([v1, v2, ...])"""
         def fn():
             return [m.run() for m in ms]
         return IO.from_fn(fn)
@@ -325,32 +325,32 @@ def register_cat_operators():
 
     
     def _curry_2(f):
-        """Convert f(x, y) to f'(x)(y)""""
+        """Convert f(x, y) to f'(x)(y)"""
         def curried(x):
             def inner(y): return f(x, y)
             return inner
         return curried
     def _uncurry_2(f):
-        """Convert f(x)(y) to f'(x, y)""""
+        """Convert f(x)(y) to f'(x, y)"""
         def uncurried(x, y): return f(x)(y)
         return uncurried
     def _flip(f):
-        """Swap first two arguments: f(x, y) -> f(y, x)""""
+        """Swap first two arguments: f(x, y) -> f(y, x)"""
         def flipped(x, y): return f(y, x)
         return flipped
     def _const_fn(v):
-        """Constant function: returns v for any input""""
+        """Constant function: returns v for any input"""
         def f(*args, **kwargs): return v
         return f
     def _apply(f, x): return f(x)
     def _on(f, g):
-        """f . g: x -> f(g(x))""""
+        """f . g: x -> f(g(x))"""
         return lambda x: f(g(x))
     def _kleisli(f):
-        """Wrap a function a -> M<b> in Kleisli category""""
+        """Wrap a function a -> M<b> in Kleisli category"""
         return f
     def _lift_a2(f, ma, mb):
-        """Applicative liftA2: apply binary f to two M values""""
+        """Applicative liftA2: apply binary f to two M values"""
         return ma.bind(lambda a: mb.bind(lambda b: ma.__class__.unit(f(a, b))))
 
     for name, fn, in_types, out_type, desc in [
@@ -367,13 +367,13 @@ def register_cat_operators():
 
     
     def _verify_functor_law_id(fa, f):
-        """Verify map(id) = id:  fmap(lambda x: x)(fa) == fa""""
+        """Verify map(id) = id:  fmap(lambda x: x)(fa) == fa"""
         try:
             return fa.fmap(lambda x: x) == fa
         except Exception:
             return False
     def _verify_functor_law_comp(fa, f_name, g_name):
-        """Verify map(g . f) = map(g) . map(f)""""
+        """Verify map(g . f) = map(g) . map(f)"""
         f = _registry_lookup(reg, f_name)
         g = _registry_lookup(reg, g_name)
         try:
@@ -381,20 +381,20 @@ def register_cat_operators():
         except Exception:
             return False
     def _verify_monad_left_id(a, f_name):
-        """unit(a) >>= f = f(a)""""
+        """unit(a) >>= f = f(a)"""
         f = _registry_lookup(reg, f_name)
         try:
             return IdentityM.unit(a).bind(f) == f(a)
         except Exception:
             return False
     def _verify_monad_right_id(m):
-        """m >>= unit = m""""
+        """m >>= unit = m"""
         try:
             return m.bind(IdentityM.unit) == m
         except Exception:
             return False
     def _verify_monad_assoc(m, f_name, g_name):
-        """(m >>= f) >>= g = m >>= (x -> f(x) >>= g)""""
+        """(m >>= f) >>= g = m >>= (x -> f(x) >>= g)"""
         f = _registry_lookup(reg, f_name)
         g = _registry_lookup(reg, g_name)
         try:
@@ -418,7 +418,7 @@ def register_cat_operators():
 
 
 def _registry_lookup(reg, name):
-    """Look up an operator by name in the registry.""""
+    """Look up an operator by name in the registry."""
     op = reg.get_by_name(name)
     if op is None:
         raise KeyError(f"Operator {name!r} not found in registry")

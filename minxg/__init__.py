@@ -3,7 +3,7 @@
 A modular worker platform organized along five mathematical/functional
 operator dimensions. Each pillar is independently importable so that
 editing one module never forces a project-wide rebuild.
-""""
+"""
 from .base import BaseWorker, ToolDef, WorkerRegistry
 from . import _config as _cfg_mod
 

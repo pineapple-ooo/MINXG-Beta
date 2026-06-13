@@ -6,7 +6,7 @@ extensions/import_wizard.py — 全平台扩展包导入向导 v1.0.0
 - 非交互式: 直接通过路径导入
 - Android: 支持文件管理器模式 (列出常用目录)
 - 全平台: 自动检测交互式/非交互式环境
-""""
+"""
 from __future__ import annotations
 import os
 import sys
@@ -38,7 +38,7 @@ def _is_interactive() -> bool:
 
 
 def _get_search_paths() -> List[str]:
-    """返回该平台常用的文件搜索目录。""""
+    """返回该平台常用的文件搜索目录。"""
     home = os.path.expanduser("~")
     plat = _get_platform()
 
@@ -126,7 +126,7 @@ def _browse_files(search_dir: str = None, filter_ext: bool = True) -> Optional[s
     输入 'd' 进入子目录，输入 '..' 返回上级目录。
 
     返回选中的文件路径，或 None 表示取消。
-    """"
+    """
     paths = _get_search_paths()
 
     
@@ -183,7 +183,7 @@ def _browse_files(search_dir: str = None, filter_ext: bool = True) -> Optional[s
 
 
 def _choose_start_directory(paths: List[str]) -> Optional[str]:
-    """让用户选择起始目录。""""
+    """让用户选择起始目录。"""
     print("  选择起始目录:")
     for i, p in enumerate(paths):
         print(f"    [{i+1}] {p}")
@@ -209,7 +209,7 @@ def _choose_start_directory(paths: List[str]) -> Optional[str]:
 
 
 def _browse_directory(directory: str, filter_ext: bool) -> Optional[str]:
-    """浏览目录内容，让用户选择文件或进入子目录。""""
+    """浏览目录内容，让用户选择文件或进入子目录。"""
     print()
     print(f"  📂 {directory}")
     print()
@@ -293,7 +293,7 @@ def _browse_directory(directory: str, filter_ext: bool) -> Optional[str]:
 
 
 def _non_interactive_browse(paths: List[str], filter_ext: bool) -> Optional[str]:
-    """非交互式环境: 在常用目录搜索扩展包文件。""""
+    """非交互式环境: 在常用目录搜索扩展包文件。"""
     for d in paths:
         try:
             for item in sorted(os.listdir(d)):
@@ -328,7 +328,7 @@ def import_extension(path: str, interactive: bool = True) -> Dict[str, Any]:
 
     Returns:
         {"status": "success"/"error", "ext_name": ..., "dest": ...}
-    """"
+    """
     
     if not path:
         if interactive and _is_interactive():
@@ -435,7 +435,7 @@ def import_extension(path: str, interactive: bool = True) -> Dict[str, Any]:
 
 
 def list_import_formats() -> Dict[str, str]:
-    """返回支持的导入格式说明。""""
+    """返回支持的导入格式说明。"""
     return {
         ".py": "单文件Python扩展 — 包含 __init__.py 的单个Python文件",
         ".zip": "ZIP压缩包 — 包含扩展目录结构的ZIP文件",
@@ -445,7 +445,7 @@ def list_import_formats() -> Dict[str, str]:
 
 
 def get_import_help_text() -> str:
-    """返回导入帮助文本。""""
+    """返回导入帮助文本。"""
     plat = _get_platform()
     paths = _get_search_paths()
 
@@ -474,7 +474,7 @@ MINXG 扩展包导入指南
      from extensions.import_wizard import import_extension
      result = import_extension("/path/to/my_ext.zip")
 
-自动搜索目录:""""
+自动搜索目录:"""
 
     for p in paths:
         text += f"\n  • {p}"
@@ -489,7 +489,7 @@ MINXG 扩展包导入指南
   my_extension/
   ├── __init__.py          # 入口: def register(api)
   └── manifest.yaml        # 元数据 (可选)
-""""
+"""
     return text
 
 
@@ -498,7 +498,7 @@ MINXG 扩展包导入指南
 
 
 def handle_import_command(args) -> int:
-    """CLI命令处理: minxg ext import [--path PATH] [--help]""""
+    """CLI命令处理: minxg ext import [--path PATH] [--help]"""
     path = getattr(args, 'path', None)
 
     if getattr(args, 'help', False):

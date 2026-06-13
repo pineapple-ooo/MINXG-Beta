@@ -1,7 +1,7 @@
 """
 create_state_machine, add_transition, send_event, get_state_machine,
 reset_state_machine, get_stats
-""""
+"""
 from __future__ import annotations
 import time
 from collections import defaultdict

@@ -1,4 +1,4 @@
-"""Fiber Bundles: connections, curvature, geodesics, parallel transport.""""
+"""Fiber Bundles: connections, curvature, geodesics, parallel transport."""
 import math
 from minxg.fiber import (
     Connection, ParallelTransport, Curvature,
@@ -36,7 +36,7 @@ def test_parallel_transport_along_curve():
 
 
 def test_euclidean_ricci_tensor_zero():
-    """For Euclidean metric, the Ricci tensor is identically zero.""""
+    """For Euclidean metric, the Ricci tensor is identically zero."""
     conn = Connection(dim=2, christoffel_fn=lambda p: [[[0]*2]*2]*2)
     curv = Curvature(conn)
     Ric = curv.ricci_tensor([0.0, 0.0])

@@ -18,7 +18,7 @@ class ExtensionInfo:
     def __init__(self, name: str, path: Path, ext_type: str):
         self.name = name
         self.path = path
-        self.ext_type = ext_type  # "py", "dir", "zip", "md"
+        self.ext_type = ext_type  
         self.description = ""
         self.version = "0.1.0"
         self.author = ""
@@ -292,8 +292,8 @@ def get_loader() -> ExtensionLoader:
     return _loader
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# ═══════════════════════════════════════════════════════════════════════════════
+
+
 
 
 def register_cli_extensions(subparsers) -> Dict[str, Any]:

@@ -3,7 +3,7 @@
 
 The unifying language of gauge theory. The curvature tensor tells you
 how non-Euclidean your space is.
-""""
+"""
 import math
 from minxg.fiber import (
     Connection, ParallelTransport, Curvature,

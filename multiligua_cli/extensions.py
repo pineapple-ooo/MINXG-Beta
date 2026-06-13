@@ -22,7 +22,7 @@ def list_extensions():
 def register_cli_extensions(subparsers):
     ext_map = {}
 
-    # ext list
+    
     ext_map["ext_list"] = lambda args: cmd_ext_list(args)
 
     return ext_map

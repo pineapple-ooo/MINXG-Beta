@@ -1,6 +1,6 @@
 """
 checksum_file, count_lines, compress, decompress
-""""
+"""
 from __future__ import annotations
 import gzip
 import bz2

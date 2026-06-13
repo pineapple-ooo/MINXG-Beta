@@ -1,7 +1,7 @@
 """
 minxg/text_tools.py - Text processing tools
 Performance-critical operations delegated to C via core_native bridge.
-""""
+"""
 from __future__ import annotations
 import difflib
 import re

@@ -3,7 +3,7 @@ minxg/fiber/operators_fiber.py — Register Fiber Bundle operators
 ==========================================================================
 
 50+ fiber bundle operators. Operator IDs 6000-6499 are reserved.
-""""
+"""
 from __future__ import annotations
 import math
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -33,7 +33,7 @@ def register_fiber_operators():
                           ["int", "int", "string"], "bundle", True, make_principal_bundle)); op_id += 1
 
     def make_tangent_bundle(dim, metric_fn_str):
-        """Build a tangent bundle with a string-defined metric function.""""
+        """Build a tangent bundle with a string-defined metric function."""
         metric_callable = eval("lambda p: " + metric_fn_str) if isinstance(metric_fn_str, str) else metric_fn_str
         return TangentBundle(int(dim), RiemannianMetric(metric_callable))
     reg.register(Operator(op_id, "fiber_tangent_bundle", "fiber",
@@ -61,7 +61,7 @@ def register_fiber_operators():
                           ["int"], "connection", True, make_connection)); op_id += 1
 
     def make_connection_levi_civita(dim, metric_fn_str):
-        """Levi-Civita connection from a metric (Christoffel symbols).""""
+        """Levi-Civita connection from a metric (Christoffel symbols)."""
         metric_callable = eval("lambda p: " + metric_fn_str) if isinstance(metric_fn_str, str) else metric_fn_str
         metric = RiemannianMetric(metric_callable)
         tb = TangentBundle(int(dim), metric)
@@ -231,7 +231,7 @@ def register_fiber_operators():
 
     
     def sphere_n(n):
-        """S^n as a Riemannian manifold.""""
+        """S^n as a Riemannian manifold."""
         dim = int(n) + 1
         
         return TangentBundle(int(n), RiemannianMetric(
@@ -244,7 +244,7 @@ def register_fiber_operators():
         op_id += 1
 
     def hyperbolic_n(n):
-        """H^n as a Riemannian manifold (hyperboloid model).""""
+        """H^n as a Riemannian manifold (hyperboloid model)."""
         dim = int(n)
         return TangentBundle(dim, RiemannianMetric(
             lambda p: [[1.0 if i == j else 0.0 for j in range(dim)] for i in range(dim)]

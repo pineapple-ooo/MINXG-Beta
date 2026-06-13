@@ -9,7 +9,7 @@ The `cell` decorator (and `CellMeta`) auto-discover tool methods (those
 decorated with `@tool`) and fold their declared category into capabilities.
 Cells may also be standalone plain objects — only `cell_id` is required to
 be discoverable through the Registry.
-""""
+"""
 from __future__ import annotations
 from typing import Any, Callable, Iterable, Protocol, runtime_checkable
 

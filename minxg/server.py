@@ -4,7 +4,7 @@ minxg/server.py — HTTP RPC server for minxg v1.0.0
   GET  /health       -> {"status":"ok", "version":"1.0.0", "registered_workers":[...]}
   GET  /tools        -> {"workers": {"fs_io": [...], ...}}
   POST /rpc          -> body: {"worker":"fs_io","tool":"read_file","params":{"path":"..."}}
-""""
+"""
 from __future__ import annotations
 import os
 import sys
@@ -24,7 +24,7 @@ ALL_WORKERS: Dict[str, type] = {}
 
 
 def _discover_workers():
-    """Import and register all worker classes.""""
+    """Import and register all worker classes."""
     from .fs_io import FsIoWorker
     from .fs_copy import FsCopyWorker
     from .fs_search import FsSearchWorker
@@ -99,7 +99,7 @@ def _discover_workers():
 
 async def start_server(host: str = "127.0.0.1", port: int = 19001,
                        workers: List[str] = None) -> None:
-    """Start the HTTP RPC server.""""
+    """Start the HTTP RPC server."""
     from aiohttp import web
     from .base import WorkerRegistry
 

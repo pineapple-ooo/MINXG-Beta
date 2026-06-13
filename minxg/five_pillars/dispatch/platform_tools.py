@@ -1,4 +1,4 @@
-"""Platform-aware tools — adapt behavior based on device capabilities.""""
+"""Platform-aware tools — adapt behavior based on device capabilities."""
 from minxg.base import BaseWorker, tool
 
 class PlatformWorker(BaseWorker):
@@ -7,7 +7,7 @@ class PlatformWorker(BaseWorker):
 
     @tool
     async def platform_info(self) -> dict:
-        """Get detailed platform information (OS, CPU, RAM, GPU, etc.).""""
+        """Get detailed platform information (OS, CPU, RAM, GPU, etc.)."""
         import platform, os
         return {
             "os": platform.system(),
@@ -20,7 +20,7 @@ class PlatformWorker(BaseWorker):
 
     @tool
     async def platform_capabilities(self) -> dict:
-        """Get what this device can and cannot do.""""
+        """Get what this device can and cannot do."""
         try:
             import sys; sys.path.insert(0, '.')
             from src.platform_adapters import adapter
@@ -30,7 +30,7 @@ class PlatformWorker(BaseWorker):
 
     @tool
     async def tool_availability(self, tool_name: str = "") -> dict:
-        """Check if a tool is available on this platform. Empty = list all.""""
+        """Check if a tool is available on this platform. Empty = list all."""
         try:
             import sys; sys.path.insert(0, '.')
             from src.platform_adapters import adapter
@@ -43,7 +43,7 @@ class PlatformWorker(BaseWorker):
 
     @tool
     async def device_class(self) -> dict:
-        """Get device classification (high/mid/low/minimal).""""
+        """Get device classification (high/mid/low/minimal)."""
         try:
             import sys; sys.path.insert(0, '.')
             from src.platform_adapters import adapter
@@ -53,7 +53,7 @@ class PlatformWorker(BaseWorker):
 
     @tool
     async def ram_usage(self) -> dict:
-        """Get current RAM usage.""""
+        """Get current RAM usage."""
         try:
             import sys; sys.path.insert(0, '.')
             from src.platform_adapters import adapter
@@ -68,14 +68,14 @@ class PlatformWorker(BaseWorker):
 
     @tool
     async def disk_usage(self) -> dict:
-        """Get disk usage.""""
+        """Get disk usage."""
         import shutil
         usage = shutil.disk_usage("/")
         return {"total_gb": round(usage.total/(1024**3),2), "free_gb": round(usage.free/(1024**3),2), "used_pct": round((1-usage.free/usage.total)*100)}
 
     @tool
     async def battery_status(self) -> dict:
-        """Get battery status (mobile only).""""
+        """Get battery status (mobile only)."""
         try:
             from pathlib import Path
             bats = list(Path("/sys/class/power_supply").glob("BAT*"))
@@ -89,7 +89,7 @@ class PlatformWorker(BaseWorker):
 
     @tool
     async def is_online(self) -> dict:
-        """Check if device has internet connectivity.""""
+        """Check if device has internet connectivity."""
         import socket
         try:
             socket.create_connection(("8.8.8.8", 53), timeout=3)
@@ -99,7 +99,7 @@ class PlatformWorker(BaseWorker):
 
     @tool
     async def optimization_hints(self) -> dict:
-        """Get platform-specific optimization hints.""""
+        """Get platform-specific optimization hints."""
         try:
             import sys; sys.path.insert(0, '.')
             from src.platform_adapters import adapter

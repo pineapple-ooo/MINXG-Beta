@@ -1,4 +1,4 @@
-"""Tests for minxg.driver (Temporal Operator-Field driver engine).""""
+"""Tests for minxg.driver (Temporal Operator-Field driver engine)."""
 import pytest
 from minxg.driver import (
     State, Operator, Identity, DriverEngine,

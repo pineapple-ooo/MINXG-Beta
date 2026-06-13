@@ -4,7 +4,7 @@ The Registry is the only shared object across Cells. It is created once,
 populated through `cell.register(...)`, then `lock()`-ed. After locking
 the catalogue is frozen; modifying a single Cell never invalidates other
 Cells because nothing inside the catalogue points back at them.
-""""
+"""
 from __future__ import annotations
 from typing import Any, Dict, Iterable, Optional, Type
 from .cell import Cell
@@ -95,5 +95,5 @@ def cell(instance_or_class: Any, *, replaces: Optional[str] = None) -> Any:
 
     Editing the decorated class does NOT affect any other registered Cell,
     and re-importing the module does NOT force re-registration of siblings.
-    """"
+    """
     return get_registry().register(instance_or_class, replaces=replaces)

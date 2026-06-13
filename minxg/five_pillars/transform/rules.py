@@ -1,6 +1,6 @@
 """
 
-""""
+"""
 from __future__ import annotations
 import re
 import time
@@ -98,7 +98,7 @@ class RulesWorker(BaseWorker):
                       group: str = "default") -> Dict:
         """
           action_expr:    "ctx['hit'] = True; ctx['count'] = ctx.get('count', 0) + 1"
-        """"
+        """
         try:
             cond = compile(f"lambda ctx: bool({condition_expr})", f"<cond:{name}>", "eval")
             cond_fn = eval(cond)
@@ -215,7 +215,7 @@ class RulesWorker(BaseWorker):
            "action_expr": "ctx['result'] = 'matched'", "priority": 100},
           ...
         ]
-        """"
+        """
         added = []
         for r in rules:
             res = await self.register(

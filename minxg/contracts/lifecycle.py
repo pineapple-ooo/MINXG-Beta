@@ -8,7 +8,7 @@ transitions instead of needing to know the Cell's internals.
     LIVE     → registry locked, Cell is read-only
     QUIET    → Cold-storage: still discoverable, but excluded from routing
     GONE     → Fully retired; metadata purged
-""""
+"""
 from __future__ import annotations
 from enum import Enum
 from typing import Callable, List

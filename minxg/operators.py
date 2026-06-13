@@ -8,7 +8,7 @@ and category.
 
 When C++ native operators are loaded (via libminxg_operators.so), they
 execute 10-100x faster than pure Python. Falls back gracefully.
-""""
+"""
 from __future__ import annotations
 import math
 import json
@@ -23,7 +23,7 @@ from .base import BaseWorker, tool
 
 
 class Operator:
-    """A single operator in the engine.""""
+    """A single operator in the engine."""
     __slots__ = ("op_id", "name", "category", "description", "input_types",
                  "output_type", "is_pure", "fn")
 
@@ -47,7 +47,7 @@ class Operator:
 
 
 class OperatorRegistry:
-    """Registry of all operators, indexed by ID and name.""""
+    """Registry of all operators, indexed by ID and name."""
 
     def __init__(self):
         self._by_id: Dict[int, Operator] = {}
@@ -97,7 +97,7 @@ OPERATOR_REGISTRY = OperatorRegistry()
 
 
 def _register_core_operators():
-    """Register core Python operators. C++ native operators override these.""""
+    """Register core Python operators. C++ native operators override these."""
     ops = []
 
     
@@ -258,7 +258,7 @@ def _register_core_operators():
 
 
 def _levenshtein(a: str, b: str) -> int:
-    """Compute Levenshtein edit distance.""""
+    """Compute Levenshtein edit distance."""
     if len(a) < len(b):
         return _levenshtein(b, a)
     if len(b) == 0:
@@ -299,20 +299,20 @@ _register_core_operators()
 
 
 class OperatorGraph:
-    """A DAG of operators that can be executed as a pipeline.""""
+    """A DAG of operators that can be executed as a pipeline."""
 
     def __init__(self):
         self.nodes: List[Tuple[int, list]] = []  
         self._cache: Dict[int, Any] = {}
 
     def add_node(self, op_id: int, inputs: List[int] = None) -> int:
-        """Add an operator node. Returns node index.""""
+        """Add an operator node. Returns node index."""
         idx = len(self.nodes)
         self.nodes.append((op_id, inputs or []))
         return idx
 
     def execute(self) -> List[Any]:
-        """Execute the pipeline and return results.""""
+        """Execute the pipeline and return results."""
         results = {}
         outputs = []
         for idx, (op_id, inputs) in enumerate(self.nodes):
@@ -335,7 +335,7 @@ class OperatorGraph:
 
 
 class OperatorWorker(BaseWorker):
-    """Operator engine: execute operators by ID or name, list operators, run pipelines.""""
+    """Operator engine: execute operators by ID or name, list operators, run pipelines."""
     worker_id = "operator"
     version = "1.0.0"
 

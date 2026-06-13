@@ -26,7 +26,7 @@ class ModelProfile:
     base_url: str
     api_key: str
     provider: str
-    level: int  # 1=fast, 2=deep, 3=expert
+    level: int  
     max_tokens: int = 4096
     timeout: int = 60
 
@@ -54,7 +54,7 @@ class TaskGrader:
         q = query.lower()
         score = 1
 
-        # Keyword weighting
+        
         deep_hits = sum(1 for k in cls.DEEP_KEYWORDS if k.lower() in q)
         expert_hits = sum(1 for k in cls.EXPERT_KEYWORDS if k.lower() in q)
 
@@ -63,13 +63,13 @@ class TaskGrader:
         if expert_hits >= 2 or (deep_hits >= 3 and history_tools > 3):
             score = 3
 
-        # History complexity
+        
         if history_tools > 5:
             score = max(score, 2)
         if history_tools > 10 or session_turns > 20:
             score = max(score, 3)
 
-        # Input length (longer usually means more complex)
+        
         if len(query) > 2000:
             score = max(score, 2)
         if len(query) > 5000:
@@ -88,7 +88,7 @@ class InferenceDispatcher:
             for m in models:
                 self.models[m.level] = m
         else:
-            # Default single-model fallback
+            
             self.models[1] = ModelProfile(
                 name="default", base_url="", api_key="", provider="local", level=1
             )

@@ -6,7 +6,7 @@ knowledge.py — 知识图谱与实体抽取模块
   - EntityExtractor: 命名实体识别与抽取
   - RelationExtractor: 实体关系抽取
   - KnowledgeQuery: 知识图谱查询接口
-""""
+"""
 
 import json
 import re
@@ -19,7 +19,7 @@ from collections import defaultdict
 
 @dataclass
 class Entity:
-    """知识图谱中的实体""""
+    """知识图谱中的实体"""
     id: str = field(default_factory=lambda: f"ent_{uuid.uuid4().hex[:10]}")
     name: str = ""
     entity_type: str = "unknown"      
@@ -42,7 +42,7 @@ class Entity:
 
 @dataclass
 class Relation:
-    """实体间关系""""
+    """实体间关系"""
     id: str = field(default_factory=lambda: f"rel_{uuid.uuid4().hex[:10]}")
     source_id: str = ""     
     target_id: str = ""     
@@ -68,7 +68,7 @@ class KnowledgeGraph:
     - 模式匹配查询
     - 子图提取
     - 导入/导出
-    """"
+    """
 
     def __init__(self, name: str = "default"):
         self.name = name
@@ -89,7 +89,7 @@ class KnowledgeGraph:
 
         Returns:
             实体ID
-        """"
+        """
         
         existing_id = self._name_index.get(entity.name.lower())
         if existing_id and merge:
@@ -103,7 +103,7 @@ class KnowledgeGraph:
         return entity.id
 
     def _merge_entity(self, existing_id: str, new_entity: Entity):
-        """合并两个同名实体""""
+        """合并两个同名实体"""
         existing = self._entities[existing_id]
         
         for alias in new_entity.aliases:
@@ -124,7 +124,7 @@ class KnowledgeGraph:
 
     def add_relation(self, source_id: str, target_id: str,
                      relation_type: str, attrs: Dict = None) -> str:
-        """添加实体间关系""""
+        """添加实体间关系"""
         if source_id not in self._entities:
             raise ValueError(f"Unknown source entity: {source_id}")
         if target_id not in self._entities:
@@ -146,7 +146,7 @@ class KnowledgeGraph:
 
     def find_entities(self, name: str = "", entity_type: str = "",
                       limit: int = 20) -> List[Entity]:
-        """查找实体""""
+        """查找实体"""
         results = []
         for e in self._entities.values():
             match = True
@@ -160,7 +160,7 @@ class KnowledgeGraph:
 
     def get_neighbors(self, entity_id: str,
                       relation_type: str = "") -> List[Tuple[Entity, Relation]]:
-        """获取实体的邻居""""
+        """获取实体的邻居"""
         results = []
         for rel in self._relations:
             if rel.source_id == entity_id:
@@ -183,7 +183,7 @@ class KnowledgeGraph:
 
         Returns:
             匹配的实体和关系列表
-        """"
+        """
         entity_type = pattern.get("type", "")
         rel_patterns = pattern.get("relations", [])
 
@@ -220,7 +220,7 @@ class KnowledgeGraph:
         return results
 
     def extract_subgraph(self, center_id: str, depth: int = 2) -> Dict:
-        """提取以某实体为中心的子图""""
+        """提取以某实体为中心的子图"""
         if center_id not in self._entities:
             return {"center": None, "entities": [], "relations": []}
 
@@ -247,7 +247,7 @@ class KnowledgeGraph:
         }
 
     def export_json(self) -> str:
-        """导出为 JSON""""
+        """导出为 JSON"""
         return json.dumps({
             "name": self.name,
             "entities": [e.to_dict() for e in self._entities.values()],
@@ -255,7 +255,7 @@ class KnowledgeGraph:
         }, ensure_ascii=False, indent=2)
 
     def import_json(self, data: str):
-        """从 JSON 导入""""
+        """从 JSON 导入"""
         obj = json.loads(data)
         for e_data in obj.get("entities", []):
             ent = Entity(**{k: v for k, v in e_data.items()
@@ -285,7 +285,7 @@ class EntityExtractor:
     命名实体识别器（基于规则 + 模式匹配）
 
     支持: 中文、英文、日文、韩文等实体类型识别
-    """"
+    """
 
     
     PATTERNS = {
@@ -320,7 +320,7 @@ class EntityExtractor:
 
         Returns:
             实体列表 [{type, value, start, end, confidence}, ...]
-        """"
+        """
         entities = []
         target_types = set(types) if types else set(self.PATTERNS.keys())
 
@@ -357,7 +357,7 @@ class EntityExtractor:
         return self._remove_overlaps(entities)
 
     def _remove_overlaps(self, entities: List[Dict]) -> List[Dict]:
-        """去除重叠的实体（保留置信度高的）""""
+        """去除重叠的实体（保留置信度高的）"""
         if not entities:
             return []
         filtered = [entities[0]]
@@ -370,7 +370,7 @@ class EntityExtractor:
         return filtered
 
     def extract_to_entities(self, text: str, graph: KnowledgeGraph = None) -> List[Entity]:
-        """提取实体并转换为 Entity 对象""""
+        """提取实体并转换为 Entity 对象"""
         results = self.extract(text)
         entities = []
         for r in results:
@@ -396,7 +396,7 @@ class RelationExtractor:
     关系抽取器
 
     基于模式和关键词的关系识别
-    """"
+    """
 
     
     RELATION_PATTERNS = {
@@ -435,7 +435,7 @@ class RelationExtractor:
 
         Returns:
             关系列表 [{type, source, target, confidence}, ...]
-        """"
+        """
         relations = []
         entity_names = set()
         if entities:
@@ -466,7 +466,7 @@ class RelationExtractor:
         return self._deduplicate(relations)
 
     def _deduplicate(self, relations: List[Dict]) -> List[Dict]:
-        """去重关系""""
+        """去重关系"""
         seen = set()
         unique = []
         for r in relations:
@@ -478,7 +478,7 @@ class RelationExtractor:
 
 
 class KnowledgeQuery:
-    """知识图谱自然语言查询接口""""
+    """知识图谱自然语言查询接口"""
 
     def __init__(self, graph: KnowledgeGraph):
         self.graph = graph
@@ -493,7 +493,7 @@ class KnowledgeQuery:
             "谁在ABC公司工作？"
             "北京有什么知名组织？"
             "张三是什么类型的人？"
-        """"
+        """
         
         entities = self.extractor.extract(question)
         entity_names = {e["value"] for e in entities}
@@ -543,7 +543,7 @@ class KnowledgeQuery:
         return results
 
     def search(self, keywords: str, limit: int = 10) -> List[Dict]:
-        """关键词搜索知识图谱""""
+        """关键词搜索知识图谱"""
         entities = self.graph.find_entities(name=keywords, limit=limit)
         results = []
         for e in entities:

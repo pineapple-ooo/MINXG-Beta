@@ -26,7 +26,7 @@ from multiligua_cli.utils import (
 def interactive_mode(args) -> int:
     """Run interactive chat backed by the local NexusOrchestrator."""
 
-    # ── Welcome ──────────────────────────────────────────────────────
+    
     if HAS_RICH:
         from rich.panel import Panel
         from rich import box
@@ -73,7 +73,7 @@ def interactive_mode(args) -> int:
         )
         print(colorize("  Press Ctrl+C to exit.\n", Colors.DIM))
 
-    # ── Init orchestrator ────────────────────────────────────────────
+    
     try:
         from multiling.orchestrator import NexusOrchestrator
 
@@ -87,7 +87,7 @@ def interactive_mode(args) -> int:
 
         chat_history: list[str] = []
 
-        # ── Main loop ─────────────────────────────────────────────
+        
         while True:
             try:
                 user_input = (
@@ -144,7 +144,7 @@ def interactive_mode(args) -> int:
 
                 chat_history.append(user_input)
 
-                # ── Think + respond ──────────────────────────────
+                
                 if HAS_RICH:
                     with console.status("[dim]Thinking...[/dim]", spinner="dots"):
                         response = orch.chat(user_input)

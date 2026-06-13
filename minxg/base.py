@@ -1,6 +1,6 @@
 """
 minxg/base.py - Worker base class, tool decorator, registry.
-""""
+"""
 from __future__ import annotations
 import asyncio
 import logging
@@ -14,7 +14,7 @@ log = logging.getLogger("py_workers.base")
 
 @dataclass
 class ToolDef:
-    """Metadata for a single tool.""""
+    """Metadata for a single tool."""
     name: str
     description: str
     params: Dict[str, str]  
@@ -30,7 +30,7 @@ class ToolDef:
         return max(0, self.call_budget - self.budget_used)
 
     def consume_budget(self) -> bool:
-        """Try to consume one call from the budget. Returns False if exhausted.""""
+        """Try to consume one call from the budget. Returns False if exhausted."""
         if self.budget_used >= self.call_budget:
             return False
         self.budget_used += 1
@@ -41,7 +41,7 @@ class ToolDef:
 
 
 class BaseWorker:
-    """Base class for all py_workers. Provides tool registration, stats, health checks.""""
+    """Base class for all py_workers. Provides tool registration, stats, health checks."""
     worker_id: str = "base"
     version: str = "1.0.0"
 
@@ -52,7 +52,7 @@ class BaseWorker:
 
     
     def _register_tools(self):
-        """Subclass override: wrap methods into ToolDef and register in self.tools.""""
+        """Subclass override: wrap methods into ToolDef and register in self.tools."""
         for name in dir(self):
             if name.startswith("_"):
                 continue
@@ -74,7 +74,7 @@ class BaseWorker:
 
     
     async def call(self, tool_name: str, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute a tool with unified error handling, statistics, and budget enforcement.""""
+        """Execute a tool with unified error handling, statistics, and budget enforcement."""
         tool = self.tools.get(tool_name)
         if not tool:
             return {"status": "error", "error": f"unknown tool: {tool_name}",
@@ -149,7 +149,7 @@ def tool(name: str = None, description: str = "", category: str = "general",
         @tool(call_budget=5)          # limit max calls
         async def read_file(self, path: str, lines: int = 0) -> Dict:
             ...
-    """"
+    """
     
     if callable(name):
         fn = name
@@ -179,7 +179,7 @@ def tool(name: str = None, description: str = "", category: str = "general",
 
 
 def _type_to_str(tp) -> str:
-    """Convert Python type hint to schema string.""""
+    """Convert Python type hint to schema string."""
     import typing
     origin = typing.get_origin(tp)
     if origin is list:
@@ -200,7 +200,7 @@ def _type_to_str(tp) -> str:
 
 
 class WorkerRegistry:
-    """Manage all worker instances for HTTP server.""""
+    """Manage all worker instances for HTTP server."""
     def __init__(self):
         self.workers: Dict[str, BaseWorker] = {}
 

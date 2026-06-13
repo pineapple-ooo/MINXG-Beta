@@ -1,4 +1,4 @@
-"""Version management tools.""""
+"""Version management tools."""
 from minxg.base import BaseWorker, tool
 
 class VersionWorker(BaseWorker):
@@ -7,7 +7,7 @@ class VersionWorker(BaseWorker):
 
     @tool
     async def version_compare(self, v1: str = "0.0.1", v2: str = "0.0.2") -> dict:
-        """Compare two semantic versions. Returns -1/0/1.""""
+        """Compare two semantic versions. Returns -1/0/1."""
         from packaging.version import Version
         a, b = Version(v1), Version(v2)
         if a < b: return {"comparison": -1, "message": f"{v1} < {v2}"}
@@ -16,7 +16,7 @@ class VersionWorker(BaseWorker):
 
     @tool
     async def version_bump(self, version: str = "0.0.1", level: str = "patch") -> dict:
-        """Bump a semantic version (major/minor/patch).""""
+        """Bump a semantic version (major/minor/patch)."""
         parts = version.split("-")[0].split(".")
         if level == "major": parts[0] = str(int(parts[0]) + 1); parts[1] = "0"; parts[2] = "0"
         elif level == "minor": parts[1] = str(int(parts[1]) + 1); parts[2] = "0"
@@ -25,7 +25,7 @@ class VersionWorker(BaseWorker):
 
     @tool
     async def minxg_version(self) -> dict:
-        """Get MINXG version info.""""
+        """Get MINXG version info."""
         try:
             import sys; sys.path.insert(0, '.')
             from src.core.config._version import version_string, __version__, __build__, __codename__
@@ -35,7 +35,7 @@ class VersionWorker(BaseWorker):
 
     @tool
     async def python_version_check(self) -> dict:
-        """Check Python version and features.""""
+        """Check Python version and features."""
         import sys, platform
         return {
             "version": sys.version,
@@ -47,7 +47,7 @@ class VersionWorker(BaseWorker):
 
     @tool
     async def pip_list_outdated(self) -> dict:
-        """List outdated pip packages.""""
+        """List outdated pip packages."""
         import subprocess
         try:
             r = subprocess.run([sys.executable, "-m", "pip", "list", "--outdated", "--format=json"],

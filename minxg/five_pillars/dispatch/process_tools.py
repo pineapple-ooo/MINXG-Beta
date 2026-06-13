@@ -1,5 +1,5 @@
 """
-""""
+"""
 from __future__ import annotations
 from typing import Dict
 from minxg.base import BaseWorker, tool

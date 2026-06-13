@@ -3,7 +3,7 @@
 Use as a copy-paste template: register your own cells with the same
 shape, drop them next to this file, and they auto-appear in the
 Registry without touching any other module.
-""""
+"""
 from __future__ import annotations
 from typing import Any, Dict
 from .cell import CellMeta

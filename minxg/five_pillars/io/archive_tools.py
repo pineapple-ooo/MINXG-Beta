@@ -3,7 +3,7 @@ minxg/archive_tools.py — ZIP/RAR/7z/TAR archive operations v1.0.0
 
 Auto-detects archive format via magic bytes, supports recursive extraction,
 password-protected archives, and in-memory streaming.
-""""
+"""
 from __future__ import annotations
 import os
 import sys
@@ -34,7 +34,7 @@ ARCHIVE_MAGIC = {
 
 
 def detect_archive_type(path: str) -> str:
-    """Detect archive type by reading magic bytes. Returns format name or 'unknown'.""""
+    """Detect archive type by reading magic bytes. Returns format name or 'unknown'."""
     try:
         with open(path, 'rb') as f:
             header = f.read(16)
@@ -57,7 +57,7 @@ def detect_archive_type(path: str) -> str:
 
 
 def _safe_extract_path(base_dir: str, member_path: str) -> str:
-    """Prevent path traversal attacks: ensure extracted path stays within base_dir.""""
+    """Prevent path traversal attacks: ensure extracted path stays within base_dir."""
     resolved = os.path.realpath(os.path.join(base_dir, member_path))
     base_real = os.path.realpath(base_dir)
     if not resolved.startswith(base_real + os.sep) and resolved != base_real:
@@ -69,45 +69,45 @@ class ArchiveWorker(BaseWorker):
     """
     Archive operations: ZIP, TAR, GZ, BZ2, XZ detection and extraction.
     Supports auto-detection, recursive extraction, and password-protected archives.
-    """"
+    """
     worker_id = "archive"
     version = "1.0.0"
 
     @tool(description="List contents of an archive (ZIP, TAR, etc.) without extracting")
     def archive_list(self, path: str) -> Dict[str, Any]:
-        """List all files in an archive.""""
+        """List all files in an archive."""
 
     @tool(description="Detect archive type by magic bytes. Returns format name.")
     def archive_detect(self, path: str) -> Dict[str, Any]:
-        """Detect archive type from magic bytes.""""
+        """Detect archive type from magic bytes."""
 
     @tool(description="Extract all files from an archive to a destination directory")
     def archive_extract(self, path: str, dest: str = "", strip_components: int = 0,
                         max_size_mb: int = 500, max_files: int = 10000) -> Dict[str, Any]:
-        """Extract archive with safety limits.""""
+        """Extract archive with safety limits."""
 
     @tool(description="Create a ZIP archive from a list of files or directory")
     def archive_create_zip(self, sources: List[str], dest: str,
                            compression: str = "deflate") -> Dict[str, Any]:
-        """Create ZIP archive.""""
+        """Create ZIP archive."""
 
     @tool(description="Extract from a password-protected archive")
     def archive_extract_password(self, path: str, password: str,
                                  dest: str = "") -> Dict[str, Any]:
-        """Extract password-protected archive.""""
+        """Extract password-protected archive."""
 
     @tool(description="Recursively extract archives within archives (depth-limited)")
     def archive_recursive_extract(self, path: str, dest: str = "",
                                    max_depth: int = 3) -> Dict[str, Any]:
-        """Recursive extraction of nested archives.""""
+        """Recursive extraction of nested archives."""
 
     @tool(description="Read a text file from within an archive without full extraction")
     def archive_read_file(self, path: str, inner_path: str) -> Dict[str, Any]:
-        """Read a single file from inside an archive.""""
+        """Read a single file from inside an archive."""
 
     @tool(description="Check if a ZIP archive is valid and not corrupted")
     def archive_verify(self, path: str) -> Dict[str, Any]:
-        """Verify archive integrity.""""
+        """Verify archive integrity."""
 
     def _register_tools(self):
         

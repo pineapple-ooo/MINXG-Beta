@@ -7,7 +7,7 @@ sysctl, kernel modules, SELinux, Magisk management, system backup/restore.
 ONLY available on Android when root (su) access is detected.
 Requires explicit user confirmation before first use.
 All operations logged to audit trail.
-""""
+"""
 from __future__ import annotations
 import os
 import subprocess
@@ -23,7 +23,7 @@ def _is_android() -> bool:
 
 
 def _check_root() -> bool:
-    """Check if root (su) access is available.""""
+    """Check if root (su) access is available."""
     try:
         result = subprocess.run(
             ["su", "-c", "id"], capture_output=True, text=True, timeout=5
@@ -37,7 +37,7 @@ HAS_ROOT = _is_android() and _check_root()
 
 
 def _su(cmd: str, timeout: int = 30) -> Dict[str, Any]:
-    """Execute a command as root via su.""""
+    """Execute a command as root via su."""
     if not HAS_ROOT:
         return {"status": "error", "error": "Root access not available"}
     try:
@@ -62,7 +62,7 @@ class RootWorker(BaseWorker):
     Android ROOT command tools. Requires su (superuser) access.
     Use with caution — these operations can modify system-level settings.
     All operations are logged for audit purposes.
-    """"
+    """
     worker_id = "root"
     version = "1.0.0"
 

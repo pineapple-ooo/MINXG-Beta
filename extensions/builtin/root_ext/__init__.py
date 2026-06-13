@@ -3,7 +3,7 @@ extensions/builtin/root_ext/__init__.py — ROOT权限扩展 v1.0.1
 
 检测条件: su命令可用 → 自动启用
 平台: Android/Linux (需要root)
-""""
+"""
 import os, sys, subprocess
 
 EXTENSION_NAME = "minxg-root"

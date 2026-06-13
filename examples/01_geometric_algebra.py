@@ -3,7 +3,7 @@
 
 The unified type for rigid motions and scalings. One algebraic
 framework works in any dimension and any signature.
-""""
+"""
 import math
 from minxg.ga import Multivector, Signature, Rotor, Reflector, Dilator
 

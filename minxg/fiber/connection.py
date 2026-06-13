@@ -18,7 +18,7 @@ where F is the curvature 2-form.
 CURVATURE F = dω + (1/2)[ω, ω] is the "exterior covariant derivative" of
 the connection. For a flat bundle, F = 0. For a non-trivial bundle
 (e.g., sphere), F ≠ 0.
-""""
+"""
 from __future__ import annotations
 import math
 from typing import Callable, List, Optional, Tuple
@@ -34,7 +34,7 @@ class Connection:
 
     The Christoffel symbols Γ^i_jk define how the i-th component of
     a section changes when we move in the k direction.
-    """"
+    """
     def __init__(self, dim: int, christoffel_fn: Optional[Callable] = None):
         self.dim = dim
         self._christoffel_fn = christoffel_fn
@@ -49,7 +49,7 @@ class Connection:
         with respect to the k-th fiber basis vector.
 
         Default: zero connection (trivial).
-        """"
+        """
         key = tuple(round(x, 6) for x in base_point)
         if key in self._cache:
             return self._cache[key]
@@ -68,7 +68,7 @@ class ParallelTransport:
       dV^i/dt = -Γ^i_jk V^j (dx^k/dt)
 
     where Γ are the Christoffel symbols of the connection.
-    """"
+    """
     def __init__(self, connection: Connection, curve_fn: Callable[[float], List[float]],
                  t_min: float = 0.0, t_max: float = 1.0):
         self.connection = connection
@@ -77,7 +77,7 @@ class ParallelTransport:
         self.t_max = t_max
 
     def transport(self, initial_vector: List[float], n_steps: int = 100) -> List[float]:
-        """Transport initial_vector along the curve from t_min to t_max.""""
+        """Transport initial_vector along the curve from t_min to t_max."""
         v = list(initial_vector)
         dt = (self.t_max - self.t_min) / n_steps
         for step in range(n_steps):
@@ -101,7 +101,7 @@ class ParallelTransport:
 
         The initial vector is transported along the closed curve and
         the result is compared to the start.
-        """"
+        """
         transported = self.transport(initial_vector, n_steps)
         return [t - i for t, i in zip(transported, initial_vector)]
 
@@ -116,14 +116,14 @@ class Curvature:
       F^i_jkl = ∂_k Γ^i_jl - ∂_l Γ^i_jk + Γ^i_km Γ^m_jl - Γ^i_lm Γ^m_jk
 
     F = 0 iff the connection is flat.
-    """"
+    """
     def __init__(self, connection: Connection, n_dim: Optional[int] = None):
         self.connection = connection
         self.n_dim = n_dim or connection.dim
 
     def component(self, i: int, j: int, k: int, l: int,
                   base_point: List[float], eps: float = 1e-4) -> float:
-        """Compute one component of the curvature tensor F^i_jkl.""""
+        """Compute one component of the curvature tensor F^i_jkl."""
         def Gamma(base):
             return self.connection.christoffel(base)
 
@@ -143,7 +143,7 @@ class Curvature:
         return term1 + term2 - term3
 
     def riemann_tensor(self, base_point: List[float]) -> List[List[List[List[float]]]]:
-        """Compute the full Riemann tensor R^i_jkl at a point.""""
+        """Compute the full Riemann tensor R^i_jkl at a point."""
         n = self.n_dim
         R = [[[[0.0] * n for _ in range(n)] for _ in range(n)] for _ in range(n)]
         for i in range(n):
@@ -154,7 +154,7 @@ class Curvature:
         return R
 
     def ricci_tensor(self, base_point: List[float]) -> List[List[float]]:
-        """Ricci tensor R_jl = R^i_jil (contract over i and k).""""
+        """Ricci tensor R_jl = R^i_jil (contract over i and k)."""
         R = self.riemann_tensor(base_point)
         n = self.n_dim
         Ric = [[0.0] * n for _ in range(n)]
@@ -166,7 +166,7 @@ class Curvature:
     def scalar_curvature(self, base_point: List[float],
                         metric: Optional[List[List[float]]] = None,
                         metric_inv: Optional[List[List[float]]] = None) -> float:
-        """Scalar curvature R = g^jl R_jl (using metric inverse).""""
+        """Scalar curvature R = g^jl R_jl (using metric inverse)."""
         Ric = self.ricci_tensor(base_point)
         n = self.n_dim
         if metric_inv is None:

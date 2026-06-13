@@ -8,7 +8,7 @@ Every tool in MINXG declares which platforms it supports. This module:
 
 Platforms supported: linux, macos, windows, android, ios, web
 Each platform has different tool availability based on system capabilities.
-""""
+"""
 from __future__ import annotations
 import platform as _platform
 import sys
@@ -21,7 +21,7 @@ from typing import Dict, List, Optional, Set
 
 
 def detect_platform() -> str:
-    """Detect the current platform. Returns one of: linux, macos, windows, android, ios, web.""""
+    """Detect the current platform. Returns one of: linux, macos, windows, android, ios, web."""
     system = _platform.system()
 
     if system == "Android":
@@ -43,12 +43,12 @@ def detect_platform() -> str:
 
 
 def is_android() -> bool:
-    """Check if running on Android (Termux or similar).""""
+    """Check if running on Android (Termux or similar)."""
     return _platform.system() == "Android"
 
 
 def is_root_available() -> bool:
-    """Check if root access is available (Android only).""""
+    """Check if root access is available (Android only)."""
     if not is_android():
         return False
     try:
@@ -59,7 +59,7 @@ def is_root_available() -> bool:
 
 
 def is_adb_available() -> bool:
-    """Check if ADB is available on this device.""""
+    """Check if ADB is available on this device."""
     try:
         result = os.popen("which adb 2>/dev/null").read().strip()
         return bool(result)
@@ -214,7 +214,7 @@ def get_available_tools(platform: Optional[str] = None) -> Dict[str, Dict]:
     """
     Return all tools available on the given platform. If platform is None,
     auto-detects the current platform.
-    """"
+    """
     plat = platform or CURRENT_PLATFORM
     available = {}
     for name, meta in TOOL_PLATFORM_MATRIX.items():
@@ -225,7 +225,7 @@ def get_available_tools(platform: Optional[str] = None) -> Dict[str, Dict]:
 
 def get_tools_by_category(platform: Optional[str] = None,
                           category: Optional[str] = None) -> Dict[str, Dict]:
-    """Filter tools by platform and/or category.""""
+    """Filter tools by platform and/or category."""
     tools = get_available_tools(platform)
     if category:
         tools = {k: v for k, v in tools.items() if v.get("category") == category}
@@ -233,7 +233,7 @@ def get_tools_by_category(platform: Optional[str] = None,
 
 
 def is_tool_available(tool_name: str, platform: Optional[str] = None) -> bool:
-    """Check if a specific tool is available on this platform.""""
+    """Check if a specific tool is available on this platform."""
     plat = platform or CURRENT_PLATFORM
     meta = TOOL_PLATFORM_MATRIX.get(tool_name)
     if not meta:
@@ -242,12 +242,12 @@ def is_tool_available(tool_name: str, platform: Optional[str] = None) -> bool:
 
 
 def get_tool_count(platform: Optional[str] = None) -> int:
-    """Number of tools available on this platform.""""
+    """Number of tools available on this platform."""
     return len(get_available_tools(platform))
 
 
 def get_system_capabilities() -> Dict:
-    """Return full system capability report for AI context.""""
+    """Return full system capability report for AI context."""
     plat = CURRENT_PLATFORM
     return {
         "platform": plat,

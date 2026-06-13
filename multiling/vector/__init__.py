@@ -3,7 +3,7 @@ vector.py — 向量存储与语义检索模块
 
 提供轻量级向量存储，支持嵌入向量的增删改查和语义相似度搜索。
 无需外部向量数据库依赖，纯 Python 实现（可扩展至 Milvus/FAISS/Pinecone）。
-""""
+"""
 
 import json
 import math
@@ -18,7 +18,7 @@ from collections import OrderedDict
 
 @dataclass
 class VectorRecord:
-    """向量记录""""
+    """向量记录"""
     id: str = field(default_factory=lambda: f"vec_{uuid.uuid4().hex[:12]}")
     vector: List[float] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -34,11 +34,11 @@ class VectorRecord:
 
 
 class CosineSimilarity:
-    """余弦相似度计算""""
+    """余弦相似度计算"""
 
     @staticmethod
     def compute(a: List[float], b: List[float]) -> float:
-        """计算两个向量的余弦相似度""""
+        """计算两个向量的余弦相似度"""
         if len(a) != len(b):
             raise ValueError(f"维度不匹配: {len(a)} vs {len(b)}")
         dot = sum(x * y for x, y in zip(a, b))
@@ -52,7 +52,7 @@ class CosineSimilarity:
     def batch_query(query_vec: List[float],
                     candidates: List[Tuple[str, List[float]]],
                     top_k: int = 10) -> List[Tuple[str, float]]:
-        """批量计算相似度并返回 top_k 结果""""
+        """批量计算相似度并返回 top_k 结果"""
         scores = []
         for vid, vec in candidates:
             sim = CosineSimilarity.compute(query_vec, vec)
@@ -62,7 +62,7 @@ class CosineSimilarity:
 
 
 class EuclideanDistance:
-    """欧几里得距离计算""""
+    """欧几里得距离计算"""
 
     @staticmethod
     def compute(a: List[float], b: List[float]) -> float:
@@ -93,7 +93,7 @@ class VectorStore:
     - 批量操作
     - 持久化支持
     - 动态维度支持
-    """"
+    """
 
     def __init__(self, name: str = "default", dimension: int = 1536,
                  metric: str = "cosine"):
@@ -106,7 +106,7 @@ class VectorStore:
         self._stats = {"total": 0, "queries": 0, "inserts": 0, "deletes": 0}
 
     def _validate_vector(self, vector: List[float]) -> bool:
-        """验证向量维度""""
+        """验证向量维度"""
         if len(vector) != self.dimension:
             raise ValueError(
                 f"向量维度 {len(vector)} 不匹配，期望 {self.dimension}"
@@ -115,7 +115,7 @@ class VectorStore:
 
     def add(self, vector: List[float], metadata: Dict = None,
             record_id: str = None, namespace: str = "default") -> str:
-        """添加向量记录""""
+        """添加向量记录"""
         self._validate_vector(vector)
         rid = record_id or f"vec_{uuid.uuid4().hex[:12]}"
         record = VectorRecord(
@@ -129,11 +129,11 @@ class VectorStore:
         return rid
 
     def get(self, record_id: str) -> Optional[VectorRecord]:
-        """获取单条记录""""
+        """获取单条记录"""
         return self._records.get(record_id)
 
     def delete(self, record_id: str) -> bool:
-        """删除记录""""
+        """删除记录"""
         if record_id in self._records:
             del self._records[record_id]
             
@@ -147,7 +147,7 @@ class VectorStore:
 
     def update(self, record_id: str, vector: List[float] = None,
                metadata: Dict = None) -> bool:
-        """更新记录""""
+        """更新记录"""
         if record_id not in self._records:
             return False
         rec = self._records[record_id]
@@ -172,7 +172,7 @@ class VectorStore:
 
         Returns:
             [{id, score, metadata}, ...]
-        """"
+        """
         self._validate_vector(query_vector)
         self._stats["queries"] += 1
 
@@ -219,7 +219,7 @@ class VectorStore:
         ]
 
     def _match_filter(self, metadata: Dict, filter_expr: Dict) -> bool:
-        """元数据过滤匹配""""
+        """元数据过滤匹配"""
         for key, expected in filter_expr.items():
             actual = metadata.get(key)
             if isinstance(expected, dict):
@@ -241,7 +241,7 @@ class VectorStore:
     def batch_add(self, vectors: List[List[float]],
                   metadatas: List[Dict] = None,
                   namespace: str = "default") -> List[str]:
-        """批量添加""""
+        """批量添加"""
         ids = []
         metas = metadatas or [{}] * len(vectors)
         for vec, meta in zip(vectors, metas):
@@ -250,20 +250,20 @@ class VectorStore:
         return ids
 
     def count(self, namespace: str = None) -> int:
-        """统计记录数""""
+        """统计记录数"""
         if namespace:
             return len(self._namespace_index.get(namespace, []))
         return len(self._records)
 
     def get_all(self, namespace: str = None) -> List[VectorRecord]:
-        """获取所有记录""""
+        """获取所有记录"""
         if namespace:
             ids = self._namespace_index.get(namespace, [])
             return [self._records[i] for i in ids if i in self._records]
         return list(self._records.values())
 
     def clear(self, namespace: str = None):
-        """清空存储""""
+        """清空存储"""
         if namespace:
             ids = self._namespace_index.pop(namespace, [])
             for rid in ids:
@@ -277,7 +277,7 @@ class VectorStore:
             self._stats["deletes"] += len(self._records)
 
     def save(self, filepath: str):
-        """持久化到文件""""
+        """持久化到文件"""
         data = {
             "name": self.name,
             "dimension": self.dimension,
@@ -290,7 +290,7 @@ class VectorStore:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
     def load(self, filepath: str):
-        """从文件加载""""
+        """从文件加载"""
         with open(filepath, "r", encoding="utf-8") as f:
             data = json.load(f)
         self.name = data["name"]
@@ -318,7 +318,7 @@ class VectorStore:
 
 
 class VectorStoreManager:
-    """管理多个命名向量存储""""
+    """管理多个命名向量存储"""
 
     def __init__(self, base_dir: str = "./vector_stores"):
         self.base_dir = base_dir
@@ -351,13 +351,13 @@ class VectorStoreManager:
         return False
 
     def save_all(self):
-        """保存所有存储""""
+        """保存所有存储"""
         for name, store in self._stores.items():
             path = os.path.join(self.base_dir, f"{name}.json")
             store.save(path)
 
     def load_all(self):
-        """加载所有存储""""
+        """加载所有存储"""
         for fname in os.listdir(self.base_dir):
             if fname.endswith(".json"):
                 name = fname[:-5]

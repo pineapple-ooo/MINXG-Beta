@@ -3,7 +3,7 @@ role.py — 智能体角色系统
 
 Role 是 Agent 的行为模板，定义了 persona、能力范围和交互模式。
 RoleRegistry 提供角色的全局注册与查找。
-""""
+"""
 
 import json
 import time
@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Role:
-    """角色定义""""
+    """角色定义"""
     name: str                       
     description: str = ""           
     persona: str = ""               
@@ -32,7 +32,7 @@ class Role:
         }
 
     def to_system_prompt(self) -> str:
-        """将角色转换为系统提示词""""
+        """将角色转换为系统提示词"""
         lines = [f"角色: {self.name}"]
         if self.description:
             lines.append(f"描述: {self.description}")
@@ -44,20 +44,20 @@ class Role:
 
 
 class RoleRegistry:
-    """角色全局注册表""""
+    """角色全局注册表"""
 
     def __init__(self):
         self._roles: Dict[str, Role] = {}
         self._aliases: Dict[str, str] = {}  
 
     def register(self, role: Role, alias: str = None):
-        """注册角色，可选设置别名""""
+        """注册角色，可选设置别名"""
         self._roles[role.name] = role
         if alias:
             self._aliases[alias] = role.name
 
     def get(self, name: str) -> Optional[Role]:
-        """通过名称或别名获取角色""""
+        """通过名称或别名获取角色"""
         if name in self._roles:
             return self._roles[name]
         alias_target = self._aliases.get(name)
@@ -66,13 +66,13 @@ class RoleRegistry:
         return None
 
     def list_roles(self) -> List[Dict]:
-        """列出所有角色摘要""""
+        """列出所有角色摘要"""
         return [{"name": r.name, "description": r.description,
                  "capabilities": r.capabilities}
                 for r in self._roles.values()]
 
     def remove(self, name: str) -> bool:
-        """移除角色""""
+        """移除角色"""
         if name in self._roles:
             del self._roles[name]
             
@@ -82,7 +82,7 @@ class RoleRegistry:
 
     def create_from_template(self, name: str, template: str,
                              customizations: Dict = None) -> Optional[Role]:
-        """从内置模板创建角色""""
+        """从内置模板创建角色"""
         templates = {
             "analyst": {
                 "description": "数据分析专家",
@@ -138,7 +138,7 @@ _default_role_registry: Optional[RoleRegistry] = None
 
 
 def get_default_role_registry() -> RoleRegistry:
-    """获取全局默认角色注册表（单例）""""
+    """获取全局默认角色注册表（单例）"""
     global _default_role_registry
     if _default_role_registry is None:
         _default_role_registry = RoleRegistry()

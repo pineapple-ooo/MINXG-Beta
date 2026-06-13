@@ -6,7 +6,7 @@ This file bridges the geometric algebra engine to the minxg operator registry.
 Operators are auto-registered when the module is imported.
 
 Operator IDs in range 5000-5049 are reserved for Geometric Algebra.
-""""
+"""
 from __future__ import annotations
 import math
 from typing import Any, List
@@ -25,7 +25,7 @@ from .rotor import Rotor, Reflector, Translator, Dilator
 
 
 def _ga_product(ga_fn, name, op_id, desc):
-    """Wrap a GA product into an operator.""""
+    """Wrap a GA product into an operator."""
     def fn(a, b):
         ma = a if isinstance(a, Multivector) else Multivector.vector(a)
         mb = b if isinstance(b, Multivector) else Multivector.vector(b)
@@ -54,7 +54,7 @@ def _ga_unary(mv_fn, name, op_id, desc):
 _GA_STATE = {"registered": False}
 
 def register_ga_operators():
-    """Register all GA operators (IDs 5000-5499). Idempotent.""""
+    """Register all GA operators (IDs 5000-5499). Idempotent."""
     if _GA_STATE["registered"]:
         return 47  
     _GA_STATE["registered"] = True

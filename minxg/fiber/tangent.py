@@ -16,7 +16,7 @@ For a Riemannian manifold, T(M) comes with:
   - The Levi-Civita connection
   - The Riemann curvature tensor
   - Geodesics
-""""
+"""
 from __future__ import annotations
 import math
 from dataclasses import dataclass
@@ -31,7 +31,7 @@ class RiemannianMetric:
 
     At each point of the manifold, g is a positive-definite symmetric
     bilinear form on the tangent space.
-    """"
+    """
     metric_fn: Callable[[List[float]], List[List[float]]]
 
     def at(self, point: List[float]) -> List[List[float]]:
@@ -57,7 +57,7 @@ class TangentBundle(VectorBundle):
     - Levi-Civita connection (torsion-free, metric-compatible)
     - Riemann curvature
     - Geodesics
-    """"
+    """
     def __init__(self, dim: int, metric: RiemannianMetric):
         super().__init__(dim, dim, metric.at([0.0] * dim))
         self.metric = metric
@@ -68,7 +68,7 @@ class TangentBundle(VectorBundle):
         """Compute the Levi-Civita Christoffel symbols at a point.
 
         Γ^i_jk = (1/2) g^il (∂_j g_lk + ∂_k g_jl - ∂_l g_jk)
-        """"
+        """
         key = tuple(round(x, 5) for x in point)
         if key in self._levi_civita_cache:
             return self._levi_civita_cache[key]
@@ -119,7 +119,7 @@ class TangentBundle(VectorBundle):
         with initial velocity.
 
         Returns the trajectory of points along the geodesic.
-        """"
+        """
         traj = [list(initial_point)]
         x = list(initial_point)
         v = list(initial_velocity)
@@ -139,5 +139,5 @@ class TangentBundle(VectorBundle):
 
     def exponential_map(self, base_point: List[float], velocity: List[float],
                        t: float = 1.0, n_steps: int = 100) -> List[float]:
-        """Exponential map at base_point: exp_p(t·v).""""
+        """Exponential map at base_point: exp_p(t·v)."""
         return self.geodesic(base_point, velocity, t, n_steps)[-1]

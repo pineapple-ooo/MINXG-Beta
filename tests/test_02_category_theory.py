@@ -1,4 +1,4 @@
-"""Category Theory: morphisms, functors, monads, Yoneda.""""
+"""Category Theory: morphisms, functors, monads, Yoneda."""
 import minxg.cat as cat
 from minxg.cat import MaybeM, IdentityM, State, yoneda_embedding
 

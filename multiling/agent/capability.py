@@ -3,7 +3,7 @@ capability.py — 智能体能力声明与匹配系统
 
 Capability 描述 Agent 能做什么（工具使用、知识领域、语言支持等）。
 CapabilityRegistry 提供能力发现与智能匹配。
-""""
+"""
 
 from typing import Any, Dict, List, Optional, Set
 from dataclasses import dataclass, field
@@ -12,7 +12,7 @@ import time
 
 @dataclass
 class Capability:
-    """能力声明""""
+    """能力声明"""
     name: str                       
     category: str = "general"       
     level: int = 1                  
@@ -26,7 +26,7 @@ class Capability:
         """
         计算此能力对给定需求的匹配分数
         精确匹配最高，标签匹配次之，分类匹配最低
-        """"
+        """
         req = requirement.lower()
         if self.name.lower() == req:
             return 10.0 * (self.level / 10.0)
@@ -47,7 +47,7 @@ class Capability:
 
 
 class CapabilityRegistry:
-    """能力全局注册表，支持智能匹配""""
+    """能力全局注册表，支持智能匹配"""
 
     def __init__(self):
         self._capabilities: Dict[str, Capability] = {}
@@ -55,7 +55,7 @@ class CapabilityRegistry:
         self._tag_index: Dict[str, List[str]] = {}        
 
     def register(self, cap: Capability):
-        """注册能力""""
+        """注册能力"""
         self._capabilities[cap.name] = cap
         
         if cap.category not in self._category_index:
@@ -73,12 +73,12 @@ class CapabilityRegistry:
         return self._capabilities.get(name)
 
     def find_by_category(self, category: str) -> List[Capability]:
-        """按分类查找能力""""
+        """按分类查找能力"""
         names = self._category_index.get(category, [])
         return [self._capabilities[n] for n in names if n in self._capabilities]
 
     def find_by_tag(self, tag: str) -> List[Capability]:
-        """按标签查找能力""""
+        """按标签查找能力"""
         names = self._tag_index.get(tag, [])
         return [self._capabilities[n] for n in names if n in self._capabilities]
 
@@ -86,7 +86,7 @@ class CapabilityRegistry:
         """
         根据需求列表匹配最佳能力
         返回: [{capability_name, score, capability}, ...] 按分数降序
-        """"
+        """
         scores: Dict[str, float] = {}
         for req in requirements:
             for name, cap in self._capabilities.items():
@@ -104,7 +104,7 @@ class CapabilityRegistry:
         return results
 
     def list_all(self) -> List[Dict]:
-        """列出所有能力摘要""""
+        """列出所有能力摘要"""
         return [c.to_dict() for c in self._capabilities.values()]
 
     def get_stats(self) -> Dict:
@@ -129,7 +129,7 @@ CAPABILITY_TAGS = {
 
 
 def create_capability_from_tool(tool_name: str, tool_schema: Dict) -> Capability:
-    """从工具定义自动生成能力声明""""
+    """从工具定义自动生成能力声明"""
     return Capability(
         name=f"tool_{tool_name}",
         category="tool",

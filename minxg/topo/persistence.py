@@ -11,7 +11,7 @@ diagram, suitable for machine learning. (Adams et al. 2017)
 
 The WASserstein DISTANCE between persistence diagrams is a metric on
 topological features. The bottleneck distance is the L^∞ version.
-""""
+"""
 from __future__ import annotations
 import math
 from dataclasses import dataclass, field
@@ -27,7 +27,7 @@ class PersistenceDiagram:
     Includes a special "diagonal" — every diagram has the trivial pairing
     (b, b) representing features of zero persistence. This is used in
     the Wasserstein distance computation.
-    """"
+    """
     points: List[Tuple[float, float]] = field(default_factory=list)
     infinite_points: List[Tuple[float, float]] = field(default_factory=list)  
 
@@ -48,7 +48,7 @@ class PersistenceDiagram:
         return self.points + self.infinite_points
 
     def max_persistence(self) -> float:
-        """The largest persistence (d - b) of any feature.""""
+        """The largest persistence (d - b) of any feature."""
         all_pts = self.points + [(b, 1e10) for b, _ in self.infinite_points]
         if not all_pts: return 0.0
         return max(d - b for b, d in all_pts)
@@ -67,14 +67,14 @@ class PersistenceImage:
     each (birth, persistence) point in the diagram. The result is a
     fixed-size vector (typically 32x32 or 64x64) that can be fed to
     neural networks or other ML models.
-    """"
+    """
     diagram: PersistenceDiagram
     resolution: int = 32
     sigma: float = 0.05
     weight_fn: Optional[callable] = None  
 
     def vectorize(self) -> List[float]:
-        """Convert the diagram to a flat vector of length resolution^2.""""
+        """Convert the diagram to a flat vector of length resolution^2."""
         if self.weight_fn is None:
             
             self.weight_fn = lambda p: p
@@ -117,7 +117,7 @@ def wasserstein_distance(dgm1: PersistenceDiagram, dgm2: PersistenceDiagram,
 
     For p=∞, this is the bottleneck distance. The "diagonal" is added
     to each diagram to make them have the same number of points.
-    """"
+    """
     pts1 = dgm1.to_pairs()
     pts2 = dgm2.to_pairs()
     if not pts1 and not pts2: return 0.0
@@ -152,7 +152,7 @@ def _hungarian(cost: List[List[float]]) -> float:
     """Hungarian algorithm for minimum-weight perfect matching.
 
     O(n^3) — fine for small diagrams (< 100 points).
-    """"
+    """
     n = len(cost)
     if n == 0: return 0.0
     INF = float('inf')

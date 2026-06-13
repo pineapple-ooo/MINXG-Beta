@@ -57,13 +57,13 @@ def gateway_start(args) -> int:
     print_info("Installing gateway service...\n")
 
     try:
-        # ── systemd path ──────────────────────────────────────────
+        
         if os.path.exists("/proc/1/comm"):
             with open("/proc/1/comm") as f:
                 init = f.read().strip()
             if init == "systemd":
                 return _install_systemd_service()
-        # ── fallback: nohup-style background ──────────────────────
+        
         return _start_background_nohup()
 
     except Exception as e:
@@ -113,7 +113,7 @@ def _start_background_nohup() -> int:
     logfile = os.path.expanduser("~/.multiling/gateway.log")
     os.makedirs(os.path.dirname(pidfile), exist_ok=True)
 
-    # Seed pid file so it exists before the child writes
+    
     with open(pidfile, "w") as f:
         f.write("0")
 
@@ -125,7 +125,7 @@ def _start_background_nohup() -> int:
     )
 
     time.sleep(1)
-    # Write real pid
+    
     with open(pidfile, "w") as f:
         f.write(str(proc.pid))
 
@@ -140,7 +140,7 @@ def gateway_stop(args) -> int:
     try:
         pidfile = os.path.expanduser("~/.multiling/gateway.pid")
 
-        # ── systemd ───────────────────────────────────────────────
+        
         if os.path.exists("/proc/1/comm"):
             with open("/proc/1/comm") as f:
                 if "systemd" in f.read():
@@ -151,7 +151,7 @@ def gateway_stop(args) -> int:
                     print_success("Gateway service stopped (systemd).")
                     return 0
 
-        # ── pid file ──────────────────────────────────────────────
+        
         if os.path.exists(pidfile):
             with open(pidfile) as f:
                 pid = int(f.read().strip())
@@ -176,7 +176,7 @@ def gateway_status(args) -> int:
     try:
         pidfile = os.path.expanduser("~/.multiling/gateway.pid")
 
-        # ── systemd ───────────────────────────────────────────────
+        
         if os.path.exists("/proc/1/comm"):
             with open("/proc/1/comm") as f:
                 if "systemd" in f.read():
@@ -191,7 +191,7 @@ def gateway_status(args) -> int:
                         print(result.stdout)
                     return 0
 
-        # ── pid file ──────────────────────────────────────────────
+        
         if os.path.exists(pidfile):
             with open(pidfile) as f:
                 pid = int(f.read().strip())
@@ -210,5 +210,5 @@ def gateway_status(args) -> int:
         return 1
 
 
-# ── Backward-compatible aliases (used in main.py dispatch) ─────────────────
+
 gateway = gateway_foreground

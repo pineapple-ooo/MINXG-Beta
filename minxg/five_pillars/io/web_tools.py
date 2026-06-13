@@ -1,7 +1,7 @@
 """
 
 HTTP/web tools — delegates HTTP requests to Go gateway when available.
-""""
+"""
 from __future__ import annotations
 from typing import Dict, List
 import urllib.parse
@@ -219,7 +219,7 @@ class WebToolsWorker(BaseWorker):
 
     @tool
     async def http_retry(self, url: str = "", max_retries: int = 3, delay_s: float = 1.0) -> dict:
-        """HTTP GET with automatic retry on failure.""""
+        """HTTP GET with automatic retry on failure."""
         import time, urllib.request
         for attempt in range(max_retries):
             try:
@@ -234,7 +234,7 @@ class WebToolsWorker(BaseWorker):
 
     @tool
     async def http_headers(self, url: str = "") -> dict:
-        """Fetch only HTTP headers (HEAD request).""""
+        """Fetch only HTTP headers (HEAD request)."""
         import urllib.request
         req = urllib.request.Request(url, method="HEAD", headers={"User-Agent": "MINXG/0.0.1"})
         with urllib.request.urlopen(req, timeout=10) as resp:

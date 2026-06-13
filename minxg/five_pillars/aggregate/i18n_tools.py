@@ -1,4 +1,4 @@
-"""Internationalization tools — language detection, translation helpers.""""
+"""Internationalization tools — language detection, translation helpers."""
 from minxg.base import BaseWorker, tool
 
 class I18nWorker(BaseWorker):
@@ -7,7 +7,7 @@ class I18nWorker(BaseWorker):
 
     @tool
     async def detect_language(self, text: str = "") -> dict:
-        """Detect the language of input text.""""
+        """Detect the language of input text."""
         import re
         patterns = {
             "zh": (r"[\u4e00-\u9fff]", "Chinese"),
@@ -25,7 +25,7 @@ class I18nWorker(BaseWorker):
 
     @tool
     async def language_list(self) -> dict:
-        """List all 15 supported languages in MINXG.""""
+        """List all 15 supported languages in MINXG."""
         return {"languages": [
             {"code":"en","name":"English","flag":"🇬🇧"},
             {"code":"ko","name":"한국어","flag":"🇰🇷"},
@@ -43,7 +43,7 @@ class I18nWorker(BaseWorker):
 
     @tool
     async def emoji_for_keyword(self, keyword: str = "") -> dict:
-        """Get relevant emoji for a keyword.""""
+        """Get relevant emoji for a keyword."""
         emoji_map = {
             "file": "📄", "folder": "📁", "search": "🔍", "download": "⬇️",
             "upload": "⬆️", "delete": "🗑️", "edit": "✏️", "save": "💾",
@@ -60,7 +60,7 @@ class I18nWorker(BaseWorker):
 
     @tool
     async def format_number(self, number: float = 0, locale: str = "en") -> dict:
-        """Format a number with locale-specific separators.""""
+        """Format a number with locale-specific separators."""
         if locale in ("zh-CN","zh-TW","ja","ko"):
             s = f"{number:,.0f}" if number == int(number) else f"{number:,.2f}"
         else:
@@ -69,7 +69,7 @@ class I18nWorker(BaseWorker):
 
     @tool
     async def timezone_info(self) -> dict:
-        """Get timezone information.""""
+        """Get timezone information."""
         import time
         tz = time.tzname if hasattr(time, 'tzname') else ("UTC","UTC")
         offset = -(time.timezone / 3600) if time.daylight == 0 else -(time.altzone / 3600)
@@ -77,7 +77,7 @@ class I18nWorker(BaseWorker):
 
     @tool
     async def date_localized(self, locale: str = "en") -> dict:
-        """Get current date in localized format.""""
+        """Get current date in localized format."""
         from datetime import datetime
         now = datetime.now()
         formats = {

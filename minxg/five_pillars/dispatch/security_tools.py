@@ -1,5 +1,5 @@
 """
-""""
+"""
 from __future__ import annotations
 from typing import Dict
 import re
@@ -147,5 +147,5 @@ config/credentials.yml.enc
 private/
 sensitive/
 backup/
-*.bak""""
+*.bak"""
         return {"gitignore": content, "category": "security"}

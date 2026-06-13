@@ -28,9 +28,9 @@ from typing import Dict, List, Optional, Any
 
 logger = logging.getLogger("gateway.server")
 
-# ============================================================================
-# Gateway Server — aiohttp web.Application
-# ============================================================================
+
+
+
 
 class GatewayServer:
     """
@@ -46,41 +46,41 @@ class GatewayServer:
         gw_cfg = config.get("gateway", {})
         wk_cfg = config.get("workers", {})
 
-        # Basic config
+        
         self.host = gw_cfg.get("host", "0.0.0.0")
         self.port = gw_cfg.get("port", 18080)
         self.version = "1.0.0"
 
-        # AI config
+        
         self.ai_provider = ai_cfg.get("provider", "openai")
         self.ai_model = ai_cfg.get("model", "MiniMax-M3")
         self.ai_base_url = ai_cfg.get("base_url", "https://api.iamhc.cn/v1")
         self.ai_api_key = os.getenv("AI_API_KEY") or ai_cfg.get("api_key", "")
         self.default_api_key = secrets.token_hex(16)
 
-        # Workers config
+        
         self.py_worker_url = f"http://{wk_cfg.get('host', '127.0.0.1')}:{wk_cfg.get('port', 19001)}"
         self.enable_legacy = config.get("legacy", {}).get("enable", False)
         self.legacy_routes = config.get("legacy", {}).get("routes", [])
 
-        # Full config
+        
         self.config = config
 
-        # Core components (lazy init)
-        self.router: Optional[Any] = None  # WorkerRouter
-        self.dispatcher: Optional[Any] = None  # InferenceDispatcher
-        self.rag: Optional[Any] = None  # HybridRAG
+        
+        self.router: Optional[Any] = None  
+        self.dispatcher: Optional[Any] = None  
+        self.rag: Optional[Any] = None  
 
-        # Session → Workspace map
+        
         self._workspaces: Dict[str, Any] = {}
         self._ws_lock = asyncio.Lock()
 
-        # Tool schema cache
+        
         self._tool_schemas: List[Dict] = []
         self._schema_ts: float = 0.0
-        self._schema_ttl: float = 60.0  # Refresh every 60s
+        self._schema_ttl: float = 60.0  
 
-        # Stats
+        
         self._request_count: int = 0
         self._tool_call_count: int = 0
 
@@ -90,7 +90,7 @@ class GatewayServer:
         from gateway.rag import HybridRAG
         from gateway.inference import InferenceDispatcher, ModelProfile
 
-        # WorkerRouter
+        
         self.router = WorkerRouter(
             py_url=self.py_worker_url,
             legacy_routes=self.legacy_routes,
@@ -98,24 +98,24 @@ class GatewayServer:
         )
         logger.info("WorkerRouter initialized: %d routes", len(self.router.routes))
 
-        # HybridRAG
+        
         self.rag = HybridRAG()
-        # Auto-load AGENTS.md as knowledge base
+        
         agents_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "AGENTS.md")
         if os.path.exists(agents_path):
             with open(agents_path) as f:
                 self.rag.add_chunk("agents_md", f.read())
             logger.info("Loaded AGENTS.md into RAG")
 
-        # InferenceDispatcher — build model tiers from config
+        
         self.dispatcher = InferenceDispatcher()
-        # L1: use default model from config
+        
         self.dispatcher.register(ModelProfile(
             name=self.ai_model, base_url=self.ai_base_url,
             api_key=self.ai_api_key, provider=self.ai_provider, level=1,
             max_tokens=4096, timeout=60,
         ))
-        # L2/L3: from config.models or fallback to L1
+        
         models_cfg = self.config.get("models", {})
         for level_key, model_cfg in models_cfg.items():
             level = int(level_key.replace("l", "").replace("L", ""))
@@ -130,7 +130,7 @@ class GatewayServer:
             ))
         logger.info("InferenceDispatcher: %d model levels", len(self.dispatcher.models))
 
-        # Refresh tool schemas
+        
         await self._refresh_tool_schemas()
 
         logger.info("GatewayServer v%s initialized", self.version)
@@ -165,9 +165,9 @@ class GatewayServer:
             logger.info("Cleaned %d stale workspaces", len(stale))
 
 
-# ============================================================================
-# aiohttp route handlers
-# ============================================================================
+
+
+
 
 async def _build_app(gw: GatewayServer) -> Any:
     """Build aiohttp Application and bind routes."""
@@ -175,7 +175,7 @@ async def _build_app(gw: GatewayServer) -> Any:
 
     app = web.Application()
 
-    # ── Health ──
+    
     async def health(req: web.Request) -> web.Response:
         routes_info = gw.router.get_routes_summary() if gw.router else []
         health_data = await gw.router.health_all() if gw.router else []
@@ -192,7 +192,7 @@ async def _build_app(gw: GatewayServer) -> Any:
             "tool_calls_served": gw._tool_call_count,
         })
 
-    # ── Models ──
+    
     async def list_models(req: web.Request) -> web.Response:
         models = []
         for level, profile in gw.dispatcher.models.items():
@@ -269,7 +269,7 @@ async def _build_app(gw: GatewayServer) -> Any:
             return []
         return await asyncio.gather(*[_execute_tool_call(tc) for tc in tool_calls])
 
-    # ── Chat Completions (core) ──
+    
     async def chat_completions(req: web.Request) -> web.Response:
         gw._request_count += 1
         t0 = time.time()
@@ -280,7 +280,7 @@ async def _build_app(gw: GatewayServer) -> Any:
             return web.json_response({"error": {"message": f"Invalid JSON: {e}", "type": "invalid_request_error"}},
                                      status=400)
 
-        # Extract parameters
+        
         model_name = body.get("model", gw.ai_model)
         messages = body.get("messages", [])
         stream = body.get("stream", False)
@@ -289,21 +289,21 @@ async def _build_app(gw: GatewayServer) -> Any:
         session_id = body.get("session_id", None) or req.headers.get("X-Session-ID", "")
         requested_tools = body.get("tools", None)
 
-        # Auto-generate session_id
+        
         if not session_id:
             session_id = f"sess_{uuid.uuid4().hex[:12]}"
 
-        # ── Get Workspace ──
+        
         ws = await gw._get_workspace(session_id)
 
-        # First user message: set objective
+        
         if ws.turn_count == 0 and messages:
             for m in messages:
                 if m.get("role") == "user":
                     ws.set_objective(m["content"])
                     break
 
-        # ── Task difficulty grading ──
+        
         from gateway.inference import TaskGrader
         last_user_msg = ""
         for m in reversed(messages):
@@ -313,28 +313,28 @@ async def _build_app(gw: GatewayServer) -> Any:
         task_level = TaskGrader.grade(last_user_msg, ws.tool_calls_count, ws.turn_count)
         model_profile = gw.dispatcher.select(task_level)
 
-        # ── Build context ──
-        # workspace context + RAG injection + original messages
+        
+        
         ws_messages = ws.build_context(include_workspace=True, include_recent=True)
-        # Inject RAG context
+        
         rag_text = gw.rag.inject_context(last_user_msg, max_tokens=500)
         if rag_text:
             ws_messages.append({"role": "system", "content": rag_text})
 
-        # Merge original messages (workspace has recent, supplement here)
-        # Prefer workspace context, original messages as supplement
+        
+        
         final_messages = ws_messages
-        # If original messages exceed workspace recent, supplement extra
+        
         ws_recent_content = {m.get("content", "") for m in ws._recent_messages}
         for m in messages:
             if m.get("role") == "user" and m.get("content", "") not in ws_recent_content:
                 final_messages.append({"role": m["role"], "content": m["content"]})
 
-        # ── Refresh tool schemas ──
+        
         await gw._refresh_tool_schemas()
         tools_to_use = requested_tools or gw._tool_schemas
 
-        # ── Call LLM ──
+        
         try:
             llm_response = await gw.dispatcher.chat_completion(
                 messages=final_messages,
@@ -350,7 +350,7 @@ async def _build_app(gw: GatewayServer) -> Any:
                           "type": "api_error", "level": task_level},
             }, status=500)
 
-        # ── Handle tool_calls ──
+        
         if not stream and isinstance(llm_response, dict):
             choice = llm_response.get("choices", [{}])[0]
             message = choice.get("message", {})
@@ -358,11 +358,11 @@ async def _build_app(gw: GatewayServer) -> Any:
 
             tool_cards: List[Dict[str, Any]] = []
             if tool_calls:
-                # Execute same-round tool_calls concurrently; preserve order, reduce serial wait.
+                
                 ws.advance_turn()
                 tool_outputs = await _execute_tool_calls_parallel(tool_calls)
 
-                # Add assistant tool_calls message once, then each tool_result.
+                
                 final_messages.append(message)
                 for item in tool_outputs:
                     tc = item["tool_call"]
@@ -376,7 +376,7 @@ async def _build_app(gw: GatewayServer) -> Any:
                         "content": json.dumps(result, ensure_ascii=False)[:2000],
                     })
 
-                # Call LLM again for final response
+                
                 try:
                     llm_response = await gw.dispatcher.chat_completion(
                         messages=final_messages,
@@ -392,7 +392,7 @@ async def _build_app(gw: GatewayServer) -> Any:
                                   "type": "api_error"},
                     }, status=500)
 
-                # Update workspace
+                
                 final_choice = llm_response.get("choices", [{}])[0]
                 final_msg = final_choice.get("message", {})
                 final_content = final_msg.get("content", "")
@@ -400,24 +400,24 @@ async def _build_app(gw: GatewayServer) -> Any:
                 ws.advance_turn()
 
             else:
-                # No tool_calls, record directly
+                
                 content = message.get("content", "")
                 ws.add_message("assistant", content)
                 ws.advance_turn()
 
-            # Build OpenAI-compatible response
+            
             elapsed = round((time.time() - t0) * 1000, 2)
-            # Replace model name with configured model name
+            
             if "model" in llm_response:
                 llm_response["model"] = model_name
-            # Attach metadata
+            
             if "usage" not in llm_response:
                 llm_response["usage"] = {
                     "prompt_tokens": ws.estimate_tokens(),
                     "completion_tokens": 0,
                     "total_tokens": ws.estimate_tokens(),
                 }
-            # Inject session_id for client resumption
+            
             llm_response["session_id"] = session_id
             llm_response["task_level"] = f"L{task_level}"
             llm_response["elapsed_ms"] = elapsed
@@ -426,7 +426,7 @@ async def _build_app(gw: GatewayServer) -> Any:
             return web.json_response(llm_response)
 
         elif stream:
-            # Stream mode: SSE response
+            
             resp = web.StreamResponse()
             resp.content_type = "text/event-stream"
             resp.headers["Cache-Control"] = "no-cache"
@@ -435,7 +435,7 @@ async def _build_app(gw: GatewayServer) -> Any:
 
             streamed_tool_calls: Dict[int, Dict[str, Any]] = {}
             async for chunk in llm_response:
-                # Aggregate OpenAI streaming tool_call delta for Gateway to execute and return standard cards.
+                
                 if isinstance(chunk, dict):
                     for choice in chunk.get("choices", []):
                         delta = choice.get("delta", {}) or {}
@@ -453,7 +453,7 @@ async def _build_app(gw: GatewayServer) -> Any:
                             if func_delta.get("arguments"):
                                 acc["function"]["arguments"] += func_delta.get("arguments", "")
 
-                # Replace model name
+                
                 if "model" in chunk:
                     chunk["model"] = model_name
                 data = json.dumps(chunk, ensure_ascii=False)
@@ -508,10 +508,10 @@ async def _build_app(gw: GatewayServer) -> Any:
             return resp
 
         else:
-            # Unknown response format
+            
             return web.json_response(llm_response)
 
-    # ── Workspace query ──
+    
     async def get_workspace(req: web.Request) -> web.Response:
         session_id = req.match_info.get("session_id", "")
         if session_id not in gw._workspaces:
@@ -519,7 +519,7 @@ async def _build_app(gw: GatewayServer) -> Any:
         ws = gw._workspaces[session_id]
         return web.json_response(ws.to_dict())
 
-    # ── Workspace list ──
+    
     async def list_workspaces(req: web.Request) -> web.Response:
         sessions = []
         for sid, ws in gw._workspaces.items():
@@ -532,7 +532,7 @@ async def _build_app(gw: GatewayServer) -> Any:
             })
         return web.json_response({"sessions": sessions, "total": len(sessions)})
 
-    # ── RAG: add knowledge ──
+    
     async def rag_add(req: web.Request) -> web.Response:
         try:
             body = await req.json()
@@ -545,7 +545,7 @@ async def _build_app(gw: GatewayServer) -> Any:
         gw.rag.add_chunk(chunk_id, text)
         return web.json_response({"status": "added", "id": chunk_id})
 
-    # ── RAG: search ──
+    
     async def rag_search(req: web.Request) -> web.Response:
         try:
             body = await req.json()
@@ -558,12 +558,12 @@ async def _build_app(gw: GatewayServer) -> Any:
         results = gw.rag.search(query, top_k=top_k)
         return web.json_response({"results": results})
 
-    # ── Tool Schemas ──
+    
     async def get_tool_schemas(req: web.Request) -> web.Response:
         await gw._refresh_tool_schemas()
         return web.json_response({"tools": gw._tool_schemas, "total": len(gw._tool_schemas)})
 
-    # ── Stats ──
+    
     async def gateway_stats(req: web.Request) -> web.Response:
         return web.json_response({
             "version": gw.version,
@@ -575,7 +575,7 @@ async def _build_app(gw: GatewayServer) -> Any:
             "model_levels": {f"L{k}": v.name for k, v in gw.dispatcher.models.items()} if gw.dispatcher else {},
         })
 
-    # ── Bind routes ──
+    
     app.router.add_get("/health", health)
     app.router.add_get("/v1/models", list_models)
     app.router.add_post("/v1/chat/completions", chat_completions)
@@ -586,10 +586,10 @@ async def _build_app(gw: GatewayServer) -> Any:
     app.router.add_get("/tools", get_tool_schemas)
     app.router.add_get("/stats", gateway_stats)
 
-    # ── Middleware: auto cleanup ──
+    
     async def cleanup_middleware(app, handler):
         async def middleware_handler(req):
-            # Clean stale workspaces every 100 requests
+            
             if gw._request_count % 100 == 0:
                 gw._cleanup_stale_workspaces()
             return await handler(req)
@@ -597,14 +597,14 @@ async def _build_app(gw: GatewayServer) -> Any:
 
     app.middlewares.append(cleanup_middleware)
 
-    # ── on_startup: init ──
+    
     async def on_startup(app):
         await gw.initialize()
         logger.info("GatewayServer started and initialized")
 
     app.on_startup.append(on_startup)
 
-    # ── on_cleanup: close connections ──
+    
     async def on_cleanup(app):
         if gw.router:
             await gw.router.close()
@@ -612,7 +612,7 @@ async def _build_app(gw: GatewayServer) -> Any:
 
     app.on_cleanup.append(on_cleanup)
 
-    # Store gw for later access
+    
     app["gateway"] = gw
     return app
 

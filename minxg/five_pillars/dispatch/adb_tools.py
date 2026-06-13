@@ -5,7 +5,7 @@ Complete ADB command suite for Android devices: device management, shell,
 app install/uninstall, file push/pull, logcat, screencap, input, reboot.
 
 Only available on Android platform. Falls back gracefully on other platforms.
-""""
+"""
 from __future__ import annotations
 import os
 import subprocess
@@ -22,7 +22,7 @@ def _is_android() -> bool:
 
 
 def _adb(cmd: List[str], timeout: int = 30, check: bool = False) -> Dict[str, Any]:
-    """Execute an ADB command and return structured result.""""
+    """Execute an ADB command and return structured result."""
     try:
         result = subprocess.run(
             ["adb"] + cmd, capture_output=True, text=True, timeout=timeout
@@ -45,7 +45,7 @@ class AdbWorker(BaseWorker):
     """
     Android Debug Bridge tools. Full device management via ADB.
     Auto-disabled on non-Android platforms.
-    """"
+    """
     worker_id = "adb"
     version = "1.0.0"
 

@@ -22,7 +22,7 @@ Three components:
     State        — typed payload (`dict[str, float]`) with bounds/clamps
     Operator     — pure mapping State → State, possibly parameterised
     DriverEngine — integration loop, schedules Operators by tier
-""""
+"""
 from .state import State, StateError
 from .operator import Operator, Identity, Composition
 from .engine import DriverEngine, StepReport, EnginePhase

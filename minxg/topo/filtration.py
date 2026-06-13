@@ -25,7 +25,7 @@ better than Vietoris-Rips but require Delaunay computation (CGAL territory).
 For our pure-Python implementation, we provide:
   - Vietoris-Rips: edge and 2-simplex (triangle) construction
   - Weighted-Rips: filtrations with vertex weights
-""""
+"""
 from __future__ import annotations
 import math
 from dataclasses import dataclass, field
@@ -64,7 +64,7 @@ class VietorisRips:
     Build via:
       vr = VietorisRips(points)
       filtration = vr.build_filtration(max_edge_length, max_dim=2)
-    """"
+    """
     points: List[List[float]]
     distance_fn: Callable = euclidean
 
@@ -83,7 +83,7 @@ class VietorisRips:
         """Build the Vietoris-Rips filtration up to dimension max_dim.
 
         If max_edge_length is None, all pairs are included.
-        """"
+        """
         n = len(self.points)
         D = self.pairwise_distances()
         filt = Filtration()
@@ -121,7 +121,7 @@ def alpha_complex(points: List[List[float]], max_radius: float = float('inf')) -
     2. Filter simplices by their "alpha" (circumradius)
 
     This is a simplified version; full alpha shapes need CGAL.
-    """"
+    """
     n = len(points)
     D = [[euclidean(points[i], points[j]) for j in range(n)] for i in range(n)]
     filt = Filtration()

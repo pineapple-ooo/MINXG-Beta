@@ -1,5 +1,5 @@
 """
-""""
+"""
 from __future__ import annotations
 from typing import Dict
 from minxg.base import BaseWorker, tool
@@ -98,7 +98,7 @@ spec:
   ports:
   - port: {port}
     targetPort: {port}
-  type: ClusterIP""""
+  type: ClusterIP"""
         return {"yaml": yaml, "name": name, "kind": "Deployment+Service"}
 
     @tool(description="systemd service unit template", category="linux")
@@ -116,7 +116,7 @@ Restart=on-failure
 RestartSec=5
 
 [Install]
-WantedBy=multi-user.target""""
+WantedBy=multi-user.target"""
         return {"unit": unit, "name": name, "install_cmd": f"sudo systemctl enable --now {name}"}
 
     @tool(description="Nginx reverse proxy config generation", category="nginx")
@@ -126,7 +126,7 @@ WantedBy=multi-user.target""""
             ssl_block = f"""
     listen 443 ssl http2;
     ssl_certificate /etc/ssl/{domain}.pem;
-    ssl_certificate_key /etc/ssl/{domain}.key;""""
+    ssl_certificate_key /etc/ssl/{domain}.key;"""
         conf = f"""server {{
     listen 80;
     server_name {domain};{ssl_block}
@@ -138,7 +138,7 @@ WantedBy=multi-user.target""""
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }}
-}}""""
+}}"""
         return {"nginx_config": conf, "domain": domain, "port": upstream_port, "ssl": ssl}
 
     @tool(description="Calculate CDN bandwidth cost", category="cdn")
@@ -160,7 +160,7 @@ WantedBy=multi-user.target""""
     compress
     delaycompress
     copytruncate
-}}""""
+}}"""
         return {"config": conf, "path": log_path, "rotate_count": rotate}
 
     @tool(description="Health check endpoint template", category="ops")
@@ -186,6 +186,6 @@ DB_NAME={app_name}
 DB_USER={app_name}
 DB_PASSWORD=***
 
-""""
+"""
 
         return {"content": content, "app_name": app_name}

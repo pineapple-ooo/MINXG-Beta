@@ -8,7 +8,7 @@ pipeline.py — 数据管道系统
   - 中间件/处理器链（Middleware）
   - 错误处理与重试
   - 流式处理支持
-""""
+"""
 
 import asyncio
 import json
@@ -37,7 +37,7 @@ class PipelineStatus(Enum):
 
 @dataclass
 class DataRecord:
-    """管道中的数据记录""""
+    """管道中的数据记录"""
     id: str = field(default_factory=lambda: f"rec_{uuid.uuid4().hex[:10]}")
     data: Any = None
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -55,7 +55,7 @@ class DataRecord:
 
 
 class Stage:
-    """管道处理阶段""""
+    """管道处理阶段"""
 
     def __init__(
         self,
@@ -77,7 +77,7 @@ class Stage:
         self._stats = {"processed": 0, "filtered": 0, "errors": 0}
 
     async def process(self, record: DataRecord) -> Optional[DataRecord]:
-        """处理单条记录""""
+        """处理单条记录"""
         
         if self.filter_fn:
             try:
@@ -130,7 +130,7 @@ class Stage:
 
 
 class DataSource:
-    """数据源抽象""""
+    """数据源抽象"""
 
     def __init__(self, name: str):
         self.name = name
@@ -142,7 +142,7 @@ class DataSource:
         raise NotImplementedError
 
     def iter(self) -> Iterator[DataRecord]:
-        """同步迭代器""""
+        """同步迭代器"""
         return self._sync_iter()
 
     def _sync_iter(self) -> Iterator[DataRecord]:
@@ -150,7 +150,7 @@ class DataSource:
 
 
 class ListSource(DataSource):
-    """列表数据源""""
+    """列表数据源"""
 
     def __init__(self, name: str, data: List[Any]):
         super().__init__(name)
@@ -171,7 +171,7 @@ class ListSource(DataSource):
 
 
 class GeneratorSource(DataSource):
-    """生成器数据源""""
+    """生成器数据源"""
 
     def __init__(self, name: str, generator: Callable):
         super().__init__(name)
@@ -195,7 +195,7 @@ class GeneratorSource(DataSource):
 
 
 class DataSink:
-    """数据目标抽象""""
+    """数据目标抽象"""
 
     def __init__(self, name: str):
         self.name = name
@@ -233,7 +233,7 @@ class Pipeline:
         pipeline.add_stage(Stage("filter_even", filter_fn=lambda r: r.data % 2 == 0))
         pipeline.sink(DataSink("output"))
         result = pipeline.run()
-    """"
+    """
 
     def __init__(self, name: str = "pipeline"):
         self.name = name
@@ -248,22 +248,22 @@ class Pipeline:
         }
 
     def source(self, source: DataSource) -> "Pipeline":
-        """设置数据源""""
+        """设置数据源"""
         self._source = source
         return self
 
     def add_stage(self, stage: Stage) -> "Pipeline":
-        """添加处理阶段""""
+        """添加处理阶段"""
         self._stages.append(stage)
         return self
 
     def sink(self, sink: DataSink) -> "Pipeline":
-        """设置数据目标""""
+        """设置数据目标"""
         self._sink = sink
         return self
 
     async def run_async(self) -> Dict:
-        """异步执行管道""""
+        """异步执行管道"""
         if not self._source:
             return {"error": "No source configured"}
         if not self._sink:
@@ -308,12 +308,12 @@ class Pipeline:
         }
 
     def run(self) -> Dict:
-        """同步执行管道""""
+        """同步执行管道"""
         import asyncio
         return asyncio.run(self.run_async())
 
     def run_sync(self) -> Dict:
-        """同步执行管道（使用同步迭代器）""""
+        """同步执行管道（使用同步迭代器）"""
         if not self._source:
             return {"error": "No source configured"}
         if not self._sink:
@@ -381,7 +381,7 @@ class Pipeline:
 
 
 class PipelineRegistry:
-    """管道注册表""""
+    """管道注册表"""
 
     def __init__(self):
         self._pipelines: Dict[str, Pipeline] = {}

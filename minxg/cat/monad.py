@@ -24,7 +24,7 @@ side effects FIRST-CLASS and COMPOSABLE:
   - IO monad:     sequences impure operations in a pure wrapper
   - Reader monad: dependency injection via implicit environment
   - List monad:   nondeterministic computation (backtracking search)
-""""
+"""
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, Generic, List, Optional, TypeVar, Union
@@ -39,7 +39,7 @@ R = TypeVar("R")
 
 
 class Monad(ABC):
-    """Abstract base for monads.""""
+    """Abstract base for monads."""
 
     @classmethod
     @abstractmethod
@@ -48,7 +48,7 @@ class Monad(ABC):
 
     @abstractmethod
     def bind(self, f: Callable[[A], "Monad"]) -> "Monad":
-        """Sequential composition: ma >>= f = f(a) if ma is unit(a).""""
+        """Sequential composition: ma >>= f = f(a) if ma is unit(a)."""
         raise NotImplementedError
 
     def __rshift__(self, f):  
@@ -58,7 +58,7 @@ class Monad(ABC):
         return self.bind(f)
 
     def map(self, f: Callable[[A], B]) -> "Monad":
-        """Functor map in terms of monad operations: fmap f = (>>=) . return . f""""
+        """Functor map in terms of monad operations: fmap f = (>>=) . return . f"""
         return self.bind(lambda a: self.unit(f(a)))
 
 
@@ -89,7 +89,7 @@ class MaybeM(Monad, Generic[A]):
     """The Maybe monad: Just(a) or Nothing.
 
     bind propagates Nothing: Nothing >>= f = Nothing.
-    """"
+    """
     is_just: bool
     value: Any = None
 
@@ -129,7 +129,7 @@ class EitherM(Monad, Generic[A, B]):
     """The Either monad: Right(b) success or Left(a) failure.
 
     bind propagates Left: Left(e) >>= f = Left(e).
-    """"
+    """
     is_right: bool
     value: Any = None
 
@@ -163,7 +163,7 @@ class State(Monad, Generic[S, A]):
     State<S, A> = S -> (S, A)  (state transformer)
 
     bind chains state transformers: ma >>= f  =  λs. let (s', a) = ma(s) in f(a)(s')
-    """"
+    """
     run: Callable[[S], tuple]  
 
     @classmethod
@@ -172,17 +172,17 @@ class State(Monad, Generic[S, A]):
 
     @classmethod
     def get(cls) -> "State[S, S]":
-        """Get the current state.""""
+        """Get the current state."""
         return cls(lambda s: (s, s))
 
     @classmethod
     def put(cls, new_s: S) -> "State[S, None]":
-        """Replace the state with new_s.""""
+        """Replace the state with new_s."""
         return cls(lambda _: (new_s, None))
 
     @classmethod
     def modify(cls, f: Callable[[S], S]) -> "State[S, None]":
-        """Modify the state using f.""""
+        """Modify the state using f."""
         return cls(lambda s: (f(s), None))
 
     def bind(self, k: Callable[[A], "State[S, B]"]) -> "State[S, B]":
@@ -202,7 +202,7 @@ class Reader(Monad, Generic[R, A]):
     """The Reader monad: computation depending on environment R.
 
     Reader<R, A> = R -> A
-    """"
+    """
     run: Callable[[R], A]
 
     @classmethod
@@ -211,17 +211,17 @@ class Reader(Monad, Generic[R, A]):
 
     @classmethod
     def ask(cls) -> "Reader[R, R]":
-        """Get the current environment.""""
+        """Get the current environment."""
         return cls(lambda r: r)
 
     @classmethod
     def asks(cls, f: Callable[[R], A]) -> "Reader[R, A]":
-        """Project a value from the environment.""""
+        """Project a value from the environment."""
         return cls(f)
 
     @classmethod
     def local(cls, f: Callable[[R], R], m: "Reader[R, A]") -> "Reader[R, A]":
-        """Run m in a modified environment.""""
+        """Run m in a modified environment."""
         return cls(lambda r: m.run(f(r)))
 
     def bind(self, k: Callable[[A], "Reader[R, B]"]) -> "Reader[R, B]":
@@ -241,7 +241,7 @@ class ListM(Monad, Generic[A]):
 
     bind: ma >>= f  =  concat [f(a) for a in ma]
     Used for backtracking search, parallel exploration, generating solutions.
-    """"
+    """
     items: List[A]
 
     @classmethod
@@ -274,7 +274,7 @@ class IO(Monad, Generic[A]):
 
     Crucial: the side effect does NOT happen until you call .run() or
     .unsafe_run(). The monad structure forces explicit sequencing.
-    """"
+    """
     effect: Callable[[], A]
 
     @classmethod

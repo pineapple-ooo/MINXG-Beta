@@ -2,7 +2,7 @@
   python -m py_workers.server --port 19011
   python -m py_workers.server --workers fs_io system network
   python -m py_workers.workers_runner --status
-""""
+"""
 import os
 import sys
 import asyncio

@@ -1,6 +1,6 @@
 """
 Network tools — delegates HTTP/DNS/SSL to Go gateway when available.
-""""
+"""
 from __future__ import annotations
 import os
 import re

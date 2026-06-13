@@ -3,7 +3,7 @@ minxg/infogeo/fisher.py — Fisher Information & Natural Gradient
 ========================================================================
 
 Fisher information and natural gradient descent — pure Python, no numpy.
-""""
+"""
 from __future__ import annotations
 import math
 from typing import Callable, List, Optional
@@ -17,7 +17,7 @@ from .manifold import (
 def fisher_information_matrix(dist: DistributionFamily, theta,
                               n_samples: int = 1000,
                               x_samples: Optional[List] = None) -> List[List[float]]:
-    """Fisher Information Matrix g_ij(θ) = E_θ[∂_i log p · ∂_j log p].""""
+    """Fisher Information Matrix g_ij(θ) = E_θ[∂_i log p · ∂_j log p]."""
     theta = list(theta) if not isinstance(theta, list) else theta
     d = dist.dim()
     if x_samples is None:
@@ -32,7 +32,7 @@ def fisher_information_matrix(dist: DistributionFamily, theta,
 
 
 def empirical_fisher(log_prob_fn: Callable, theta, x_samples) -> List[List[float]]:
-    """Empirical Fisher using model log_prob (true distribution not needed).""""
+    """Empirical Fisher using model log_prob (true distribution not needed)."""
     theta = list(theta); d = len(theta)
     F = mat_zero(d, d)
     eps = 1e-5
@@ -49,7 +49,7 @@ def empirical_fisher(log_prob_fn: Callable, theta, x_samples) -> List[List[float
 
 
 def natural_gradient(loss_grad, fisher, regularization: float = 1e-6) -> List[float]:
-    """Natural gradient F⁻¹ ∇L with Tikhonov regularization.""""
+    """Natural gradient F⁻¹ ∇L with Tikhonov regularization."""
     d = len(fisher)
     fisher_reg = mat_add(fisher, mat_scale(mat_eye(d), regularization))
     return mat_solve(fisher_reg, list(loss_grad))
@@ -59,7 +59,7 @@ def natural_gradient_descent(dist: DistributionFamily, theta,
                              loss_fn: Callable, lr: float = 0.01,
                              n_samples: int = 100, n_steps: int = 100,
                              regularization: float = 1e-6) -> List[float]:
-    """Run natural gradient descent.""""
+    """Run natural gradient descent."""
     theta = list(theta)
     for _ in range(n_steps):
         x = dist.sample(theta, n_samples)
@@ -77,7 +77,7 @@ def natural_gradient_descent(dist: DistributionFamily, theta,
 
 
 def kfac_step(loss_grad, fisher_A, fisher_B, regularization: float = 1e-6):
-    """KFAC step: A⁻¹ G B⁻¹ for two-factor Fisher.""""
+    """KFAC step: A⁻¹ G B⁻¹ for two-factor Fisher."""
     d_A = len(fisher_A); d_B = len(fisher_B)
     A_reg = mat_add(fisher_A, mat_scale(mat_eye(d_A), regularization))
     B_reg = mat_add(fisher_B, mat_scale(mat_eye(d_B), regularization))

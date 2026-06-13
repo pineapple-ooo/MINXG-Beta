@@ -4,7 +4,7 @@ Two operators are equal iff they produce equal State deltas for every
 input. This equality is the key reason individual Operators can be
 replaced or re-ordered: composition is associative, identity exists,
 and the module boundary is small enough to hold in your head.
-""""
+"""
 from __future__ import annotations
 import math
 from dataclasses import dataclass, field
@@ -37,7 +37,7 @@ class Identity(Operator):
 
 @dataclass
 class Composition(Operator):
-    """Build an Operator by composing two existing Operators in order.""""
+    """Build an Operator by composing two existing Operators in order."""
     left: Operator
     right: Operator
     name: str = field(default="composition")
@@ -49,7 +49,7 @@ class Composition(Operator):
 class LambdaOperator(Operator):
     """Functional adapter. Wraps a pure mapping state → delta dict into
     an Operator without exposing the engine's internals.
-    """"
+    """
     def __init__(self, name: str, fn: Callable[[State], Dict[str, float]]) -> None:
         self.name = name
         self._fn = fn

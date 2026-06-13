@@ -6,7 +6,7 @@ or TCP for remote deployments. Handles:
   - Rate-limit checks (token bucket)
   - WebSocket subscription for AI streaming
   - Health pings
-""""
+"""
 
 import json
 import socket
@@ -19,7 +19,7 @@ from urllib.error import URLError
 
 
 class GoGatewayError(Exception):
-    """Error from Go gateway.""""
+    """Error from Go gateway."""
 
 
 class GoGatewayClient:
@@ -28,7 +28,7 @@ class GoGatewayClient:
 
     Communication: JSON over HTTP for simple calls, Unix socket for
     high-frequency rate-limit checks (no TCP overhead).
-    """"
+    """
 
     def __init__(self, host: str = "127.0.0.1", port: int = 9090,
                  unix_socket: Optional[str] = None,
@@ -45,7 +45,7 @@ class GoGatewayClient:
         return f"http://{self.host}:{self.port}"
 
     def _request(self, method: str, path: str, body: Optional[Dict] = None) -> Dict:
-        """Make an HTTP request to the Go gateway.""""
+        """Make an HTTP request to the Go gateway."""
         url = f"{self._base_url}{path}"
         headers = {"Content-Type": "application/json"}
         if self.api_key:
@@ -63,12 +63,12 @@ class GoGatewayClient:
 
 
     def health(self) -> Dict:
-        """Check gateway health.""""
+        """Check gateway health."""
         return self._request("GET", "/healthz")
 
     def ready(self) -> bool:
         """Check if gateway is ready. Uses /v1/health for aggregated status.
-        Returns True if gateway is reachable and all components report healthy.""""
+        Returns True if gateway is reachable and all components report healthy."""
         try:
             result = self._request("GET", "/v1/health")
             return result.get("status") == "ok"
@@ -76,7 +76,7 @@ class GoGatewayClient:
             return False
 
     def health_details(self) -> Dict:
-        """Return full health details from /v1/health (component status, version).""""
+        """Return full health details from /v1/health (component status, version)."""
         try:
             return self._request("GET", "/v1/health")
         except GoGatewayError:
@@ -87,7 +87,7 @@ class GoGatewayClient:
                       headers: Optional[Dict] = None, body: Optional[str] = None,
                       timeout: int = 10, follow_redirects: bool = True,
                       max_body_bytes: int = 500_000) -> Dict:
-        """Forward HTTP request through Go gateway. Returns Go-native response.""""
+        """Forward HTTP request through Go gateway. Returns Go-native response."""
         return self._request("POST", "/v1/proxy", {
             "url": url,
             "method": method,
@@ -99,21 +99,21 @@ class GoGatewayClient:
         })
 
     def dns_lookup(self, host: str) -> Dict:
-        """DNS lookup via Go net.LookupIP/LookupCNAME/LookupMX.""""
+        """DNS lookup via Go net.LookupIP/LookupCNAME/LookupMX."""
         return self._request("GET", f"/v1/dns/lookup?host={host}")
 
     def ssl_check(self, host: str) -> Dict:
-        """SSL/TLS certificate check via Go tls.Dial.""""
+        """SSL/TLS certificate check via Go tls.Dial."""
         return self._request("GET", f"/v1/ssl/check?host={host}")
 
     def whois_lookup(self, domain: str) -> Dict:
-        """WHOIS lookup via Go TCP whois client.""""
+        """WHOIS lookup via Go TCP whois client."""
         return self._request("GET", f"/v1/whois?domain={domain}")
 
 
     def check_rate_limit(self, key: str, rate: int = 60,
                          burst: int = 120) -> Dict:
-        """Check if a key is within rate limits.""""
+        """Check if a key is within rate limits."""
         return self._request("POST", "/v1/ratelimit/check", {
             "key": key,
             "rate": rate,
@@ -128,7 +128,7 @@ class GoGatewayClient:
         Connect to WebSocket streaming for token-by-token inference output.
         on_token(token, index) called for each delta.
         on_done() called when stream ends.
-        """"
+        """
         import websocket
 
         ws_url = f"ws://{self.host}:{self.port}/ws/{channel}"
@@ -160,7 +160,7 @@ class GoGatewayClient:
 
 
     def _connect_unix(self):
-        """Lazy-connect to Unix socket for minimal-overhead RPC.""""
+        """Lazy-connect to Unix socket for minimal-overhead RPC."""
         if self._sock is not None:
             return
         with self._sock_lock:
@@ -173,7 +173,7 @@ class GoGatewayClient:
             self._sock = sock
 
     def _unix_rpc(self, method: str, params: Dict) -> Dict:
-        """Minimal-overhead RPC over Unix socket (no HTTP parsing).""""
+        """Minimal-overhead RPC over Unix socket (no HTTP parsing)."""
         self._connect_unix()
         payload = json.dumps({"method": method, "params": params}).encode()
 
@@ -199,7 +199,7 @@ class GoGatewayClient:
         return json.loads(b"".join(chunks))
 
     def rate_limit_check_unix(self, key: str, tokens: int = 1) -> bool:
-        """Fast rate-limit check over Unix socket.""""
+        """Fast rate-limit check over Unix socket."""
         result = self._unix_rpc("ratelimit.check", {
             "key": key,
             "tokens": tokens,

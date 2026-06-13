@@ -1,7 +1,7 @@
 """
 text_grep, archive_create, archive_extract, get_system_info,
 get_process_list, get_network_info
-""""
+"""
 from __future__ import annotations
 from typing import Dict
 from minxg.base import BaseWorker, tool

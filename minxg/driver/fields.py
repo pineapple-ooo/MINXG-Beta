@@ -3,7 +3,7 @@
 A Field is an Operator factory: given a configuration it returns an
 Operator ready to drop into a DriverEngine. Configurations are plain
 dicts so swapping a Field never breaks the engine signature.
-""""
+"""
 from __future__ import annotations
 import math
 from typing import Any, Callable, Dict, Iterable, Optional, Tuple
@@ -18,7 +18,7 @@ class Field:
 
 
 def arithmetic_field(formula: Callable[[Dict[str, float]], Dict[str, float]], *, name: str = "arithmetic") -> Operator:
-    """Pure-arithmetic lambdas. `formula(state_dict) → delta_dict`.""""
+    """Pure-arithmetic lambdas. `formula(state_dict) → delta_dict`."""
     class _A(Operator):
         def apply(self, state: State) -> State:
             out = state.clone()
@@ -34,7 +34,7 @@ def arithmetic_field(formula: Callable[[Dict[str, float]], Dict[str, float]], *,
 
 
 def parametric_field(name: str, gain: float, axis: str) -> Operator:
-    """Linearly scales one axis by gain.""""
+    """Linearly scales one axis by gain."""
     class _P(Operator):
         def apply(self, state: State) -> State:
             out = state.clone()
@@ -46,7 +46,7 @@ def parametric_field(name: str, gain: float, axis: str) -> Operator:
 
 
 def clamp_field(lo: float, hi: float) -> Operator:
-    """Clamps every state component into [lo, hi].""""
+    """Clamps every state component into [lo, hi]."""
     class _C(Operator):
         name = "clamp"
 
@@ -62,7 +62,7 @@ def clamp_field(lo: float, hi: float) -> Operator:
 
 
 def smoothing_field(rate: float = 0.5) -> Operator:
-    """Exponential decay toward zero at the given rate. Stabilises fields.""""
+    """Exponential decay toward zero at the given rate. Stabilises fields."""
     if not 0.0 <= rate <= 1.0:
         raise ValueError("smoothing rate must be in [0, 1]")
 

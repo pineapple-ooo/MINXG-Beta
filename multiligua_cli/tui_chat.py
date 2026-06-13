@@ -33,7 +33,7 @@ from multiligua_cli.utils import (
     print_warning,
 )
 
-# Rich imports
+
 try:
     from rich.live import Live
     from rich.layout import Layout
@@ -47,7 +47,7 @@ except ImportError:
     HAS_LIVE = False
 
 
-# ── Entry ──────────────────────────────────────────────────────────────────────
+
 
 @ensure_config
 def tui_chat(args) -> int:
@@ -58,13 +58,13 @@ def tui_chat(args) -> int:
 
     config = load_config()
 
-    # Logging
+    
     from multiligua_cli.logger import get_logger
     lg = get_logger()
     lg.session_start()
     print_dim(f"Logging enabled -> {str(lg._today_log_path())}")
 
-    # Orchestrator
+    
     try:
         from multiling.orchestrator import NexusOrchestrator
         orch = NexusOrchestrator(
@@ -78,32 +78,19 @@ def tui_chat(args) -> int:
         print_error(f"Orchestrator init failed: {e}")
         return 1
 
-    # Hot-reload scheduler
-    from multiligua_cli.hot_reload import (
-        check_version_higher_than_local,
-        get_update_scheduler,
-        apply_update,
-        is_enabled as hot_reload_enabled,
-    )
-    updater = get_update_scheduler()
-
-    # Memory engine
+    
     from multiligua_cli.memory import get_evolution_engine
     memory_engine = get_evolution_engine()
     memory_enabled = config.get("memory", {}).get("enabled", True)
 
-    # Status bar
+    
     session_id: Optional[str] = None
 
-    # Banner
+    
     print_banner()
     print_dim("Type /help for commands, /exit to quit. Logging active.\n")
 
-    # Check for updates
-    if hot_reload_enabled() and check_version_higher_than_local():
-        print_warning("New version available. Type /update for details.")
-
-    # ── Main loop ──────────────────────────────────────────────────────────────
+    
     while True:
         try:
             user_input = console.input("[bold cyan]You:[/bold cyan] ").strip()
@@ -114,17 +101,10 @@ def tui_chat(args) -> int:
         if not user_input:
             continue
 
-        # ── Global commands (all work in any chat mode) ──────────────────────
+        
         cmd = user_input.lower().strip()
 
         if cmd in ("exit", "quit", "/exit", "/quit"):
-            if updater.leave() and hot_reload_enabled() and check_version_higher_than_local():
-                print_info("Applying update...")
-                result = apply_update()
-                if result["success"]:
-                    print_success(result["message"])
-                else:
-                    print_error(result["message"])
             lg.session_end()
             print_info("Goodbye!")
             return 0
@@ -169,10 +149,8 @@ def tui_chat(args) -> int:
             _handle_search(query, config)
             continue
 
-        # ── Chat ──────────────────────────────────────────────────────────────
-        updater.enter()
-
-        # Inject memory context
+        
+        
         if memory_enabled:
             memory_ctx = memory_engine.get_memory_context()
             if memory_ctx:
@@ -209,12 +187,10 @@ def tui_chat(args) -> int:
             if learned:
                 print_dim(f"(Learned {learned} preferences)")
 
-        updater.leave()
-
     return 0
 
 
-# ── Streaming chat core ────────────────────────────────────────────────────────
+
 
 async def _run_streaming_chat(
     orch,
@@ -331,7 +307,7 @@ async def _run_streaming_chat(
     }
 
 
-# ── Global commands ────────────────────────────────────────────────────────────
+
 
 def show_help():
     """Show help panel with all global commands."""
@@ -411,23 +387,7 @@ def _handle_log_command(lg, subcmd: str):
 
 
 def _show_update_info():
-    """Show update information."""
-    from multiligua_cli.hot_reload import check_update_available, get_update_info, apply_update
-
-    if not check_update_available():
-        print_dim("Already on latest version.")
-        return
-
-    info = get_update_info()
-    if info:
-        console.print(Panel.fit(
-            f"[bold yellow]New version available: {info.get('version', '?')}[/bold yellow]\n\n"
-            f"  [dim]Reason: {info.get('reason', 'N/A')}[/dim]\n"
-            f"  [dim]Source: {info.get('source', 'git')}[/dim]\n\n"
-            f"[bold]Auto-update on /exit[/bold]",
-            border_style="yellow",
-            box=box.ROUNDED,
-        ))
+    print_dim("Hot-reload from remote has been removed in this build. Use `pip install --upgrade` to update.")
 
 
 def _show_memory_info(engine):
@@ -517,7 +477,7 @@ def _handle_search(query: str, config: dict):
             print_error(f"Search failed: {e}")
 
     else:
-        # User's own browser - open search URL
+        
         try:
             import webbrowser
             encoded = urllib.parse.quote(query)

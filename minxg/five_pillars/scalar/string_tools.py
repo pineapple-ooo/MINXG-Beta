@@ -1,6 +1,6 @@
 """
 String manipulation tools — delegates to C via core_native bridge.
-""""
+"""
 from __future__ import annotations
 from minxg.base import BaseWorker, tool
 
@@ -27,7 +27,7 @@ class StringWorker(BaseWorker):
 
     @tool
     async def slugify(self, text: str = "") -> dict:
-        """Convert text to URL slug.""""
+        """Convert text to URL slug."""
         if _has_native:
             try:
                 return {"slug": _slugify(text)}
@@ -41,7 +41,7 @@ class StringWorker(BaseWorker):
 
     @tool
     async def truncate(self, text: str = "", max_length: int = 100, ellipsis: str = "...") -> dict:
-        """Truncate text to max length with ellipsis.""""
+        """Truncate text to max length with ellipsis."""
         if _has_native:
             try:
                 result = _truncate(text, max_length, ellipsis)
@@ -54,13 +54,13 @@ class StringWorker(BaseWorker):
 
     @tool
     async def word_wrap(self, text: str = "", width: int = 80) -> dict:
-        """Wrap text to specified width.""""
+        """Wrap text to specified width."""
         import textwrap
         return {"wrapped": textwrap.fill(text, width=width), "width": width}
 
     @tool
     async def extract_emails(self, text: str = "") -> dict:
-        """Extract email addresses from text.""""
+        """Extract email addresses from text."""
         if _has_native:
             try:
                 emails = _extract_emails(text)
@@ -73,7 +73,7 @@ class StringWorker(BaseWorker):
 
     @tool
     async def extract_urls(self, text: str = "") -> dict:
-        """Extract URLs from text.""""
+        """Extract URLs from text."""
         if _has_native:
             try:
                 urls = _extract_urls(text)
@@ -86,7 +86,7 @@ class StringWorker(BaseWorker):
 
     @tool
     async def extract_hashtags(self, text: str = "") -> dict:
-        """Extract hashtags from text.""""
+        """Extract hashtags from text."""
         if _has_native:
             try:
                 tags = _extract_hashtags(text)
@@ -99,14 +99,14 @@ class StringWorker(BaseWorker):
 
     @tool
     async def extract_mentions(self, text: str = "") -> dict:
-        """Extract @mentions from text.""""
+        """Extract @mentions from text."""
         import re
         mentions = re.findall(r'@[\w.]+', text)
         return {"mentions": mentions, "count": len(mentions)}
 
     @tool
     async def word_frequency(self, text: str = "", top_n: int = 10) -> dict:
-        """Get word frequency in text (C-native).""""
+        """Get word frequency in text (C-native)."""
         if _has_native:
             try:
                 pairs = _word_freq(text, top_n)

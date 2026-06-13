@@ -12,10 +12,10 @@ import sys
 from pathlib import Path
 from typing import Dict, Any
 
-# ── Version ──────────────────────────────────────────────────────────────────
+
 __version__ = "1.0.0"
 
-# ── i18n (lazy import to avoid circular) ─────────────────────────────────────
+
 
 def _t(key: str, **kwargs) -> str:
     """Lazy i18n lookup."""
@@ -25,7 +25,7 @@ def _t(key: str, **kwargs) -> str:
     except Exception:
         return key
 
-# ── Logging ──────────────────────────────────────────────────────────────────
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)-7s | %(message)s",
@@ -33,7 +33,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("minxg")
 
-# ── Rich detection ───────────────────────────────────────────────────────────
+
 try:
     from rich.console import Console
     from rich.panel import Panel
@@ -47,7 +47,7 @@ except ImportError:
 
 console = Console() if HAS_RICH else None
 
-# ── ANSI Colors (fallback when Rich not available) ───────────────────────────
+
 
 
 class Colors:
@@ -70,7 +70,7 @@ def colorize(text: str, *styles: str) -> str:
     return "".join(styles) + text + Colors.RESET
 
 
-# ── Project path helpers ─────────────────────────────────────────────────────
+
 
 
 def get_project_root() -> Path:
@@ -99,7 +99,7 @@ def load_config() -> Dict[str, Any]:
     return {}
 
 
-# ── Config-check decorator ───────────────────────────────────────────────────
+
 
 
 def ensure_config(func):
@@ -136,7 +136,7 @@ def ensure_config(func):
     return wrapper
 
 
-# ── UI helpers ───────────────────────────────────────────────────────────────
+
 
 
 def print_banner() -> None:
@@ -195,7 +195,7 @@ def print_warning(msg: str) -> None:
         print(colorize(f"⚠ {msg}", Colors.YELLOW, Colors.BOLD))
 
 
-# ── Process title ────────────────────────────────────────────────────────────
+
 
 
 def set_process_title() -> None:

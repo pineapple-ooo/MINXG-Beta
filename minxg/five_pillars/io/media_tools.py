@@ -1,5 +1,5 @@
 """
-""""
+"""
 from __future__ import annotations
 from typing import Dict, List
 import re
@@ -130,7 +130,7 @@ class MediaToolsWorker(BaseWorker):
 import qrcode
 img = qrcode.make("{text}")
 img.save("qr.png")
-img.show()""""
+img.show()"""
         return {"shell_cmd": cmd, "python_code": py_code.strip(), "text": text, "output": "qr.png"}
 
     @tool(description="Parse SVG for basic attributes", category="detect")

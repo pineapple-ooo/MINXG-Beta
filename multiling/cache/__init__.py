@@ -7,7 +7,7 @@ Provides:
   - TimedCache: Time-based expiration cache
   - LayeredCache: Multi-layer cache (memory -> disk -> remote)
   - Cache metrics and monitoring
-""""
+"""
 
 import asyncio
 import hashlib
@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class CacheEntry:
-    """A single cache entry with metadata""""
+    """A single cache entry with metadata"""
     key: str
     value: Any
     ttl: float = 0          
@@ -49,7 +49,7 @@ class CacheEntry:
 
 
 class MemoryCache:
-    """Thread-safe in-memory LRU cache with TTL support""""
+    """Thread-safe in-memory LRU cache with TTL support"""
 
     def __init__(self, max_size: int = 1000, default_ttl: float = 300.0):
         self.max_size = max_size
@@ -62,7 +62,7 @@ class MemoryCache:
         }
 
     def get(self, key: str, default=None) -> Any:
-        """Get value from cache, returns default if not found or expired""""
+        """Get value from cache, returns default if not found or expired"""
         with self._lock:
             entry = self._cache.get(key)
             if entry is None:
@@ -83,7 +83,7 @@ class MemoryCache:
 
     def set(self, key: str, value: Any, ttl: float = None,
             tags: List[str] = None, priority: int = 0):
-        """Set a cache entry""""
+        """Set a cache entry"""
         if ttl is None:
             ttl = self.default_ttl
         entry = CacheEntry(
@@ -100,7 +100,7 @@ class MemoryCache:
             self._stats["sets"] += 1
 
     def _evict_one(self):
-        """Evict lowest priority / oldest entry""""
+        """Evict lowest priority / oldest entry"""
         
         for key, entry in self._cache.items():
             if entry.is_expired():
@@ -136,7 +136,7 @@ class MemoryCache:
             return entry is not None and not entry.is_expired()
 
     def touch(self, key: str) -> bool:
-        """Update access time without returning value""""
+        """Update access time without returning value"""
         with self._lock:
             entry = self._cache.get(key)
             if entry and not entry.is_expired():
@@ -156,7 +156,7 @@ class MemoryCache:
             }
 
     def get_by_tag(self, tag: str) -> List[Tuple[str, Any]]:
-        """Get all entries with a specific tag""""
+        """Get all entries with a specific tag"""
         with self._lock:
             results = []
             for key, entry in self._cache.items():
@@ -165,7 +165,7 @@ class MemoryCache:
             return results
 
     def expire_check(self) -> int:
-        """Manually expire old entries, returns count of expired""""
+        """Manually expire old entries, returns count of expired"""
         count = 0
         with self._lock:
             expired_keys = [k for k, e in self._cache.items() if e.is_expired()]
@@ -177,7 +177,7 @@ class MemoryCache:
 
 
 class TimedCache(MemoryCache):
-    """Cache with automatic periodic cleanup""""
+    """Cache with automatic periodic cleanup"""
 
     def __init__(self, max_size=1000, default_ttl=300.0,
                  cleanup_interval=60.0):
@@ -199,7 +199,7 @@ class LayeredCache:
     Multi-layer cache: memory -> disk -> remote
 
     Reads cascade through layers, writes go to all layers.
-    """"
+    """
 
     def __init__(self, name="default", memory_max=1000, disk_path="./cache"):
         self.name = name

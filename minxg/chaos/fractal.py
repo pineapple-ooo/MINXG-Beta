@@ -14,7 +14,7 @@ Different notions of "dimension" for fractals:
 For self-similar fractals like the Cantor set, Sierpinski, Koch curve, the
 fractal dimension is known analytically. For strange attractors, we estimate
 via box-counting.
-""""
+"""
 from __future__ import annotations
 import math
 from typing import Callable, List, Tuple
@@ -28,7 +28,7 @@ def box_counting_dimension(points: List[Tuple[float, ...]],
     D = lim_{ε→0} log(N(ε)) / log(1/ε)
 
     where N(ε) is the number of ε-boxes that contain at least one point.
-    """"
+    """
     if not points:
         return 0.0
     dim = len(points[0])
@@ -70,7 +70,7 @@ def hausdorff_dimension(points: List[Tuple[float, ...]],
 
     For practical purposes, this is close to box-counting dimension. We use
     a finer covering: instead of fixed-size boxes, we use ε-balls.
-    """"
+    """
     return box_counting_dimension(points, epsilons)
 
 
@@ -82,7 +82,7 @@ def correlation_dimension(points: List[Tuple[float, ...]],
     where C(ε) = (2/N(N-1)) Σ_{i<j} I(d(x_i, x_j) < ε)
 
     For strange attractors, D_2 is often between 1 and the embedding dimension.
-    """"
+    """
     n = len(points)
     if n < 2:
         return 0.0
@@ -126,7 +126,7 @@ def kaplan_yorke_dimension(lyapunov_spectrum: List[float]) -> float:
 
     D_KY = j + (λ_1 + ... + λ_j) / |λ_{j+1}|
     where j is the largest integer such that Σ_{i=1}^j λ_i ≥ 0.
-    """"
+    """
     cum = 0.0
     for j, lam in enumerate(lyapunov_spectrum):
         if cum + lam >= 0:

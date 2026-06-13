@@ -16,7 +16,7 @@ Usage:
                     api_url="https://api.search.com/v1/search",
                     api_key="sk-xxx",
                     model="gpt-4")
-""""
+"""
 
 import json
 import os
@@ -29,7 +29,7 @@ from typing import Optional, Dict, Any
 
 
 def _get_config() -> Dict[str, Any]:
-    """Load browser_search config from config.yaml.""""
+    """Load browser_search config from config.yaml."""
     try:
         import yaml
         config_path = os.path.join(os.path.dirname(__file__), "..", "config.yaml")
@@ -63,7 +63,7 @@ def search(
 
     Returns:
         Dict with search results
-    """"
+    """
     config = _get_config()
 
 
@@ -90,7 +90,7 @@ def search(
 
 
 def _search_user_browser(query: str) -> Dict[str, Any]:
-    """Open search in user's system browser.""""
+    """Open search in user's system browser."""
     encoded = urllib.parse.quote_plus(query)
 
     search_url = f"https://www.google.com/search?q={encoded}"
@@ -120,7 +120,7 @@ def _search_api(
     model: Optional[str],
     num_results: int,
 ) -> Dict[str, Any]:
-    """Search via custom AI search API.""""
+    """Search via custom AI search API."""
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",

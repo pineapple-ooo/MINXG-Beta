@@ -1,8 +1,3 @@
-# extensions/user
+# extensions/user/
 
-This directory is part of MINXG's reserved structure. Files in this
-directory follow the project conventions described in
-[docs/architecture.md](../docs/architecture.md).
-
-See also: [docs/extensions.md](../docs/extensions.md) for how to add
-content here.
+This directory is the install target for the `minxg ext install` command. Drop your compiled extensions here and they will be picked up at startup.

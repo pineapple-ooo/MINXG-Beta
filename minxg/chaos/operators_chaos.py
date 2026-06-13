@@ -3,7 +3,7 @@ minxg/chaos/operators_chaos.py — Register Chaos & Dynamical Systems operators
 =====================================================================================
 
 50+ chaos theory operators. Operator IDs 8500-8999 are reserved.
-""""
+"""
 from __future__ import annotations
 import math
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -35,14 +35,14 @@ def register_chaos_operators():
                           ["number", "number", "int"], "array", True, log_op)); op_id += 1
 
     def log_iter(r, x0, n, k):
-        """Iterate k times and return final value.""""
+        """Iterate k times and return final value."""
         return logistic_map(float(r), float(x0), int(n))[-1] if k == 'all' else logistic_map(float(r), float(x0), int(n))[int(k)]
     reg.register(Operator(op_id, "chaos_logistic_at", "chaos",
                           "Logistic map value at step k",
                           ["number", "number", "int", "int"], "number", True, log_iter)); op_id += 1
 
     def log_fixed_point(r):
-        """Fixed point(s) of logistic map: r·x·(1-x) = x.""""
+        """Fixed point(s) of logistic map: r·x·(1-x) = x."""
         
         if r == 0: return [0.0]
         return [0.0, 1.0 - 1.0 / r]
@@ -68,7 +68,7 @@ def register_chaos_operators():
                           "list", True, lorenz_op)); op_id += 1
 
     def lorenz_classic(x0, y0, z0, n):
-        """The famous 'butterfly' Lorenz attractor with σ=10, ρ=28, β=8/3.""""
+        """The famous 'butterfly' Lorenz attractor with σ=10, ρ=28, β=8/3."""
         return lorenz(10.0, 28.0, 8.0 / 3.0, float(x0), float(y0), float(z0), 0.01, int(n))
     reg.register(Operator(op_id, "chaos_lorenz_classic", "chaos",
                           "Classic Lorenz attractor (σ=10, ρ=28, β=8/3)",
@@ -107,7 +107,7 @@ def register_chaos_operators():
                           ["number", "int"], "number", True, lyap_op)); op_id += 1
 
     def generic_lyap(f_str, fp_str, x0, n, transient):
-        """Generic 1D Lyapunov exponent from string function definitions.""""
+        """Generic 1D Lyapunov exponent from string function definitions."""
         f = eval("lambda x: " + f_str) if isinstance(f_str, str) else f_str
         fp = eval("lambda x: " + fp_str) if isinstance(fp_str, str) else fp_str
         return lyapunov_exponent(f, fp, float(x0), int(n), int(transient))
@@ -130,7 +130,7 @@ def register_chaos_operators():
                           ["number", "number", "int"], "list", True, bifur_op)); op_id += 1
 
     def feigenbaum_constant():
-        """The Feigenbaum constant δ ≈ 4.6692016... — universal ratio of period-doubling bifurcations.""""
+        """The Feigenbaum constant δ ≈ 4.6692016... — universal ratio of period-doubling bifurcations."""
         
         return 4.66920160910299067185320382046620161725818557747576863274
     reg.register(Operator(op_id, "chaos_feigenbaum", "chaos",
@@ -210,7 +210,7 @@ def register_chaos_operators():
                           ["int", "int"], "list", True, cantor_op)); op_id += 1
 
     def ifs_op(n_funcs, n_points, seed):
-        """Generic IFS from n contractions.""""
+        """Generic IFS from n contractions."""
         if seed != 0:
             import random
             random.seed(int(seed))

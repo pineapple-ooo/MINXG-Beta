@@ -93,7 +93,7 @@ def select_files_in_directory(directory: str, pattern: str = "*",
         print(f"Error: Not a directory: {directory}")
         return []
 
-    # Get all matching files
+    
     all_files = []
     for f in os.listdir(directory):
         fp = os.path.join(directory, f)
@@ -106,7 +106,7 @@ def select_files_in_directory(directory: str, pattern: str = "*",
         print(f"No files matching '{pattern}' in {directory}")
         return []
 
-    # Display files with info
+    
     print(f"\n  Directory: {directory}")
     print(f"  Pattern: {pattern}")
     print(f"  Files found: {len(all_files)}")
@@ -119,10 +119,10 @@ def select_files_in_directory(directory: str, pattern: str = "*",
         print(f"  {i+1:>4} {ftype:6} {info['size_str']:>10} {info['mtime']:17} {info['name'][:40]}")
 
     if not _is_interactive():
-        # Non-interactive: return all files
+        
         return [f for f in all_files if not os.path.isdir(f)]
 
-    # Interactive selection
+    
     print(f"\n  Select files (enter numbers, separated by spaces/comma)")
     if allow_multiple:
         print(f"  Examples: '1 3 5', '1-10', 'all', '*.py'")
@@ -145,7 +145,7 @@ def select_files_in_directory(directory: str, pattern: str = "*",
             return [f for f in all_files
                     if not os.path.isdir(f) and fnmatch.fnmatch(os.path.basename(f), user_input)]
 
-        # Parse number ranges
+        
         selected = set()
         parts = user_input.replace(",", " ").split()
         for part in parts:
@@ -200,12 +200,12 @@ def file_selector_wizard(start_dir: str = ".", file_pattern: str = "*",
     Returns:
         Dict with selected files and metadata
     """
-    # Step 1: Select directory
+    
     directory = select_directory(start_dir)
     if not directory:
         return {"status": "cancelled", "reason": "No directory selected"}
 
-    # Step 2: Select files
+    
     files = select_files_in_directory(directory, file_pattern)
 
     if max_files and len(files) > max_files:
@@ -221,7 +221,7 @@ def file_selector_wizard(start_dir: str = ".", file_pattern: str = "*",
     }
 
 
-# ── Backward-compatible simple API ──
+
 
 def select_files(path: str = ".", glob_pattern: str = "*",
                  multiple: bool = True) -> List[str]:
@@ -239,5 +239,5 @@ def select_files(path: str = ".", glob_pattern: str = "*",
     if os.path.isdir(path_expanded):
         return select_files_in_directory(path_expanded, glob_pattern, multiple)
 
-    # Treat as glob pattern
+    
     return select_files_glob([path_expanded, glob_pattern.replace(".", path_expanded)])

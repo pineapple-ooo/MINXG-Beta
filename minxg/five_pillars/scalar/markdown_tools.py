@@ -1,4 +1,4 @@
-"""Markdown processing tools.""""
+"""Markdown processing tools."""
 from minxg.base import BaseWorker, tool
 
 class MarkdownWorker(BaseWorker):
@@ -7,7 +7,7 @@ class MarkdownWorker(BaseWorker):
 
     @tool
     async def markdown_to_text(self, markdown: str = "") -> dict:
-        """Strip markdown formatting, return plain text.""""
+        """Strip markdown formatting, return plain text."""
         import re
         text = re.sub(r'#{1,6}\s*', '', markdown)
         text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
@@ -21,7 +21,7 @@ class MarkdownWorker(BaseWorker):
 
     @tool
     async def markdown_extract_code(self, markdown: str = "", language: str = "") -> dict:
-        """Extract code blocks from markdown.""""
+        """Extract code blocks from markdown."""
         import re
         blocks = re.findall(r'```(\w*)\n(.*?)```', markdown, re.DOTALL)
         if language:
@@ -30,14 +30,14 @@ class MarkdownWorker(BaseWorker):
 
     @tool
     async def markdown_extract_links(self, markdown: str = "") -> dict:
-        """Extract all links from markdown.""""
+        """Extract all links from markdown."""
         import re
         links = re.findall(r'\[([^\]]+)\]\(([^)]+)\)', markdown)
         return {"links": [{"text": t, "url": u} for t, u in links], "count": len(links)}
 
     @tool
     async def markdown_table_of_contents(self, markdown: str = "") -> dict:
-        """Generate table of contents from markdown headings.""""
+        """Generate table of contents from markdown headings."""
         import re
         headings = re.findall(r'^(#{1,6})\s+(.+)$', markdown, re.MULTILINE)
         toc = []
@@ -50,7 +50,7 @@ class MarkdownWorker(BaseWorker):
 
     @tool
     async def markdown_stats(self, markdown: str = "") -> dict:
-        """Get markdown document statistics.""""
+        """Get markdown document statistics."""
         import re
         words = len(re.findall(r'\b\w+\b', markdown))
         lines = markdown.count('\n') + 1
@@ -64,7 +64,7 @@ class MarkdownWorker(BaseWorker):
 
     @tool
     async def markdown_to_html(self, markdown: str = "") -> dict:
-        """Convert markdown to HTML (basic).""""
+        """Convert markdown to HTML (basic)."""
         import re
         html = markdown
         html = re.sub(r'^### (.+)$', r'<h3>\1</h3>', html, flags=re.MULTILINE)

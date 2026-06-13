@@ -3,7 +3,7 @@ minxg/network_adv.py — Advanced network operations v1.0.0
 
 Extended network toolkit: ping, traceroute, DNS, HTTP methods, websocket,
 SSL verification, port scanning, WHOIS, GeoIP, speed testing.
-""""
+"""
 from __future__ import annotations
 import os
 import sys
@@ -20,7 +20,7 @@ from minxg.base import BaseWorker, tool
 
 
 class NetworkAdvWorker(BaseWorker):
-    """Advanced network operations: ping, dns, http, ssl, websocket, port scan, whois, speed test.""""
+    """Advanced network operations: ping, dns, http, ssl, websocket, port scan, whois, speed test."""
     worker_id = "network_adv"
     version = "1.0.0"
 

@@ -10,7 +10,7 @@ The engine integrates a stack of Operators across a State. Each step:
 
 Steps are recorded as StepReports; an EnginePhase observable lets
 external code observe transitions without coupling to the engine.
-""""
+"""
 from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum

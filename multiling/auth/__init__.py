@@ -7,7 +7,7 @@ Provides:
   - AuthManager: Token-based authentication
   - Authorizer: Permission checking engine
   - SessionAuth: Session-based authentication
-""""
+"""
 
 import hashlib
 import hmac
@@ -22,7 +22,7 @@ from functools import wraps
 
 @dataclass
 class Permission:
-    """A fine-grained permission""""
+    """A fine-grained permission"""
     resource: str       
     action: str         
     scope: str = "*"    
@@ -41,7 +41,7 @@ class Permission:
 
 @dataclass
 class Role:
-    """RBAC role definition""""
+    """RBAC role definition"""
     name: str
     description: str = ""
     permissions: Set[Permission] = field(default_factory=set)
@@ -57,7 +57,7 @@ class Role:
 
 
 class TokenManager:
-    """Token generation and validation""""
+    """Token generation and validation"""
 
     def __init__(self, secret_key: str = None, token_expiry: int = 3600):
         self.secret_key = secret_key or secrets.token_hex(32)
@@ -67,7 +67,7 @@ class TokenManager:
 
     def generate_token(self, user_id: str, roles: List[str] = None,
                        metadata: Dict = None) -> str:
-        """Generate a signed JWT-like token""""
+        """Generate a signed JWT-like token"""
         now = time.time()
         payload = {
             "jti": uuid.uuid4().hex[:16],
@@ -89,7 +89,7 @@ class TokenManager:
         return token
 
     def validate_token(self, token: str) -> Optional[Dict]:
-        """Validate a token and return payload if valid""""
+        """Validate a token and return payload if valid"""
         try:
             parts = token.split(".")
             if len(parts) != 3:
@@ -121,7 +121,7 @@ class TokenManager:
             return None
 
     def revoke_token(self, token: str) -> bool:
-        """Revoke a token""""
+        """Revoke a token"""
         payload = self.validate_token(token)
         if payload:
             jti = payload.get("jti", "")
@@ -158,29 +158,29 @@ class TokenManager:
 
 
 class Authorizer:
-    """Permission checking engine with role inheritance""""
+    """Permission checking engine with role inheritance"""
 
     def __init__(self):
         self._roles: Dict[str, Role] = {}
         self._user_roles: Dict[str, List[str]] = defaultdict(list)
 
     def add_role(self, role: Role):
-        """Register a role""""
+        """Register a role"""
         self._roles[role.name] = role
 
     def assign_role(self, user_id: str, role_name: str):
-        """Assign a role to a user""""
+        """Assign a role to a user"""
         if role_name in self._roles:
             if role_name not in self._user_roles[user_id]:
                 self._user_roles[user_id].append(role_name)
 
     def remove_role(self, user_id: str, role_name: str):
-        """Remove a role from a user""""
+        """Remove a role from a user"""
         if role_name in self._user_roles[user_id]:
             self._user_roles[user_id].remove(role_name)
 
     def check_permission(self, user_id: str, permission: Permission) -> bool:
-        """Check if user has the specified permission""""
+        """Check if user has the specified permission"""
         user_roles = self._user_roles.get(user_id, [])
         checked = set()
         for role_name in user_roles:
@@ -190,7 +190,7 @@ class Authorizer:
 
     def _check_role_permission(self, role_name: str, permission: Permission,
                                checked: Set[str]) -> bool:
-        """Recursively check role and inherited roles""""
+        """Recursively check role and inherited roles"""
         if role_name in checked:
             return False
         checked.add(role_name)
@@ -212,7 +212,7 @@ class Authorizer:
         return False
 
     def _permission_matches(self, perm: Permission, required: Permission) -> bool:
-        """Check if a permission satisfies the required permission""""
+        """Check if a permission satisfies the required permission"""
         if perm.resource != required.resource:
             if perm.resource != "*" and required.resource != perm.resource:
                 return False
@@ -226,7 +226,7 @@ class Authorizer:
         return perm_scope >= req_scope
 
     def get_user_permissions(self, user_id: str) -> List[Permission]:
-        """Get all permissions for a user""""
+        """Get all permissions for a user"""
         perms = set()
         for role_name in self._user_roles.get(user_id, []):
             self._collect_permissions(role_name, perms, set())
@@ -246,7 +246,7 @@ class Authorizer:
 
 
 class SessionAuth:
-    """Session-based authentication manager""""
+    """Session-based authentication manager"""
 
     def __init__(self, token_manager: TokenManager = None):
         self.token_manager = token_manager or TokenManager()
@@ -254,7 +254,7 @@ class SessionAuth:
         self._user_sessions: Dict[str, List[str]] = defaultdict(list)
 
     def create_session(self, user_id: str, metadata: Dict = None) -> str:
-        """Create a new session and return session ID""""
+        """Create a new session and return session ID"""
         session_id = secrets.token_urlsafe(32)
         token = self.token_manager.generate_token(user_id, metadata=metadata)
         now = time.time()
@@ -270,7 +270,7 @@ class SessionAuth:
         return session_id
 
     def validate_session(self, session_id: str) -> Optional[Dict]:
-        """Validate a session and return session info""""
+        """Validate a session and return session info"""
         session = self._sessions.get(session_id)
         if not session or not session["valid"]:
             return None
@@ -283,7 +283,7 @@ class SessionAuth:
         return session
 
     def invalidate_session(self, session_id: str) -> bool:
-        """Invalidate a session""""
+        """Invalidate a session"""
         if session_id in self._sessions:
             session = self._sessions[session_id]
             session["valid"] = False
@@ -292,7 +292,7 @@ class SessionAuth:
         return False
 
     def invalidate_user_sessions(self, user_id: str) -> int:
-        """Invalidate all sessions for a user""""
+        """Invalidate all sessions for a user"""
         count = 0
         for sid in self._user_sessions.get(user_id, []):
             if sid in self._sessions and self._sessions[sid]["valid"]:
@@ -301,7 +301,7 @@ class SessionAuth:
         return count
 
     def cleanup_expired(self, max_age_seconds: float = 86400) -> int:
-        """Remove expired sessions""""
+        """Remove expired sessions"""
         now = time.time()
         expired = [
             sid for sid, sess in self._sessions.items()
@@ -318,7 +318,7 @@ class SessionAuth:
 
 
 def create_default_roles() -> Dict[str, Role]:
-    """Create default RBAC roles""""
+    """Create default RBAC roles"""
     return {
         "admin": Role(
             name="admin",
@@ -354,7 +354,7 @@ def create_default_roles() -> Dict[str, Role]:
 
 
 def auth_required(permission: str):
-    """Decorator to require authentication with specific permission""""
+    """Decorator to require authentication with specific permission"""
     def decorator(func):
         @wraps(func)
         def wrapper(self, *args, **kwargs):

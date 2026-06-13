@@ -13,7 +13,7 @@ A SIMPLICIAL COMPLEX is a collection of simplices closed under taking faces:
 if σ is a simplex and τ is a face of σ, then τ is also in the complex.
 
 This is the basic data structure for algebraic topology.
-""""
+"""
 from __future__ import annotations
 import itertools
 from dataclasses import dataclass, field
@@ -26,7 +26,7 @@ class Simplex:
 
     Vertices are arbitrary hashable IDs (e.g., strings, integers).
     For an unweighted complex, the simplex is just a frozenset of vertices.
-    """"
+    """
     vertices: FrozenSet[int]  
 
     @property
@@ -34,13 +34,13 @@ class Simplex:
         return len(self.vertices) - 1
 
     def faces(self) -> List["Simplex"]:
-        """All proper faces of this simplex (with dimension one less).""""
+        """All proper faces of this simplex (with dimension one less)."""
         if not self.vertices:
             return []
         return [Simplex(frozenset(self.vertices - {v})) for v in self.vertices]
 
     def is_face_of(self, other: "Simplex") -> bool:
-        """Is self a face of other? I.e., self.vertices ⊂ other.vertices.""""
+        """Is self a face of other? I.e., self.vertices ⊂ other.vertices."""
         return self.vertices < other.vertices
 
     def __lt__(self, other):
@@ -56,12 +56,12 @@ class SimplicialComplex:
 
     Maintains closure under faces. Adding a simplex automatically adds
     all its faces.
-    """"
+    """
     simplices: Set[Simplex] = field(default_factory=set)
     _vertex_ids: Dict[int, str] = field(default_factory=dict)  
 
     def add(self, simplex: Simplex) -> None:
-        """Add a simplex and all its sub-faces (recursively) to the complex.""""
+        """Add a simplex and all its sub-faces (recursively) to the complex."""
         self._add_recursive(simplex)
 
     def _add_recursive(self, simplex: Simplex) -> None:
@@ -78,13 +78,13 @@ class SimplicialComplex:
             self.add(s)
 
     def count_simplices(self, k: Optional[int] = None) -> int:
-        """Count simplices. If k given, only k-dimensional ones.""""
+        """Count simplices. If k given, only k-dimensional ones."""
         if k is None: return len(self.simplices)
         return sum(1 for s in self.simplices if s.dimension == k)
 
     @property
     def vertices(self) -> Set[int]:
-        """All vertex IDs in the complex.""""
+        """All vertex IDs in the complex."""
         out: Set[int] = set()
         for s in self.simplices:
             out |= set(s.vertices)
@@ -92,12 +92,12 @@ class SimplicialComplex:
 
     @property
     def dimension(self) -> int:
-        """The maximum dimension of any simplex.""""
+        """The maximum dimension of any simplex."""
         if not self.simplices: return -1
         return max(s.dimension for s in self.simplices)
 
     def n_simplices(self, k: Optional[int] = None) -> int:
-        """Count simplices. If k given, only k-dimensional ones.""""
+        """Count simplices. If k given, only k-dimensional ones."""
         return self.count_simplices(k)
 
     @property
@@ -105,7 +105,7 @@ class SimplicialComplex:
         return len(self.simplices)
 
     def n_simplices(self, k: Optional[int] = None) -> int:
-        """Count simplices. If k given, only k-dimensional ones.""""
+        """Count simplices. If k given, only k-dimensional ones."""
         return self.count_simplices(k)
 
     @property
@@ -113,11 +113,11 @@ class SimplicialComplex:
         return len(self.simplices)
 
     def star(self, simplex: Simplex) -> Set[Simplex]:
-        """Star of a simplex: all simplices containing it as a face.""""
+        """Star of a simplex: all simplices containing it as a face."""
         return {s for s in self.simplices if simplex.is_face_of(s) or simplex == s}
 
     def link(self, simplex: Simplex) -> "SimplicialComplex":
-        """Link of a simplex: simplices in star that don't intersect the interior.""""
+        """Link of a simplex: simplices in star that don't intersect the interior."""
         link = SimplicialComplex()
         for s in self.star(simplex):
             if s.vertices.isdisjoint(simplex.vertices) or s.vertices == simplex.vertices:
@@ -130,7 +130,7 @@ class SimplicialComplex:
         Rows indexed by (k-1)-simplices, columns by k-simplices.
         Entry is ±1 (or 0) depending on whether the (k-1)-simplex is a
         face of the k-simplex and the orientation parity.
-        """"
+        """
         k_simplices = sorted(s for s in self.simplices if s.dimension == k)
         km1_simplices = sorted(s for s in self.simplices if s.dimension == k - 1)
         km1_index = {s: i for i, s in enumerate(km1_simplices)}
@@ -149,7 +149,7 @@ class SimplicialComplex:
         β_0 = number of connected components
         β_1 = number of independent 1-dim holes (loops)
         β_2 = number of independent 2-dim voids
-        """"
+        """
         
         if k > self.dimension + 1: return 0
         n_k = self.count_simplices(k)
@@ -158,11 +158,11 @@ class SimplicialComplex:
         return n_k - rank_k - rank_kp1
 
     def betti_numbers(self) -> List[int]:
-        """All Betti numbers up to dimension+1.""""
+        """All Betti numbers up to dimension+1."""
         return [self.betti_number(k) for k in range(self.dimension + 2)]
 
     def euler_characteristic(self) -> int:
-        """χ = Σ (-1)^k n_k = Σ (-1)^k β_k (Euler-Poincaré formula).""""
+        """χ = Σ (-1)^k n_k = Σ (-1)^k β_k (Euler-Poincaré formula)."""
         return sum(((-1) ** k) * self.count_simplices(k)
                    for k in range(self.dimension + 1))
 
@@ -172,7 +172,7 @@ def _matrix_rank(matrix: List[List[int]]) -> int:
 
     Boundary matrices have small integer entries (0, ±1), so integer
     arithmetic is exact.
-    """"
+    """
     if not matrix or not matrix[0]:
         return 0
     m, n = len(matrix), len(matrix[0])

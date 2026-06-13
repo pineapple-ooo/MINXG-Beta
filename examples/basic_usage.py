@@ -9,7 +9,7 @@
 - 事件总线
 - 任务调度
 - 性能分析
-""""
+"""
 
 import asyncio
 import sys
@@ -17,7 +17,7 @@ sys.path.insert(0, '/storage/emulated/0/multiling')
 
 
 def demo_config():
-    """配置管理示例""""
+    """配置管理示例"""
     print("\n" + "=" * 50)
     print("1. 配置管理示例")
     print("=" * 50)
@@ -50,7 +50,7 @@ def demo_config():
 
 
 def demo_knowledge_graph():
-    """知识图谱示例""""
+    """知识图谱示例"""
     print("\n" + "=" * 50)
     print("2. 知识图谱示例")
     print("=" * 50)
@@ -91,7 +91,7 @@ def demo_knowledge_graph():
 
 
 def demo_vector_store():
-    """向量存储示例""""
+    """向量存储示例"""
     print("\n" + "=" * 50)
     print("3. 向量存储示例")
     print("=" * 50)
@@ -126,7 +126,7 @@ def demo_vector_store():
 
 
 def demo_workflow():
-    """工作流示例""""
+    """工作流示例"""
     print("\n" + "=" * 50)
     print("4. 工作流示例")
     print("=" * 50)
@@ -167,7 +167,7 @@ def demo_workflow():
 
 
 def demo_event_bus():
-    """事件总线示例""""
+    """事件总线示例"""
     print("\n" + "=" * 50)
     print("5. 事件总线示例")
     print("=" * 50)
@@ -196,7 +196,7 @@ def demo_event_bus():
 
 
 def demo_task_queue():
-    """任务队列示例""""
+    """任务队列示例"""
     print("\n" + "=" * 50)
     print("6. 任务队列示例")
     print("=" * 50)
@@ -225,7 +225,7 @@ def demo_task_queue():
 
 
 def demo_cache():
-    """缓存示例""""
+    """缓存示例"""
     print("\n" + "=" * 50)
     print("7. 缓存示例")
     print("=" * 50)
@@ -250,7 +250,7 @@ def demo_cache():
 
 
 def demo_scheduler():
-    """任务调度示例""""
+    """任务调度示例"""
     print("\n" + "=" * 50)
     print("8. 任务调度示例")
     print("=" * 50)
@@ -271,7 +271,7 @@ def demo_scheduler():
 
 
 def demo_profiler():
-    """性能分析示例""""
+    """性能分析示例"""
     print("\n" + "=" * 50)
     print("9. 性能分析示例")
     print("=" * 50)
@@ -300,7 +300,7 @@ def demo_profiler():
 
 
 def demo_analytics():
-    """监控分析示例""""
+    """监控分析示例"""
     print("\n" + "=" * 50)
     print("10. 监控分析示例")
     print("=" * 50)

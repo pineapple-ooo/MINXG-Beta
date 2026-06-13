@@ -1,4 +1,4 @@
-"""nexusai-multilang - Multi-language AI task orchestration framework.""""
+"""nexusai-multilang - Multi-language AI task orchestration framework."""
 
 from multiling.model_tools import (
     get_tool_definitions,

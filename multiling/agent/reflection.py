@@ -3,7 +3,7 @@ reflection.py — 智能体反思引擎
 
 提供 Agent 的自我反思、错误分析、行为优化能力。
 核心思想：每次重要行动后，Agent 分析结果并提取改进策略。
-""""
+"""
 
 import json
 import re
@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Reflection:
-    """一条反思记录""""
+    """一条反思记录"""
     action: str                    
     result: str                    
     analysis: str                  
@@ -50,7 +50,7 @@ class ReflectionEngine:
     - success_reinforcement: 成功强化
     - alternative_generation: 替代方案生成
     - performance_trend: 性能趋势分析
-    """"
+    """
 
     
     ERROR_PATTERNS = {
@@ -104,7 +104,7 @@ class ReflectionEngine:
 
         Returns:
             Reflection 对象
-        """"
+        """
         if success is None:
             success = self._auto_detect_success(result)
 
@@ -128,7 +128,7 @@ class ReflectionEngine:
         return reflection
 
     def _auto_detect_success(self, result: str) -> bool:
-        """自动判断行动是否成功""""
+        """自动判断行动是否成功"""
         result_lower = result.lower()
         success_signals = ["success", "ok", "done", "completed", "created",
                           "returned", "result:", "200"]
@@ -143,7 +143,7 @@ class ReflectionEngine:
         return success_count > 0 or len(result.strip()) > 20
 
     def _analyze(self, action: str, result: str, success: bool) -> str:
-        """分析行动结果""""
+        """分析行动结果"""
         if success:
             return f"行动 '{action[:60]}' 执行成功。结果: {result[:150]}"
 
@@ -156,7 +156,7 @@ class ReflectionEngine:
         return f"行动 '{action[:60]}' 失败，未知原因: {result[:150]}"
 
     def _generate_lesson(self, action, result, success, analysis) -> str:
-        """从分析中提取经验教训""""
+        """从分析中提取经验教训"""
         if success:
             return f"成功策略: {action[:50]} 的方式有效，可以在类似场景中复用。"
 
@@ -167,7 +167,7 @@ class ReflectionEngine:
         return "需要进一步分析失败原因，建议记录详细信息以便后续排查。"
 
     def _plan_improvement(self, action, result, success, analysis) -> str:
-        """制定改进计划""""
+        """制定改进计划"""
         if success:
             return "继续沿用当前策略，可尝试优化执行效率。"
 
@@ -178,7 +178,7 @@ class ReflectionEngine:
         return "建议: 1) 检查输入参数 2) 增加错误处理 3) 添加重试逻辑"
 
     def _calculate_confidence(self, result: str, analysis: str) -> float:
-        """计算反思置信度""""
+        """计算反思置信度"""
         base = 0.5
         if len(result) > 50:
             base += 0.1
@@ -189,11 +189,11 @@ class ReflectionEngine:
         return min(base, 0.95)
 
     def get_recent_reflections(self, limit: int = 10) -> List[Reflection]:
-        """获取最近的反思""""
+        """获取最近的反思"""
         return self._reflections[-limit:]
 
     def get_reflection_stats(self) -> Dict:
-        """获取反思统计""""
+        """获取反思统计"""
         total = len(self._reflections)
         if total == 0:
             return {"total": 0}
@@ -211,7 +211,7 @@ class ReflectionEngine:
         }
 
     def get_improvement_suggestions(self) -> List[str]:
-        """获取综合改进建议""""
+        """获取综合改进建议"""
         suggestions = []
         stats = self.get_reflection_stats()
 
@@ -240,7 +240,7 @@ class ReflectionEngine:
         return suggestions
 
     def reset(self):
-        """重置反思引擎""""
+        """重置反思引擎"""
         self._reflections.clear()
         self._action_history.clear()
         self._performance_log.clear()

@@ -5,7 +5,7 @@
 - 并行执行
 - 条件分支
 - 错误处理与重试
-""""
+"""
 
 import asyncio
 import sys
@@ -13,7 +13,7 @@ sys.path.insert(0, '/storage/emulated/0/multiling')
 
 
 def demo_basic_workflow():
-    """基础工作流演示""""
+    """基础工作流演示"""
     print("\n--- 基础工作流演示 ---")
 
     from multiling.workflow import DAG, TaskNode, WorkflowEngine
@@ -56,7 +56,7 @@ def demo_basic_workflow():
 
 
 def demo_parallel_workflow():
-    """并行执行演示""""
+    """并行执行演示"""
     print("\n--- 并行执行演示 ---")
 
     from multiling.workflow import DAG, TaskNode, WorkflowEngine
@@ -101,7 +101,7 @@ def demo_parallel_workflow():
 
 
 def demo_retry_workflow():
-    """失败重试演示""""
+    """失败重试演示"""
     print("\n--- 失败重试演示 ---")
 
     from multiling.workflow import DAG, TaskNode, WorkflowEngine
@@ -135,7 +135,7 @@ def demo_retry_workflow():
 
 
 def demo_conditional_workflow():
-    """条件分支演示""""
+    """条件分支演示"""
     print("\n--- 条件分支演示 ---")
 
     from multiling.workflow import DAG, TaskNode, WorkflowEngine
@@ -169,7 +169,7 @@ def demo_conditional_workflow():
 
 
 def demo_error_handling():
-    """错误处理演示""""
+    """错误处理演示"""
     print("\n--- 错误处理演示 ---")
 
     from multiling.workflow import DAG, TaskNode, WorkflowEngine, FailureStrategy
@@ -203,7 +203,7 @@ def demo_error_handling():
 
 
 def demo_complex_pipeline():
-    """复杂数据处理管道""""
+    """复杂数据处理管道"""
     print("\n--- 复杂数据处理管道 ---")
 
     from multiling.workflow import DAG, TaskNode, WorkflowEngine

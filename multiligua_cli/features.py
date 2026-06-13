@@ -12,8 +12,8 @@ from typing import Dict, Optional, List, Any, Callable
 
 log = logging.getLogger("features")
 
-# =============================================================================
-# =============================================================================
+
+
 
 def role_color(role: str) -> str:
     return {
@@ -152,7 +152,7 @@ class QuickFeedback:
     def record(self, rating: str, comment: str = "", context: dict = None):
         entry = {
             "timestamp": time.time(),
-            "rating": rating,  # "up", "down", "neutral"
+            "rating": rating,  
             "comment": comment,
             "context": context or {},
         }
@@ -160,8 +160,8 @@ class QuickFeedback:
             f.write(_json.dumps(entry, ensure_ascii=False) + "\n")
 
 
-# =============================================================================
-# =============================================================================
+
+
 
 class SilentFeatures:
 
@@ -227,16 +227,6 @@ class SilentFeatures:
         self._stats[metric] = self._stats.get(metric, 0) + value
 
     def check_updates(self, repo_url: str = "https://github.com/minxg/minxg"):
-        import subprocess
-        try:
-            result = subprocess.run(
-                ["git", "ls-remote", repo_url, "HEAD"],
-                capture_output=True, text=True, timeout=5
-            )
-            if result.returncode == 0:
-                return result.stdout.split()[0][:8] if result.stdout else None
-        except Exception:
-            pass
         return None
 
     def dependency_health(self) -> Dict[str, bool]:

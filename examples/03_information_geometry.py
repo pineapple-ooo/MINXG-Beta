@@ -3,7 +3,7 @@
 
 The space of probability distributions is a Riemannian manifold. The
 natural gradient is the correct optimization step on that manifold.
-""""
+"""
 from minxg.infogeo import (
     Gaussian, Bernoulli,
     fisher_information_matrix, natural_gradient,

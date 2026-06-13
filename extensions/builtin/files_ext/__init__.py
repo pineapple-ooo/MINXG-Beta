@@ -5,7 +5,7 @@
 功能: 交互式文件浏览、多文件选择、目录遍历
       终端环境: 交互式编号选择
       非交互式环境: glob模式选择
-""""
+"""
 import os
 import sys
 
@@ -18,7 +18,7 @@ EXTENSION_ENABLED = True
 
 
 def handle_command(args) -> int:
-    """CLI命令: minxg ext files <subcommand>""""
+    """CLI命令: minxg ext files <subcommand>"""
     subcmd = getattr(args, 'files_subcommand', None)
 
     if subcmd == "browse":
@@ -35,7 +35,7 @@ def handle_command(args) -> int:
 
 
 def _browse_cli(args) -> int:
-    """打开交互式文件浏览器。""""
+    """打开交互式文件浏览器。"""
     directory = getattr(args, 'directory', os.getcwd())
     directory = os.path.expanduser(directory)
 
@@ -48,7 +48,7 @@ def _browse_cli(args) -> int:
 
 
 def _display_directory(directory: str, depth: int = 0, max_items: int = 50):
-    """显示目录内容。""""
+    """显示目录内容。"""
     max_depth = 2
     if depth > max_depth:
         return
@@ -81,7 +81,7 @@ def _display_directory(directory: str, depth: int = 0, max_items: int = 50):
 
 
 def _select_cli(args) -> int:
-    """按模式选择文件。""""
+    """按模式选择文件。"""
     pattern = getattr(args, 'pattern', '*')
     directory = getattr(args, 'directory', os.getcwd())
     directory = os.path.expanduser(directory)
@@ -105,7 +105,7 @@ def _select_cli(args) -> int:
 
 
 def register_cli(subparsers) -> None:
-    """注册命令行子命令。""""
+    """注册命令行子命令。"""
     p = subparsers.add_parser("files", help="全平台文件管理器")
     sub_p = p.add_subparsers(dest="files_subcommand")
 
@@ -118,7 +118,7 @@ def register_cli(subparsers) -> None:
 
 
 def register_hooks(registry) -> None:
-    """注册AI工具钩子。""""
+    """注册AI工具钩子。"""
     @registry.tool_interceptor(priority=40)
     def inject_file_tools(tools_list):
         tools_list.append({

@@ -1,4 +1,4 @@
-"""Information Geometry: Fisher, natural gradient, divergences.""""
+"""Information Geometry: Fisher, natural gradient, divergences."""
 from minxg.infogeo import (
     Gaussian, Bernoulli, fisher_information_matrix, natural_gradient,
     parametric_kl, hellinger_distance, js_divergence,
@@ -13,7 +13,7 @@ def test_fisher_information_gaussian():
 
 
 def test_natural_gradient_reparameterization_invariance():
-    """Natural gradient differs from Euclidean gradient in non-trivial ways.""""
+    """Natural gradient differs from Euclidean gradient in non-trivial ways."""
     g = Gaussian()
     F = fisher_information_matrix(g, [0.0, 1.0], n_samples=500)
     grad = [0.5, 0.1]

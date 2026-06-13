@@ -3,7 +3,7 @@ minxg/infogeo/operators_ig.py — Register Information Geometry operators
 ================================================================================
 
 100+ information-geometry operators. Operator IDs 7000-7499 are reserved.
-""""
+"""
 from __future__ import annotations
 import math
 from typing import Any, Callable, Dict, List, Optional

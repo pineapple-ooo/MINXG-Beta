@@ -3,7 +3,7 @@ minxg/topo/operators_topo.py — Register Topological operators
 ====================================================================
 
 100+ topological operators. Operator IDs 8000-8499 are reserved.
-""""
+"""
 from __future__ import annotations
 import math
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -16,7 +16,7 @@ from .mapper import mapper_algorithm, cover, _single_link_cluster
 
 
 def _to_complex(data: Dict) -> SimplicialComplex:
-    """Reconstruct a SimplicialComplex from a dict.""""
+    """Reconstruct a SimplicialComplex from a dict."""
     c = SimplicialComplex()
     for s in data.get("simplices", []):
         c.add(Simplex(frozenset(s)))
@@ -77,7 +77,7 @@ def register_topo_operators():
 
     
     def simplex_n(n):
-        """A single (n-1)-simplex with n vertices.""""
+        """A single (n-1)-simplex with n vertices."""
         c = SimplicialComplex()
         s = Simplex(frozenset(range(n)))
         c.add(s)
@@ -89,7 +89,7 @@ def register_topo_operators():
         op_id += 1
 
     def sphere_n(n):
-        """An n-sphere: boundary of an (n+1)-simplex.""""
+        """An n-sphere: boundary of an (n+1)-simplex."""
         c = SimplicialComplex()
         s = Simplex(frozenset(range(n + 2)))
         c.add(s)
@@ -106,7 +106,7 @@ def register_topo_operators():
         """A simplicial model of the torus with 4 vertices, 5 edges, 2 triangles.
 
         Uses a wedge of 2 triangles sharing an edge.
-        """"
+        """
         c = SimplicialComplex()
         c.add(Simplex(frozenset({0})))
         c.add(Simplex(frozenset({0, 1})))
@@ -119,7 +119,7 @@ def register_topo_operators():
                           [], "complex", True, torus)); op_id += 1
 
     def klein_bottle():
-        """A minimal triangulation of the Klein bottle (8 vertices).""""
+        """A minimal triangulation of the Klein bottle (8 vertices)."""
         c = SimplicialComplex()
         for v in range(8):
             c.add(Simplex(frozenset({v})))
@@ -135,7 +135,7 @@ def register_topo_operators():
         return _from_complex(c)
 
     def projective_plane():
-        """A minimal triangulation of RP² (6 vertices, 10 triangles).""""
+        """A minimal triangulation of RP² (6 vertices, 10 triangles)."""
         c = SimplicialComplex()
         for v in range(6):
             c.add(Simplex(frozenset({v})))
@@ -239,7 +239,7 @@ def register_topo_operators():
                           ["filtration", "int"], "features", True, persistent_op)); op_id += 1
 
     def make_filtration(items):
-        """items: list of [birth, vertices]""""
+        """items: list of [birth, vertices]"""
         f = Filtration()
         for birth, verts in items:
             f.add(float(birth), Simplex(frozenset(verts)))

@@ -1,7 +1,7 @@
 """
 demo_extension — ZIP代码扫描器扩展
 功能: 扫描ZIP包内所有代码文件，提取路径结构+代码摘要，生成报告
-""""
+"""
 from __future__ import annotations
 import json
 import os
@@ -29,7 +29,7 @@ SKIP_PATTERNS = {"__pycache__", "node_modules", ".git", ".svn", "vendor",
 
 
 class ZipCodeScanner:
-    """扫描ZIP包内的代码文件，提取路径和摘要。""""
+    """扫描ZIP包内的代码文件，提取路径和摘要。"""
 
     def __init__(self, zip_path: str):
         self.zip_path = os.path.expanduser(zip_path)
@@ -107,7 +107,7 @@ class ZipCodeScanner:
 
 
 def register(api):
-    """扩展入口: 被MINXG加载时自动调用。""""
+    """扩展入口: 被MINXG加载时自动调用。"""
 
     
     api.register_command("zipscan", {
@@ -119,7 +119,7 @@ def register(api):
 
     
     try:
-        from minxg.base import BaseWorker, tool
+        from py_workers.base import BaseWorker, tool
 
         class _ZipScannerWorker(BaseWorker):
             worker_id = "zip_scanner"
@@ -145,7 +145,7 @@ def register(api):
 
 
 def _cli_scan(args, api=None):
-    """CLI命令处理函数。""""
+    """CLI命令处理函数。"""
     if not args.files or len(args.files) < 1:
         print("Usage: minxg ext zipscan <zip_path> [--format json|text]")
         return 1
@@ -169,7 +169,7 @@ def _cli_scan(args, api=None):
 
 
 def _print_report(r: Dict[str, Any]):
-    """打印人类可读的报告。""""
+    """打印人类可读的报告。"""
     print(f"""
 ╔══════════════════════════════════════════════════════════════╗
 ║             ZIP Code Scanner — Scan Report                  ║
@@ -178,7 +178,7 @@ def _print_report(r: Dict[str, Any]):
 ║ Total files in archive : {r['total_files_in_zip']:<6}                        ║
 ║ Code files detected    : {r['code_files_found']:<6}                        ║
 ║ Total lines of code    : {str(r['total_lines_of_code']):<6}                        ║
-╠══════════════════════════════════════════════════════════════╣"""")
+╠══════════════════════════════════════════════════════════════╣""")
 
     print("║ Languages detected:")
     for lang, count in sorted(r["languages_detected"].items(),

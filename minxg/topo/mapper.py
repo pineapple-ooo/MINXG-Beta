@@ -19,7 +19,7 @@ Mapper is used for:
   - Topological feature extraction for ML
   - Understanding the topology of loss landscapes
   - Clustering with topological guarantees
-""""
+"""
 from __future__ import annotations
 import math
 from collections import defaultdict
@@ -37,7 +37,7 @@ def cover(intervals: int, overlap: float = 0.5,
 
     Returns:
         List of (lo, hi) tuples.
-    """"
+    """
     if intervals <= 0:
         return []
     width = (f_max - f_min) / (intervals * (1 - overlap) - overlap + 1)
@@ -81,7 +81,7 @@ def mapper_algorithm(points: List[List[float]],
           - 'edges': list of (node_i, node_j) pairs that share a point
           - 'cover': the cover used
           - 'graph': adjacency dict for the graph
-    """"
+    """
     
     f_values = [filter_fn(p) for p in points]
     f_min, f_max = min(f_values), max(f_values)
@@ -134,7 +134,7 @@ def mapper_algorithm(points: List[List[float]],
 
 
 def _single_link_cluster(point_ids: List[int], points: List[List[float]], eps: float):
-    """Cluster points using single-linkage (union-find) clustering.""""
+    """Cluster points using single-linkage (union-find) clustering."""
     n = len(point_ids)
     parent = list(range(n))
     def find(x):
