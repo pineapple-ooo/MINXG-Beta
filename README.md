@@ -47,17 +47,17 @@ After install:
 
 ```python
 import minxg
-print(minxg.VERSION)         # "1.2.0"
+print(minxg.VERSION)         # "1.3.0"
 print(minxg.detect_platform())
 ```
 
 Verified end-to-end on Termux/Android (`Python 3.13`) and Linux:
 ```bash
 $ pip install -e .
-Successfully installed minxg-beta-1.2.0
+Successfully installed minxg-beta-1.3.0
 
 $ python3 -c "import minxg; print(minxg.VERSION, len(minxg.__all__), 'workers;', minxg.TOTAL_MATHEMATICAL_OPERATORS, 'math ops')"
-1.2.0 55 workers; 306 math ops
+1.3.0 55 workers; 306 math ops
 ```
 
 **PyPI publication is on the roadmap but not yet done.** Until the

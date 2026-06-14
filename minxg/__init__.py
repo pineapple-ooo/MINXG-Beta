@@ -92,7 +92,12 @@ __all__ = [
     "get_tools_by_category", "get_system_capabilities",
 ]
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
+
+try:
+    from . import cap as _cap
+except ImportError:
+    _cap = None
 
 try:
     from . import ga

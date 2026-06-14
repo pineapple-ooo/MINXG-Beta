@@ -5,6 +5,28 @@ All notable changes to MINXG are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] — Corpus-based Capability Registry
+
+### Added
+- `minxg.cap` — Corpus-based Capability Registry. Scans every Cell's
+  `Capability` declarations across the contracts registry and exposes
+  a single, queryable index (`cap lookup`, `cap info`, `cap diff`,
+  `cap tree`, `cap regen`, `cap ci`). Backed by a deterministic
+  manifest (`manifest.json`) keyed by Cell identity + capability
+  signature, so two warehouse clones can be diff-ed byte-stable.
+  Runs as a CLI (`python -m minxg.cap`) and as a normative gate in
+  CI (`tests/test_cap.py`).
+- Tests for the cap subsystem: 16 tests, all passing.
+
+### Changed
+- `minxg.VERSION` is now `"1.3.0"`.
+- `pyproject.toml` `version = "1.3.0"`.
+- `minxg/__init__.py` now re-exports the `cap` submodule under a
+  guarded import so `import minxg.cap` continues to work.
+
+### Tests
+- 130 passed (+1 skipped, no rustc on Termux), ~3 s
+
 ## [1.2.0] — Self-developed subsystems
 
 ### Added
