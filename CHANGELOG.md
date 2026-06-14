@@ -5,7 +5,43 @@ All notable changes to MINXG are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [1.3.0] — Corpus-based Capability Registry
+> **Versioning policy (effective 2026-06-14):** MINXG is in pre-1.0
+> development. Public releases start at **`0.10.0`**; the legacy
+> `1.x` numbering on internal commits is retained in git history as
+> a milestone but is **not** part of the public release graph.
+
+## [0.10.0] — Corpus-based Capability Registry (first 0.x public release)
+
+### Added
+- `minxg.cap` — Corpus-based Capability Registry. Scans every Cell's
+  `Capability` declarations across the contracts registry and exposes
+  a single, queryable index (`cap lookup`, `cap info`, `cap diff`,
+  `cap tree`, `cap regen`, `cap ci`). Backed by a deterministic
+  manifest (`manifest.json`) keyed by Cell identity + capability
+  signature, so two warehouse clones can be diff-ed byte-stable.
+  Runs as a CLI (`python -m minxg.cap`) and as a normative gate in
+  CI (`tests/test_cap.py`).
+- First-time release-automation path: `git tag -a v0.10.0` →
+  `gh release create v0.10.0 --target main`.
+
+### Changed
+- **Re-versioned:** `minxg.VERSION`, `pyproject.toml`, README are
+  now `0.10.0`. Changelog history above `0.10.0` is preserved under
+  the legacy section for trace-ability of internal milestones
+  (v0.0.1a → v0.0.2-audit → v1.1.0 → v1.2.0 → v1.3.0-internal).
+- `minxg/__init__.py` re-exports the `cap` submodule under a
+  guarded import so `import minxg.cap` keeps working.
+
+### Tests
+- 130 passed (+1 skipped, no rustc on Termux), ~3 s
+
+## [1.3.0-internal] — Corpus-based Capability Registry (legacy numbering)
+
+> Internal milestone — superseded by **0.10.0** as the first public
+> release on 2026-06-14. The commit graph is preserved; the public
+> tag was removed (only the GitHub-protected `v1.3.0` tag object
+> remains in history as a reference point). Do **not** depend on this
+> version externally.
 
 ### Added
 - `minxg.cap` — Corpus-based Capability Registry. Scans every Cell's
