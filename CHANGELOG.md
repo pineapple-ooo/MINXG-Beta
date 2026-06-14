@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > `1.x` numbering on internal commits is retained in git history as
 > a milestone but is **not** part of the public release graph.
 
+## [0.11.0] — Re-versioning hot-fix (+0.01)
+
+### Changed
+- **Re-versioned** `0.10.0` → `0.11.0`. No code changes; this is a
+  marker commit to increment the public number on top of the
+  original 0.10.0 snapshot, per project policy.
+- `minxg.VERSION`, `pyproject.toml`, README all reflect `0.11.0`.
+- CHANGELOG prepended with this entry; `0.10.0` section retained
+  below as the source-of-truth snapshot for that tag.
+
+### Tests
+- 130 passed (+1 skipped, no rustc on Termux), ~3 s
+
 ## [0.10.0] — Corpus-based Capability Registry (first 0.x public release)
 
 ### Added
