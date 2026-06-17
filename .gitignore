@@ -1,0 +1,92 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Native build artefacts
+*.so
+*.so.*
+*.a
+*.obj
+*.dll
+*.dylib
+*.class
+*.jar
+
+# C/C++ build subdirs (in case `build/` is moved)
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+CMakeUserPresets.json
+compile_commands.json
+
+# Profiling / coverage
+.coverage
+.coverage.*
+htmlcov/
+*.gcda
+*.gcno
+*.gcov
+.tox/
+.benchmarks/
+.pytest_cache/
+
+# 数据库
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# 日志
+*.log
+*.log.*
+
+# 环境
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 文档生成输出
+docs/*.html
+docs/search.json
+docs/sitemap.xml
+!docs/index.html
+
+# 数据
+data/
+!data/.gitkeep
+
+# 临时文件
+/tmp/
+*.tmp
+*.bak
+
+# Docker
+.docker/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Skills (project-local, not Hermes global)
+skills/
+
+# Agent plan files
+.hermes/plans/
+
+# Legacy artifacts (kept locally, not for GitHub)
+_legacy/
+
+# Local test artefact databases
+.test_entropic/
+
+# Internal agent scratchpads (AI planning notes, not source)
+.agent_plans/

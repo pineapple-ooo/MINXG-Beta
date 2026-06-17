@@ -1,0 +1,30 @@
+name: zipscan
+version: 1.0.0
+author: MINXG Extension Demo
+description: >
+  ZIP包代码扫描器 - 自动扫描ZIP压缩包内所有代码文件，
+  提取目录结构、语言统计、代码行数，生成结构化报告。
+license: MIT
+homepage: https://github.com/minxg/ext-zipscan
+min_minxg_version: "0"
+platforms:
+  - linux
+  - macos
+  - windows
+  - android
+  - ios
+  - web
+dependencies:
+  python:
+    - zipfile>=0
+tags:
+  - archive
+  - scanner
+  - code-analysis
+keywords:
+  - zip
+  - code
+  - scanner
+  - analyzer
+  - loc
+  - languages
