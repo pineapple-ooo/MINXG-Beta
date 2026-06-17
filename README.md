@@ -1,11 +1,11 @@
 # MINXG
 
-A modular AI worker platform organised as five orthogonal operator
-planes, plus a self-developed driver engine, plus six categorical
-operator libraries, plus optional languages / compression / twin
-compilers / docs lenses.
+A modular AI worker platform built on five orthogonal operator planes,
+with a self-developed driver engine, comprehensive operator libraries,
+and support for multi-language, compression, twin compilation and
+documentation generation.
 
-One small pip install. Pure Python. Runs on Termux.
+Pure Python, one pip install, runs on Termux and across platforms.
 
 ## Install
 
