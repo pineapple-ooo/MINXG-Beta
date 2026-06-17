@@ -2,15 +2,15 @@
 
 A modular AI worker platform organised as five orthogonal operator
 planes, plus a self-developed driver engine, plus six categorical
-operator libraries, plus optional languages / compression / twin
+operator libraries, plus optional language / compression / twin
 compilers / docs lenses.
 
 One small pip install. Pure Python. Runs on Termux.
 
 ## Install
 
-The Python package's distribution name is **`minxg`** and the
-top-level import is **`minxg`**.
+The Python package distribution name is **`minxg`** and the top-level
+import is **`minxg`**.
 
 ### One-liner (any platform)
 
@@ -39,28 +39,25 @@ REPO_URL=https://github.com/pineapple-ooo/MINXG-Beta.git curl -fsSL https://raw.
 ### Local clone (developer)
 
 ```bash
-git clone https://github.com/<owner>/minxg.git
-cd minxg
-bash install.sh          # picks up the existing clone, skips the git step
+git clone https://github.com/pineapple-ooo/MINXG-Beta.git
+cd MINXG-Beta
+pip install -e .
+```
 
 After install:
 
 ```python
 import minxg
-print(
 print(minxg.detect_platform())
 ```
 
 Verified end-to-end on Termux/Android (`Python 3.13`) and Linux:
+
 ```bash
 $ pip install -e .
 
 $ python3 -c "import minxg; print(minxg.detect_platform())"
 ```
-
-**PyPI publication is on the roadmap but not yet done.** Until the
-package shows up on PyPI under the `minxg` name, the source-
-tree mode above is the supported install path.
 
 The codebase has no compiled dependencies on install; everything in
 `minxg/five_pillars/`, `minxg/driver/`, `minxg/contracts/`,
@@ -96,7 +93,7 @@ For lossless compression:
 from minxg.lossless import LosslessCodec
 
 codec = LosslessCodec()
-blob = codec.compress(b"some payload") .payload
+blob = codec.compress(b"some payload").payload
 back  = codec.decompress(blob)
 assert back == b"some payload"
 ```
