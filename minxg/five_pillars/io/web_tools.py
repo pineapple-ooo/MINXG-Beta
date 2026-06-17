@@ -57,7 +57,7 @@ class WebToolsWorker(BaseWorker):
         import urllib.request, json as _json
         try:
             req = urllib.request.Request(url)
-            req.add_header("User-Agent", headers.get("User-Agent", "MINXG/0") if headers else "MINXG/0")
+            req.add_header("User-Agent", headers.get("User-Agent", "MINXG/1.0") if headers else "MINXG/1.0")
             if headers:
                 for k, v in headers.items():
                     req.add_header(k, v)
@@ -90,7 +90,7 @@ class WebToolsWorker(BaseWorker):
             data = body.encode()
             req = urllib.request.Request(url, data=data, method="POST")
             req.add_header("Content-Type", "application/json")
-            req.add_header("User-Agent", "MINXG/0")
+            req.add_header("User-Agent", "MINXG/1.0")
             if headers:
                 for k, v in headers.items():
                     req.add_header(k, v)
@@ -110,7 +110,7 @@ class WebToolsWorker(BaseWorker):
         import urllib.request
         try:
             req = urllib.request.Request(url, method="HEAD")
-            req.add_header("User-Agent", "MINXG/0")
+            req.add_header("User-Agent", "MINXG/1.0")
             resp = urllib.request.urlopen(req, timeout=timeout)
             return {"reachable": True, "status": resp.status, "url": url}
         except Exception as e:

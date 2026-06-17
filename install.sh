@@ -1,6 +1,6 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # ═══════════════════════════════════════════════════════════════
-#  MINXG — 自动安装脚本 (全平台)
+#  MINXG v1.0.0 — 自动安装脚本 (全平台)
 #
 #  用法:
 #    本地:    bash install.sh                              # clone 模式自动跳过
@@ -39,10 +39,10 @@ ENVIRONMENT:
 
 EXAMPLES:
     # fresh machine, one line:
-    curl -fsSL https://raw.githubusercontent.com/pineapple-ooo/MINXG-Beta/main/install.sh | bash
+    curl -fsSL https://raw.githubusercontent.com/Disability-Human/MINXG-Beta/main/install.sh | bash
 
     # fork:
-    REPO_URL=https://github.com/pineapple-ooo/MINXG-Beta.git bash install.sh
+    REPO_URL=https://github.com/you/minxg.git bash install.sh
 
     # already cloned:
     cd minxg && bash install.sh
@@ -54,14 +54,14 @@ fi
 
 # ── 配置 — 把这里改成你的真实仓库 URL ───────────────────
 # 优先级: $1 > $REPO_URL > 内置默认. 注意管道模式 ($1="") 时必须看 env.
-REPO_URL_DEFAULT="https://github.com/pineapple-ooo/MINXG-Beta.git"
+REPO_URL_DEFAULT="https://github.com/Disability-Human/MINXG-Beta.git"
 REPO_URL="${1:-${REPO_URL:-$REPO_URL_DEFAULT}}"
 INSTALL_DIR="${MINXG_DIR:-${2:-$HOME/.minxg-src}}"
 CLONE_BRANCH="${MINXG_BRANCH:-${3:-}}"
 # ───────────────────────────────────────────────────────
 
 echo "════════════════════════════════════════"
-echo "  MINXG 自动安装"
+echo "  MINXG v1.0.0 自动安装"
 echo "════════════════════════════════════════"
 echo ""
 

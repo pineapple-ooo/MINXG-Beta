@@ -50,7 +50,7 @@ class ToolDoc:
     examples: List[str]
     notes: List[str] = field(default_factory=list)
     deprecated: bool = False
-    since_version: str = "0"
+    since_version: str = "1.0.0"
 
 @dataclass
 class PlatformDoc:

@@ -1,5 +1,5 @@
 """
-minxg/archive_tools.py — ZIP/RAR/7z/TAR archive operations
+minxg/archive_tools.py — ZIP/RAR/7z/TAR archive operations v1.0.0
 
 Auto-detects archive format via magic bytes, supports recursive extraction,
 password-protected archives, and in-memory streaming.
@@ -71,7 +71,7 @@ class ArchiveWorker(BaseWorker):
     Supports auto-detection, recursive extraction, and password-protected archives.
     """
     worker_id = "archive"
-    version = "0"
+    version = "1.0.0"
 
     @tool(description="List contents of an archive (ZIP, TAR, etc.) without extracting")
     def archive_list(self, path: str) -> Dict[str, Any]:

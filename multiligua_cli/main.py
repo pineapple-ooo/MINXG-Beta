@@ -1,5 +1,5 @@
 """
-MINXG CLI — Multi-language AI orchestration framework 
+MINXG CLI — Multi-language AI orchestration framework v1.0.0
 
 Commands:
     minxg                    Start TUI chat (streaming + tool call visualization)
@@ -46,6 +46,7 @@ from multiligua_cli.utils import (
     print_info,
     print_success,
     set_process_title,
+    __version__,
 )
 from multiligua_cli.i18n import T, set_lang, get_lang, LANGUAGES, LANG_CODES
 
@@ -221,7 +222,7 @@ def run_status(args) -> int:
         table.add_column("Status", style="white")
         table.add_row("[bold]Config[/bold]",
             "[green]Found[/green]" if has_config else "[red]Missing[/red]")
-        table.add_row("[bold]Version[/bold]")
+        table.add_row("[bold]Version[/bold]", __version__)
         table.add_row("[bold]Python[/bold]", sys.version.split()[0])
         table.add_row("[bold]Platform[/bold]", sys.platform)
         if has_config:
@@ -233,6 +234,7 @@ def run_status(args) -> int:
     else:
         print(colorize("\nSystem Status", Colors.CYAN, Colors.BOLD))
         print(f"  Config: {'Found' if has_config else 'Missing'}")
+        print(f"  Version: {__version__}")
         print(f"  Python: {sys.version.split()[0]}")
         print(f"  Platform: {sys.platform}")
         if has_config:
@@ -490,6 +492,7 @@ Examples:
 """,
     )
 
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose logging")
     parser.add_argument("--list-extensions", action="store_true", help="List all extensions")
     parser.add_argument("--list-skills", action="store_true", help="List all skills")

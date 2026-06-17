@@ -1,7 +1,7 @@
 """
-minxg/server.py — HTTP RPC server for minxg 0
+minxg/server.py — HTTP RPC server for minxg v1.0.0
 
-  GET  /health       -> {"status":"ok", "version":"0", "registered_workers":[...]}
+  GET  /health       -> {"status":"ok", "version":"1.0.0", "registered_workers":[...]}
   GET  /tools        -> {"workers": {"fs_io": [...], ...}}
   POST /rpc          -> body: {"worker":"fs_io","tool":"read_file","params":{"path":"..."}}
 """
@@ -116,7 +116,7 @@ async def start_server(host: str = "127.0.0.1", port: int = 19001,
     async def health(req):
         total_tools = sum(len(w.tools) for w in registry.workers.values())
         return web.json_response({
-            "status": "ok", "worker": "py", "version": "0",
+            "status": "ok", "worker": "py", "version": "1.0.0",
             "registered_workers": list(registry.workers.keys()),
             "port": port, "total_tools": total_tools,
             "uptime_hint": "see /stats"
@@ -196,7 +196,7 @@ async def start_server(host: str = "127.0.0.1", port: int = 19001,
 
 
 def main():
-    parser = argparse.ArgumentParser(description="py_workers HTTP RPC server 0")
+    parser = argparse.ArgumentParser(description="py_workers HTTP RPC server v1.0.0")
     parser.add_argument("--host", default=os.environ.get("WORKER_HOST", "127.0.0.1"))
     parser.add_argument("--port", type=int, default=int(os.environ.get("WORKER_PORT", "19001")))
     parser.add_argument("--workers", nargs="*", default=None,

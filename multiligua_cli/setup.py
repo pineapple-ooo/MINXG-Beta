@@ -20,7 +20,7 @@ from multiligua_cli.wizard_ui import (
     Colors, HAS_RICH, console,
 )
 
-__version__ = "0"
+__version__ = "1.0.0"
 
 
 
@@ -97,7 +97,7 @@ from multiligua_cli.platforms import PLATFORMS, PLATFORM_ORDER
 
 
 
-TOTAL_STEPS = 6
+TOTAL_STEPS = 8
 
 
 def setup_language(config: Dict[str, Any], existing: Dict[str, Any]) -> None:
@@ -200,42 +200,31 @@ def _prompt_model_with_fetch(provider_info: dict, existing_model: str | None,
 
 def _fetch_models(base_url: str, api_key: str) -> List[str]:
     """Fetch available models from the provider's /models endpoint.
-    Non-blocking: 3-second timeout, graceful fallback on error.
-    Uses concurrent.futures to avoid blocking the wizard on slow networks."""
-    import ssl, concurrent.futures
-    if not base_url or not api_key:
-        return []
-    url = base_url.rstrip("/") + "/models"
-
-    def _do_fetch():
-        try:
-            import urllib.request
-            req = urllib.request.Request(url)
-            req.add_header("Accept", "application/json")
-            req.add_header("Authorization", f"Bearer {api_key}")
-            ctx = ssl.create_default_context()
-            with urllib.request.urlopen(req, timeout=3, context=ctx) as resp:
-                data = json.loads(resp.read().decode())
-                if isinstance(data, dict):
-                    models = data.get("data", data.get("models", []))
-                    if not models:
-                        return []
-                    return [m.get("id", m.get("name", "")) if isinstance(m, dict) else str(m)
-                            for m in models if (m.get("id") or m.get("name") if isinstance(m, dict) else m)][:50]
-        except Exception:
-            pass
-        return []
-
-    # Run network fetch in background thread so wizard stays responsive
+    Uses TLS with certificate verification; falls back gracefully."""
+    import ssl
     try:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
-            fut = ex.submit(_do_fetch)
-            try:
-                return fut.result(timeout=3)
-            except concurrent.futures.TimeoutError:
-                return []
+        import urllib.request
+        url = base_url.rstrip("/") + "/models"
+        req = urllib.request.Request(url)
+        req.add_header("Accept", "application/json")
+        if api_key:
+            req.add_header("Authorization", f"Bearer {api_key}")
+        ctx = ssl.create_default_context()
+        with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
+            data = json.loads(resp.read().decode())
+            if isinstance(data, dict):
+                models = data.get("data", data.get("models", []))
+                if not models:
+                    return []
+                names = []
+                for m in models:
+                    n = m.get("id", m.get("name", "")) if isinstance(m, dict) else str(m)
+                    if n:
+                        names.append(n)
+                return names[:50]
     except Exception:
-        return []
+        pass
+    return []
 
 
 def setup_platforms(config: Dict[str, Any], existing: Dict[str, Any]) -> None:
@@ -380,7 +369,7 @@ def setup_browser_search(config: Dict[str, Any], existing: Dict[str, Any]) -> No
 
 def show_summary(config: Dict[str, Any]) -> None:
     """Step 8: Configuration summary + save."""
-    print_step_progress(6, TOTAL_STEPS, "Summary & Save")
+    print_step_progress(8, TOTAL_STEPS, "Summary & Save")
     print()
 
     lang = config.get("lang", "en")
@@ -426,7 +415,7 @@ def show_summary(config: Dict[str, Any]) -> None:
 
 
 def run_setup():
-    """Main wizard entry (6 steps: Language, AI Provider, Platforms, Gateway, Environment, Summary)."""
+    """Main wizard entry."""
     clear_screen()
     print_banner()
 
@@ -437,10 +426,14 @@ def run_setup():
     config = {}
 
     setup_language(config, existing)
+
     setup_ai_provider(config, existing)
     setup_platforms(config, existing)
     setup_gateway(config, existing)
     setup_environment(config, existing)
+    setup_hot_reload(config, existing)
+
+    setup_browser_search(config, existing)
 
     show_summary(config)
 

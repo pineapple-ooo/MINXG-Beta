@@ -33,7 +33,7 @@ class SessionState:
 
 class StateSessionWorker(BaseWorker):
     worker_id = "state_session"
-    version = "0"
+    version = "1.0.0"
 
     def __init__(self):
         self._sessions: Dict[str, SessionState] = {}

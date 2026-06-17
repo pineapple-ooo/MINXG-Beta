@@ -1,5 +1,5 @@
 """
-minxg/adb_tools.py — Android Debug Bridge (ADB) tools
+minxg/adb_tools.py — Android Debug Bridge (ADB) tools v1.0.0
 
 Complete ADB command suite for Android devices: device management, shell,
 app install/uninstall, file push/pull, logcat, screencap, input, reboot.
@@ -47,7 +47,7 @@ class AdbWorker(BaseWorker):
     Auto-disabled on non-Android platforms.
     """
     worker_id = "adb"
-    version = "0"
+    version = "1.0.0"
 
     def _register_tools(self):
         tools = [

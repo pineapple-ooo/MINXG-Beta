@@ -1,5 +1,5 @@
 """
-extensions/import_wizard.py — 全平台扩展包导入向导
+extensions/import_wizard.py — 全平台扩展包导入向导 v1.0.0
 
 提供交互式/非交互式扩展包导入功能:
 - 交互式: 终端文件浏览器选择 .py/.zip/.tar.gz 扩展包

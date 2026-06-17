@@ -1,4 +1,4 @@
-"""gateway module — OpenHTTP AI Agent Gateway 
+"""gateway module — OpenHTTP AI Agent Gateway v1.0.0
 
 Core modules:
   server.py    → GatewayServer (OpenAI-compatible API + session management)

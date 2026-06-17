@@ -26,7 +26,12 @@ class VersionWorker(BaseWorker):
     @tool
     async def minxg_version(self) -> dict:
         """Get MINXG version info."""
-        return {"version": "0", "build": "local", "codename": "DeepAdapter", "full": "0-build"}
+        try:
+            import sys; sys.path.insert(0, '.')
+            from src.core.config._version import version_string, __version__, __build__, __codename__
+            return {"version": __version__, "build": __build__, "codename": __codename__, "full": version_string()}
+        except:
+            return {"version": "1.0.0", "build": "?", "codename": "DeepAdapter"}
 
     @tool
     async def python_version_check(self) -> dict:

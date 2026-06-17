@@ -1,5 +1,5 @@
 """
-Gateway Runner - OpenHTTP AI Agent Gateway 
+Gateway Runner - OpenHTTP AI Agent Gateway v1.0.0
 
 
 """
@@ -80,7 +80,7 @@ async def run_gateway(
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="MINXG OpenHTTP Gateway ")
+    parser = argparse.ArgumentParser(description="MINXG OpenHTTP Gateway v1.0.0")
     parser.add_argument("--host", default=None, help="Gateway bind host (default: from config)")
     parser.add_argument("--port", type=int, default=None, help="Gateway bind port (default: 18080)")
     parser.add_argument("--config", default=None, help="Config YAML path")

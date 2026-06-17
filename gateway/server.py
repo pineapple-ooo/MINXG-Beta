@@ -1,5 +1,5 @@
 """
-gateway/server.py — MINXG OpenHTTP AI Agent Gateway 
+gateway/server.py — MINXG OpenHTTP AI Agent Gateway v1.0.0
 
 Core OpenAI-compatible API server, chaining:
   - WorkerRouter       : Worker routing layer (py_workers + legacy)
@@ -49,7 +49,7 @@ class GatewayServer:
         
         self.host = gw_cfg.get("host", "0.0.0.0")
         self.port = gw_cfg.get("port", 18080)
-        self.version = "0"
+        self.version = "1.0.0"
 
         
         self.ai_provider = ai_cfg.get("provider", "openai")

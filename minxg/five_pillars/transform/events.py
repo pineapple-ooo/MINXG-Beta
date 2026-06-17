@@ -30,7 +30,7 @@ class Event:
 
 class EventsWorker(BaseWorker):
     worker_id = "events"
-    version = "0"
+    version = "1.0.0"
 
     def __init__(self):
         self._handlers: Dict[str, List[Dict]] = defaultdict(list)  

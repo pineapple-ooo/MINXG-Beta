@@ -40,7 +40,7 @@ def cmd_status():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="py_workers HTTP RPC runner ")
+    parser = argparse.ArgumentParser(description="py_workers HTTP RPC runner v1.0.0")
     parser.add_argument("--host", default=os.environ.get("WORKER_HOST", "127.0.0.1"))
     parser.add_argument("--port", type=int, default=int(os.environ.get("WORKER_PORT", "19001")))
     parser.add_argument("--workers", nargs="*", default=None)

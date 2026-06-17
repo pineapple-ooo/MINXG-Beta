@@ -10,6 +10,7 @@ build/
 *.so
 *.so.*
 *.a
+*.o
 *.obj
 *.dll
 *.dylib

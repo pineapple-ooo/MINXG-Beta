@@ -8,7 +8,7 @@ from __future__ import annotations
 EXTENSION_NAME = "hello"
 EXTENSION_PRIORITY = 50
 EXTENSION_ENABLED = True
-EXTENSION_VERSION = "0"
+EXTENSION_VERSION = "1.0.0"
 
 
 

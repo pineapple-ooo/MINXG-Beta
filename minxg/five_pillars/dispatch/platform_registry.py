@@ -1,5 +1,5 @@
 """
-minxg/platform_registry.py — Platform-aware tool registry
+minxg/platform_registry.py — Platform-aware tool registry v1.0.0
 
 Every tool in MINXG declares which platforms it supports. This module:
   1. Auto-detects the current platform

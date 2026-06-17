@@ -24,13 +24,13 @@ try:
         base64_encode as _cpp_base64_encode, base64_decode as _cpp_base64_decode,
     )
     _HAS_CPP = True
-except Exception:
+except ImportError:
     _HAS_CPP = False
 
 
 class CryptoToolsWorker(BaseWorker):
     worker_id = "crypto_tools"
-    version = "0"
+    version = "1.0.0"
 
     @tool(description="MD5 hash", category="hash")
     async def md5(self, text: str) -> Dict:

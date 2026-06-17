@@ -23,7 +23,7 @@ except (ImportError, OSError):
 
 class StringWorker(BaseWorker):
     worker_id = "string_worker"
-    version = "0"
+    version = "1.0.0"
 
     @tool
     async def slugify(self, text: str = "") -> dict:

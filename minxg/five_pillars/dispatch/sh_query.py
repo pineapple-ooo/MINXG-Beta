@@ -12,7 +12,7 @@ from minxg.five_pillars.dispatch.system import SystemWorker
 
 class ShQueryWorker(BaseWorker):
     worker_id = "sh_query"
-    version = "0"
+    version = "1.0.0"
 
     def __init__(self):
         super().__init__()

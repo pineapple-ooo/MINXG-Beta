@@ -9,7 +9,7 @@ from minxg.base import BaseWorker, tool
 
 class MediaToolsWorker(BaseWorker):
     worker_id = "media_tools"
-    version = "0"
+    version = "1.0.0"
 
     @tool(description="Get image info: size/format/filesize", category="image")
     async def image_info(self, path: str) -> Dict:

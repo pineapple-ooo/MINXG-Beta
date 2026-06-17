@@ -89,7 +89,7 @@ extensions/user/my_extension/
 ```yaml
 # extension.yaml
 name: my_extension
-version: 0
+version: 1.0.0
 author: Your Name
 description: A custom extension
 entry_point: my_extension.worker:worker

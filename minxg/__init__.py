@@ -92,6 +92,7 @@ __all__ = [
     "get_tools_by_category", "get_system_capabilities",
 ]
 
+VERSION = "0.11.0"
 
 try:
     from . import cap as _cap

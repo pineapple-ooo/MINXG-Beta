@@ -1,5 +1,5 @@
 """
-minxg/root_tools.py — Android ROOT command tools
+minxg/root_tools.py — Android ROOT command tools v1.0.0
 
 Superuser operations: root check, su execution, mount, chroot, iptables,
 sysctl, kernel modules, SELinux, Magisk management, system backup/restore.
@@ -64,7 +64,7 @@ class RootWorker(BaseWorker):
     All operations are logged for audit purposes.
     """
     worker_id = "root"
-    version = "0"
+    version = "1.0.0"
 
     def _register_tools(self):
         tools = [

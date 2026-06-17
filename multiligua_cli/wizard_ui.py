@@ -82,7 +82,7 @@ def _ansi(text: str, *styles) -> str:
 
 
 def print_banner():
-    ver = "0"
+    ver = "1.0.0"
     lang = get_lang()
     tagline = T("brand_full")
 
@@ -237,7 +237,6 @@ class MinxgMenu:
                     for i, opt in enumerate(self.options):
                         print(f"  {i + 1}. {opt}")
                     hint = T("wizard_nav_hint")
-                    choice = input(f"{hint}: ")
                     idx = int(choice) - 1
                     if 0 <= idx < len(self.options):
                         return idx

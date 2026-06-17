@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 
-__version__ = "0"
+__version__ = "1.0.0"
 
 
 

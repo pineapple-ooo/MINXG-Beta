@@ -2,20 +2,20 @@
 
 A modular AI worker platform organised as five orthogonal operator
 planes, plus a self-developed driver engine, plus six categorical
-operator libraries, plus optional language / compression / twin
+operator libraries, plus optional languages / compression / twin
 compilers / docs lenses.
 
 One small pip install. Pure Python. Runs on Termux.
 
 ## Install
 
-The Python package distribution name is **`minxg`** and the top-level
-import is **`minxg`**.
+The Python package's distribution name is **`minxg-beta`** and the
+top-level import is **`minxg`**.
 
 ### One-liner (any platform)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/pineapple-ooo/MINXG-Beta/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Disability-Human/MINXG-Beta/main/install.sh | bash
 ```
 
 That single command:
@@ -30,34 +30,39 @@ Variants:
 
 ```bash
 # custom clone dir
-MINXG_DIR=/opt/minxg curl -fsSL https://raw.githubusercontent.com/pineapple-ooo/MINXG-Beta/main/install.sh | bash
+MINXG_DIR=/opt/minxg curl -fsSL https://raw.githubusercontent.com/Disability-Human/MINXG-Beta/main/install.sh | bash
 
 # explicit repo URL (when forking)
-REPO_URL=https://github.com/pineapple-ooo/MINXG-Beta.git curl -fsSL https://raw.githubusercontent.com/pineapple-ooo/MINXG-Beta/main/install.sh | bash
+REPO_URL=https://github.com/you/minxg.git curl -fsSL https://raw.githubusercontent.com/Disability-Human/MINXG-Beta/main/install.sh | bash
 ```
 
 ### Local clone (developer)
 
 ```bash
-git clone https://github.com/pineapple-ooo/MINXG-Beta.git
-cd MINXG-Beta
-pip install -e .
-```
+git clone https://github.com/<owner>/minxg.git
+cd minxg
+bash install.sh          # picks up the existing clone, skips the git step
 
 After install:
 
 ```python
 import minxg
+print(minxg.VERSION)         # "0.11.0"
 print(minxg.detect_platform())
 ```
 
 Verified end-to-end on Termux/Android (`Python 3.13`) and Linux:
-
 ```bash
 $ pip install -e .
+Successfully installed minxg-beta-0.11.0
 
-$ python3 -c "import minxg; print(minxg.detect_platform())"
+$ python3 -c "import minxg; print(minxg.VERSION, len(minxg.__all__), 'workers;', minxg.TOTAL_MATHEMATICAL_OPERATORS, 'math ops')"
+0.11.0 55 workers; 306 math ops
 ```
+
+**PyPI publication is on the roadmap but not yet done.** Until the
+package shows up on PyPI under the `minxg-beta` name, the source-
+tree mode above is the supported install path.
 
 The codebase has no compiled dependencies on install; everything in
 `minxg/five_pillars/`, `minxg/driver/`, `minxg/contracts/`,
@@ -71,6 +76,7 @@ end, including the loader of optional C/C++/Go native modules.
 ```python
 import minxg
 
+print(minxg.VERSION)
 print(minxg.detect_platform())
 
 fs = minxg.FsIoWorker()
@@ -93,7 +99,7 @@ For lossless compression:
 from minxg.lossless import LosslessCodec
 
 codec = LosslessCodec()
-blob = codec.compress(b"some payload").payload
+blob = codec.compress(b"some payload") .payload
 back  = codec.decompress(blob)
 assert back == b"some payload"
 ```

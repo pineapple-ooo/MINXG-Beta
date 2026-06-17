@@ -1,5 +1,5 @@
 """
-multiligua_cli/file_selector.py — Interactive terminal file selector 
+multiligua_cli/file_selector.py — Interactive terminal file selector v1.0.0
 
 Provides directory browsing and multi-file selection via interactive terminal UI.
 Non-interactive fallback supports glob patterns for scripting.

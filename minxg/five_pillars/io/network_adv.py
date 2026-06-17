@@ -1,5 +1,5 @@
 """
-minxg/network_adv.py — Advanced network operations
+minxg/network_adv.py — Advanced network operations v1.0.0
 
 Extended network toolkit: ping, traceroute, DNS, HTTP methods, websocket,
 SSL verification, port scanning, WHOIS, GeoIP, speed testing.
@@ -22,7 +22,7 @@ from minxg.base import BaseWorker, tool
 class NetworkAdvWorker(BaseWorker):
     """Advanced network operations: ping, dns, http, ssl, websocket, port scan, whois, speed test."""
     worker_id = "network_adv"
-    version = "0"
+    version = "1.0.0"
 
     def _register_tools(self):
         tools = [
@@ -158,7 +158,7 @@ class NetworkAdvWorker(BaseWorker):
                       headers: Dict = None, timeout: int = 30) -> Dict[str, Any]:
         try:
             data = json.dumps(body).encode('utf-8') if body else None
-            req_headers = {"User-Agent": "MINXG/0", "Accept": "*/*"}
+            req_headers = {"User-Agent": "MINXG/1.0.0", "Accept": "*/*"}
             if headers:
                 req_headers.update(headers)
             req = Request(url, data=data, headers=req_headers, method=method)
@@ -248,7 +248,7 @@ class NetworkAdvWorker(BaseWorker):
     def _net_geoip(self, ip: str) -> Dict[str, Any]:
         try:
             url = f"https://ipapi.co/{ip}/json/"
-            req = Request(url, headers={"User-Agent": "MINXG/0"})
+            req = Request(url, headers={"User-Agent": "MINXG/1.0.0"})
             with urlopen(req, timeout=10) as resp:
                 data = json.loads(resp.read().decode('utf-8'))
             return {"status": "success", "ip": ip,
@@ -263,7 +263,7 @@ class NetworkAdvWorker(BaseWorker):
         try:
             
             t0 = time.time()
-            req = Request(url + f"?bytes={size_kb * 1024}", headers={"User-Agent": "MINXG/0"})
+            req = Request(url + f"?bytes={size_kb * 1024}", headers={"User-Agent": "MINXG/1.0.0"})
             with urlopen(req, timeout=30) as resp:
                 data = resp.read()
             download_time = time.time() - t0
@@ -281,7 +281,7 @@ class NetworkAdvWorker(BaseWorker):
 
     def _net_headers_analyze(self, url: str) -> Dict[str, Any]:
         try:
-            req = Request(url, method="HEAD", headers={"User-Agent": "MINXG/0"})
+            req = Request(url, method="HEAD", headers={"User-Agent": "MINXG/1.0.0"})
             with urlopen(req, timeout=15) as resp:
                 headers = dict(resp.headers)
 

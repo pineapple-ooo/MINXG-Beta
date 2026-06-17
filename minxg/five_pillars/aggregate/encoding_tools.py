@@ -22,13 +22,13 @@ try:
         url_encode as _cpp_url_enc, url_decode as _cpp_url_dec,
     )
     _HAS_CPP = True
-except Exception:
+except ImportError:
     _HAS_CPP = False
 
 
 class EncodingToolsWorker(BaseWorker):
     worker_id = "encoding_tools"
-    version = "0"
+    version = "1.0.0"
 
     @tool(description="Base64 encode", category="encode")
     async def base64_encode(self, data: str) -> Dict:

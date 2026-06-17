@@ -43,7 +43,7 @@ class ToolDef:
 class BaseWorker:
     """Base class for all py_workers. Provides tool registration, stats, health checks."""
     worker_id: str = "base"
-    version: str = "0"
+    version: str = "1.0.0"
 
     def __init__(self):
         self.tools: Dict[str, ToolDef] = {}

@@ -66,7 +66,7 @@ class StateMachine:
 
 class StateMachineWorker(BaseWorker):
     worker_id = "state_machine"
-    version = "0"
+    version = "1.0.0"
 
     def __init__(self):
         self._semantic: Dict[str, Dict] = {}

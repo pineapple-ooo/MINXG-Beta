@@ -1,5 +1,5 @@
 """
-minxg/media_adv.py — Advanced media processing tools
+minxg/media_adv.py — Advanced media processing tools v1.0.0
 
 Image, audio, video: info, resize, crop, convert, thumbnail, spectrogram, GIF.
 Uses Pillow for images and ffprobe for audio/video when available.
@@ -17,7 +17,7 @@ from minxg.base import BaseWorker, tool
 class MediaAdvWorker(BaseWorker):
     """Advanced media tools: image, audio, video processing."""
     worker_id = "media_adv"
-    version = "0"
+    version = "1.0.0"
 
     def _register_tools(self):
         tools = [

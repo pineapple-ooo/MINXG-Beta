@@ -11,7 +11,7 @@ import sys
 
 EXTENSION_NAME = "minxg-files"
 EXTENSION_DESCRIPTION = "全平台文件管理器扩展: 浏览目录、选择文件、多选操作"
-EXTENSION_VERSION = "0"
+EXTENSION_VERSION = "1.0.0"
 EXTENSION_PRIORITY = 50
 EXTENSION_SOURCE = "builtin"
 EXTENSION_ENABLED = True  

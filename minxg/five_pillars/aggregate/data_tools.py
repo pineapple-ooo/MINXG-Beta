@@ -20,13 +20,13 @@ try:
         _cpp_csv_info = _mc.csv_info
         _cpp_csv_cell = _mc.csv_cell
         _HAS_CPP = True
-except Exception:
+except ImportError:
     pass
 
 
 class DataToolsWorker(BaseWorker):
     worker_id = "data_tools"
-    version = "0"
+    version = "1.0.0"
 
     @tool(description="Validate JSON string and show error location", category="json")
     async def json_validate(self, text: str) -> Dict:

@@ -138,7 +138,7 @@ from minxg.base import BaseWorker, tool
 
 class EchoWorker(BaseWorker):
     worker_id = "echo"
-    version = "0"
+    version = "1.0.0"
 
     @tool(description="Echo back a string.", category="text")
     async def echo(self, message: str) -> dict:
@@ -245,7 +245,7 @@ from minxg.contracts import get_registry, CellMeta, capability
 
 class PricingCell(metaclass=CellMeta):
     cell_id = "pricing.shipping"
-    cell_version = "0"
+    cell_version = "1.0.0"
 
     @capability("price.quote")
     def quote(self, weight_kg: float, zone: str) -> dict:
@@ -376,7 +376,7 @@ Total: 75 tests, ~2 seconds on Android.
 * `pytest -q` returns 75 passed.
 * `python -m py_compile $(find . -name '*.py' -not -path '*/_legacy/*')`
   returns 0.
-* `python3 -c 'import minxg; print(minxg.detect_platform())'` prints your platform..
+* `python -c 'import minxg; print(minxg.VERSION)'` prints `1.1.0`.
 * All five pillar `__init__.py` re-exports match `minxg.__all__`.
 * `docs/DRIVER.md`, `docs/PILLARS.md`, `docs/ARCHITECTURE.md` exist and
   match the code.

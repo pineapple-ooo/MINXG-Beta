@@ -7,7 +7,7 @@ from minxg.base import BaseWorker, tool
 
 class CloudToolsWorker(BaseWorker):
     worker_id = "cloud_tools"
-    version = "0"
+    version = "1.0.0"
 
     @tool(description="AWS EC2 instance type recommendation", category="aws")
     async def ec2_instance_recommend(self, purpose: str, vcpu: int = 2, memory_gb: int = 4) -> Dict:

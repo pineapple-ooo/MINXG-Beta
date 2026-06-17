@@ -6,7 +6,7 @@ description: >
   提取目录结构、语言统计、代码行数，生成结构化报告。
 license: MIT
 homepage: https://github.com/minxg/ext-zipscan
-min_minxg_version: "0"
+min_minxg_version: "1.0.0"
 platforms:
   - linux
   - macos
