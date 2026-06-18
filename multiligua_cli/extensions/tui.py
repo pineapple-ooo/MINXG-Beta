@@ -152,6 +152,14 @@ def quick_list(loader: ExtensionLoader = None):
     extensions = loader.list_all()
 
     if HAS_RICH and extensions:
+        from rich.table import Table
+        from rich import box
+        table = Table(title="[Extensions]", box=box.ROUNDED)
+        table.add_column("Status", style="green", width=4)
+        table.add_column("Name", style="cyan bold")
+        table.add_column("Type", style="magenta")
+        table.add_column("Version", style="yellow")
+        table.add_column("Description", style="white")
 
         for ext in extensions:
             status = "✅" if ext.loaded else "⛔"

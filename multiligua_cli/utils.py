@@ -13,7 +13,13 @@ from pathlib import Path
 from typing import Dict, Any
 
 
-__version__ = "1.0.0"
+__version__ = "0.0.0+unknown"
+try:
+    from minxg import VERSION as __version__  # noqa: F401  (canonical source)
+except Exception:
+    # Source-tree mode without an installed minxg: fall back to the
+    # bundled default so import-time consumers don't blow up.
+    pass
 
 
 

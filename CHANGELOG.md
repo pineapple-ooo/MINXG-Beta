@@ -10,7 +10,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > `1.x` numbering on internal commits is retained in git history as
 > a milestone but is **not** part of the public release graph.
 
-## [0.11.0] — Re-versioning hot-fix (+0.01)
+## [0.10.0] — Cold-start hardening & CLI integration (current)
+
+This release supersedes both the original 0.10.0 snapshot and the
+0.11.0 hot-fix re-versioning. Source-of-truth tag is **v0.10.0**.
+
+### Fixed
+- **Cold-start cryptography crash.** `multiling/ipc_server.py` no
+  longer imports `cryptography` at module level. The dependency is
+  lazy-loaded inside `_generate_ssl_cert()` and only when TLS is
+  requested. Fixes `minxg tools` and `minxg open` failing on
+  Termux × Python 3.13 (`cannot locate symbol "PyBaseObject_Type"`).
+- **`ChatLogger._buffer` initialised in `__init__`.** `minxg files`,
+  `minxg adb`, `minxg root`, and the TUI default (`minxg` with no
+  args) used to flake with `AttributeError: '_buffer'` on first use.
+- **`MinxgMenu.run()` non-readchar branch.** Clean fallback to
+  numbered input with a `q`-to-quit exit when `readchar` is not
+  available — no broken `NameError: choice` mid-flow.
+- **Hardcoded version literals.** `multiligua_cli/utils.py`,
+  `setup.py`, and `wizard_ui.py` no longer leak `"1.0.0"` while
+  `minxg.VERSION` is on a different number. All consumer-facing
+  labels now read `minxg.VERSION` via guarded import.
+- **`multiligua_cli/i18n.py` fallback.** A built-in `_DEFAULTS`
+  English dictionary ships inside the module, so a missing
+  `i18n_data/en.json` no longer surfaces raw keys (e.g. `cmd_minxg`)
+  in `minxg help` and the cheatsheet.
+- **`multiligua_cli/providers.py` registry.** 32 AI providers
+  (qwen, zhipu, moonshot, baichuan, stepfun, doubao, yi, spark,
+  minimax, custom, local, …) all carry `name`, `emoji`, and
+  `description` keys. The setup wizard no longer crashes with
+  `KeyError: 'emoji'` when picking an AI provider.
+- **`multiligua_cli/extensions/tui.py quick_list()`** constructs
+  its Rich `Table` before iterating — previously referenced an
+  unbound `table` name and crashed on every `minxg ext list`.
+
+### Build / install hygiene
+- Removed legacy editable-install leftovers from
+  `/data/data/com.termux/files/usr/lib/python3.13/site-packages`
+  (`__editable__.minxg-0.0.1a0.pth`, `multiling-3.4.0.dist-info`,
+  `__editable___minxg_0_0_1a0_finder.py`, …) that were shadowing
+  the live install and pointing at a stale `/storage/emulated/0/multiling/`
+  working tree. Reinstall is clean via `pip install -e .`.
+
+### Tests
+- 130 passed (+1 skipped, no rustc on Termux), ~3 s
+
+## [0.11.0] — Re-versioning hot-fix (+0.01)  *[superseded by 0.10.0 above]*
 
 ### Changed
 - **Re-versioned** `0.10.0` → `0.11.0`. No code changes; this is a
@@ -19,6 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `minxg.VERSION`, `pyproject.toml`, README all reflect `0.11.0`.
 - CHANGELOG prepended with this entry; `0.10.0` section retained
   below as the source-of-truth snapshot for that tag.
+- **Note:** The v0.11.0 GitHub release was deleted as part of the
+  v0.10.0 re-release; the underlying commit history is preserved.
 
 ### Tests
 - 130 passed (+1 skipped, no rustc on Termux), ~3 s

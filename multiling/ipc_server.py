@@ -9,11 +9,15 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 import aiohttp
 from aiohttp import web, WSMsgType, WSCloseCode
-from cryptography import x509
-from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-import datetime
+import datetime as _datetime
+from datetime import datetime, timedelta
+
+# cryptography is heavy-weight and can fail to import on some platforms
+# (e.g. Termux + Python 3.13 where the Rust binding's symbol table is
+# incompatible with the interpreter). All actual usage is confined to
+# `_generate_ssl_cert`, which only runs when the IPC server is started
+# with TLS. Keep the imports lazy so unrelated `minxg` subcommands
+# (status, tools, config, etc.) never load it.
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(levelname)-7s | %(name)-18s | %(message)s')
 logger = logging.getLogger("ipc_server")
@@ -396,6 +400,12 @@ class TCPIPCServer:
             pass
     async def _generate_ssl_cert(self):
         try:
+            # Lazy import: cryptography is heavy and can crash on some
+            # platforms (Termux + Python 3.13). Keep it out of cold-start.
+            from cryptography import x509
+            from cryptography.x509.oid import NameOID
+            from cryptography.hazmat.primitives import hashes, serialization
+            from cryptography.hazmat.primitives.asymmetric import rsa
             key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
             subject = issuer = x509.Name([
                 x509.NameAttribute(NameOID.COUNTRY_NAME, "CN"),
@@ -406,15 +416,15 @@ class TCPIPCServer:
             ])
             cert = x509.CertificateBuilder().subject_name(subject).issuer_name(issuer).public_key(
                 key.public_key()).serial_number(x509.random_serial_number()).not_valid_before(
-                datetime.datetime.utcnow()).not_valid_after(
-                datetime.datetime.utcnow() + datetime.timedelta(days=365)
+                _datetime.datetime.utcnow()).not_valid_after(
+                _datetime.datetime.utcnow() + _datetime.timedelta(days=365)
             ).add_extension(x509.SubjectAlternativeName([x509.DNSName("localhost")]), critical=False).sign(key, hashes.SHA256())
             with open(self.cert_path, "wb") as f:
                 f.write(cert.public_bytes(serialization.Encoding.PEM))
             with open(self.key_path, "wb") as f:
                 f.write(key.private_bytes(encoding=serialization.Encoding.PEM, format=serialization.PrivateFormat.TraditionalOpenSSL, encryption_algorithm=serialization.NoEncryption()))
         except Exception as e:
-            pass
+            logger.warning("SSL cert generation skipped: %s", e)
     def register_rpc(self, name: str, func: Callable):
         self._rpc_registry.register(name, func)
     

@@ -20,7 +20,11 @@ from multiligua_cli.wizard_ui import (
     Colors, HAS_RICH, console,
 )
 
-__version__ = "1.0.0"
+__version__ = "0.0.0+unknown"
+try:
+    from minxg import VERSION as __version__
+except Exception:
+    pass
 
 
 

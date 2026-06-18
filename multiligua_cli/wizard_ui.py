@@ -59,8 +59,12 @@ class Colors:
     AMETHYST = "\033[38;5;147m"
 
     GOLD    = "\033[38;5;220m"
-
-
+    TEAL    = "\033[38;5;37m"
+    SLATE   = "\033[38;5;245m"
+    EMERALD = "\033[38;5;82m"
+    CORAL   = "\033[38;5;209m"
+    AMBER   = "\033[38;5;214m"
+    SILVER  = "\033[38;5;250m"
 
     BG_INDIGO = "\033[48;5;99m"
     BG_VIOLET = "\033[48;5;183m"
@@ -82,7 +86,11 @@ def _ansi(text: str, *styles) -> str:
 
 
 def print_banner():
-    ver = "1.0.0"
+    try:
+        from minxg import VERSION
+        ver = VERSION
+    except Exception:
+        ver = "0.0.0+unknown"
     lang = get_lang()
     tagline = T("brand_full")
 
@@ -120,8 +128,6 @@ def print_banner():
 
 
 def print_step_progress(step: int, total: int, title: str):
-
-    """
     filled = int(30 * step / total)
     bar_fill = "█" * filled
     bar_empty = "░" * (30 - filled)
@@ -205,8 +211,7 @@ def print_kv(key: str, value: str, indent: int = 4):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 class MinxgMenu:
-
-    """
+    """MINXG Menu - interactive selection widget."""
 
     def __init__(self, title: str, options: List[str], descriptions: List[str] = None):
         self.title = title
@@ -230,14 +235,18 @@ class MinxgMenu:
             print(f"\n  {_ansi(T('wizard_nav_hint'), Colors.SLATE)}")
 
     def run(self) -> Optional[int]:
+        # Path 1: readchar unavailable — fall back to plain numbered input.
         if not HAS_READCHAR:
             self._render()
             while True:
                 try:
                     for i, opt in enumerate(self.options):
                         print(f"  {i + 1}. {opt}")
-                    hint = T("wizard_nav_hint")
-                    idx = int(choice) - 1
+                    raw = input("  Enter choice: ")
+                    raw = raw.strip()
+                    if raw.lower() == "q":
+                        return None
+                    idx = int(raw) - 1
                     if 0 <= idx < len(self.options):
                         return idx
                     print_error(T("err_number_range", min=1, max=len(self.options)))
@@ -246,6 +255,7 @@ class MinxgMenu:
                 except (KeyboardInterrupt, EOFError):
                     return None
 
+        # Path 2: interactive arrow-key navigation via readchar.
         self._render()
         while self.running:
             key = readchar.readkey()

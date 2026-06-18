@@ -34,6 +34,8 @@ class ChatLogger:
     def __init__(self):
         self._session_id: Optional[str] = None
         self._enabled = DEFAULT_ENABLED
+        self._buffer: list = []
+        self._log_path: Optional[Path] = None
 
     @property
     def enabled(self) -> bool:

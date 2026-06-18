@@ -1,11 +1,34 @@
 # MINXG
 
-A modular AI worker platform built on five orthogonal operator planes,
-with a self-developed driver engine, comprehensive operator libraries,
-and support for multi-language, compression, twin compilation and
-documentation generation.
+A modular AI worker platform covering the full operator surface area:
+chat, tool use, gateway, multi-language polyglot, capability registry,
+mathematical operator libraries, and a self-developed temporal
+driver engine — all in one Python project.
 
-Pure Python, one pip install, runs on Termux and across platforms.
+`pip install minxg-beta` drops you on Termux, Linux, macOS, and WSL
+with a single `minxg` binary on `$PATH`. Workers are split across
+five orthogonal operator planes (io, aggregate, scalar, transform,
+dispatch), so editing one module never forces a full rebuild.
+Pure Python — no compiled step required to install or run.
+
+This is the **v0.10.0** release. It fixes six concrete CLI bugs
+(carried over from the v0.11.0 hot-fix snapshot):
+
+- `minxg tools` / `minxg open`: no longer abort on cold-start when
+  the `cryptography` binding fails to load (e.g. Termux + Py 3.13).
+- `minxg files` / TUI default: ChatLogger's session buffer is now
+  initialised up-front, so the first command no longer crashes.
+- Wizard menus with `readchar` missing: clean fallback to numbered
+  input with a `q`-to-quit exit.
+- `--version` and banners: now read `minxg.VERSION` everywhere —
+  no more hardcoded "1.0.0" leaked through three files.
+- `minxg help`: every line is now human-readable — duplicate
+  `i18n_data/en.json` was missing in past builds, but a built-in
+  English defaults dict ships with the package and survives.
+- `minxg model`: the AI provider registry was missing `name`,
+  `emoji`, and `description` for the second half of the providers,
+  crashing the setup wizard with `KeyError: 'emoji'`. All 32
+  providers are now normalised.
 
 ## Install
 
@@ -47,17 +70,17 @@ After install:
 
 ```python
 import minxg
-print(minxg.VERSION)         # "0.11.0"
+print(minxg.VERSION)         # "0.10.0"
 print(minxg.detect_platform())
 ```
 
 Verified end-to-end on Termux/Android (`Python 3.13`) and Linux:
 ```bash
 $ pip install -e .
-Successfully installed minxg-beta-0.11.0
+Successfully installed minxg-beta-0.10.0
 
 $ python3 -c "import minxg; print(minxg.VERSION, len(minxg.__all__), 'workers;', minxg.TOTAL_MATHEMATICAL_OPERATORS, 'math ops')"
-0.11.0 55 workers; 306 math ops
+0.10.0 55 workers; 306 math ops
 ```
 
 **PyPI publication is on the roadmap but not yet done.** Until the
