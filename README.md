@@ -33,6 +33,21 @@ a polished setup wizard:
   `emoji`, and `description` for the second half of the providers,
   crashing the setup wizard with `KeyError: 'emoji'`. All 32
   providers are now normalised.
+- `cpp_core/src/json_stringify.cpp` adds a flat C ABI over the C++
+  `json_fast` parser (re-parses per call so no `std::variant`
+  crosses the boundary on aarch64 Android, returns malloc'd buffers
+  freed via `cpp_json_free`). Exposed to Python through
+  `native_integration.CPPJsonNative` with a `JsonBuffer` lifetime
+  wrapper that holds the raw `c_void_p` pointer (the heap-corruption
+  footgun from using `c_char_p` is now memoralised at the top of the
+  class).
+- `java_core/` ships a polyglot JVM-side daemon — line-oriented JSON
+  RPC on TCP, in-memory vector engine, knowledge graph, session
+  memory, persistent log — built with `javac` (no Maven/Gradle
+  required). Intended for users who already run a JVM and want a
+  hostable backend independent of the Python driver. Source-only;
+  build artefacts (`build/`, `*.jar`) stay out of git via the
+  existing `.gitignore`.
 
 ## Install
 
