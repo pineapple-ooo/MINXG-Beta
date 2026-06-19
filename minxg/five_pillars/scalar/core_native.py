@@ -36,14 +36,36 @@ from pathlib import Path
 
 def _find_lib(name: str) -> str:
     """Find a shared library by name, searching build dirs first.
-    On Android, copies the library to Termux lib dir to bypass linker namespace restrictions."""
-    base = Path(__file__).resolve().parent.parent
+
+    Resolves the project root by walking up from this file until we find
+    both ``pyproject.toml`` and the ``cpp_core`` directory. The compiled
+    native library shipped with the project lives at
+    ``<project_root>/cpp_core/build/libminxg_core.so`` after a pip
+    install or a developer build, so all candidate paths are anchored
+    there. On Android, copies the library into the Termux lib dir
+    before loading to bypass linker-namespace restrictions.
+    """
+    here = Path(__file__).resolve()
+    project_root = here
+    # Walk up until we see pyproject.toml — that marks the project root.
+    for _ in range(8):
+        if (project_root / "pyproject.toml").exists():
+            break
+        project_root = project_root.parent
+    else:
+        project_root = here.parents[2]  # best-effort fallback
+
+    base = project_root
     candidates = [
-        base / "build" / name,
         base / "cpp_core" / "build" / name,
         base / "cpp_core" / "build" / f"{name}.so",
+        base / "cpp_core" / name,                 # pre-built copy shipped
+        base / "cpp_core" / f"{name}.so",
         base / "build" / name,
         base / "build" / f"{name}.so",
+        # legacy fallback: relative to minxg/five_pillars (older paths)
+        here.parent.parent / "cpp_core" / "build" / name,
+        here.parent.parent / "cpp_core" / "build" / f"{name}.so",
     ]
     for p in candidates:
         if p.exists():
@@ -83,11 +105,19 @@ def _load_lib():
         raise OSError(f"Unsupported platform: {system}")
 
     _lib_path = _find_lib(lib_name)
+    # If discovery returned the bare name (nothing matched the search
+    # paths), there is nothing to fall back to — surface the OSError
+    # honestly instead of silently trying another non-existent name.
+    if _lib_path == lib_name:
+        raise OSError(
+            f"native library '{lib_name}' not found near the project root "
+            f"(checked cpp_core/build/, cpp_core/, build/); install/build the "
+            f"cpp_core target or run with PURE PYTHON fallback."
+        )
     try:
         _lib = ctypes.CDLL(_lib_path)
     except OSError:
-        _lib_path = _find_lib("minxg_core.so")
-        _lib = ctypes.CDLL(_lib_path)
+        raise  # surface the real dlopen failure with the discovered path
 
 
     _lib.cpp_free.argtypes = [c_void_p]

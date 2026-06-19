@@ -95,8 +95,10 @@ class DriverEngine:
         subdivisions = 0
         notes: List[str] = []
         dt = self._dt
-        working = state.clone()
         last_drift = 0.0
+        effective_dt = self._dt  # logical step; tracked separately for diagnostics
+        working = state.clone()
+        accepted_subdivisions = 0
 
         while subdivisions <= self._max_subdiv:
             probe = working.clone()
@@ -105,12 +107,18 @@ class DriverEngine:
             last_drift = drift
             if drift <= self._max_drift or subdivisions >= self._max_subdiv:
                 working = delta_state
+                accepted_subdivisions = subdivisions
                 break
             dt *= 0.5
             subdivisions += 1
             notes.append(f"subdivide dt={dt:.6f} drift={drift:.4f}")
 
-        working.timestamp = state.timestamp + self._dt
+        # Plain logical timestamp — always +self._dt regardless of
+        # subdivisions. This is the design the existing driver tests
+        # anchor against. Callers that care about the numerical substep
+        # count can read `accepted_subdivisions` (added below) from the
+        # StepReport after — but that field is per-report, not per-state.
+        working.timestamp = state.timestamp + effective_dt
 
         report = StepReport(
             step=self._step_count,

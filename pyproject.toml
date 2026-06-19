@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "minxg-beta"
-version = "0.10.0"
-description = "MINXG — five-pillar worker platform with a self-developed driver engine and five mathematical-pillar operator libraries. 376+ math operators. Pure Python."
+version = "0.11.0"
+description = "MINXG — five-pillar worker platform with a self-developed driver engine and six mathematical-pillar operator libraries. 306 mathematical operators (376 total across 11 categories). Pure Python."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "MINXG Authors" }]

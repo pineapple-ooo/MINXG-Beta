@@ -5,10 +5,16 @@ set(CMAKE_C_STANDARD 11)
 
 find_package(OpenSSL REQUIRED)
 
-# C wrapper — pure C, no C++, linked as shared library for ctypes
-add_library(minxg_core SHARED cpp_wrapper.c)
+# C wrapper — pure C, no C++. Links text_engine.c (slugs/word_freq)
+# so undefined-sym crashes don't happen on dlopen.
+add_library(minxg_core SHARED
+    cpp_wrapper.c
+    ../c_core/text_engine.c
+    ../c_core/text_engine.h
+)
 target_link_libraries(minxg_core PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 target_compile_options(minxg_core PRIVATE -fPIC -O3)
+target_include_directories(minxg_core PRIVATE ../c_core)
 
 # C++ core library — static lib for direct linking
 enable_language(CXX)

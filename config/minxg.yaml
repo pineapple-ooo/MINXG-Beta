@@ -3,8 +3,8 @@
 
 project:
   name: minxg
-  version: 0.0.1a
-  description: "Multi-Language AI Orchestration Framework"
+  version: 0.11.0
+  description: "Five-pillar worker platform with self-developed driver engine"
 
 # Operator registry — IDs and categories
 operators:
@@ -46,10 +46,12 @@ acceleration:
 
 # Self-evolution
 self_evolution:
-  algorithms: 10
+  # Four cooperating pieces: FailureTour + FieldForge + TwinEngine + EvolutionLoop.
+  # `algorithms` is kept as a legacy 4-pillar-friendly label; do not confuse it
+  # with a count of distinct algorithms.
+  components: 4
   drift_threshold: 0.15
   phase_space_dim: 32
-  compression: zstd-level-3
 
 # Logging
 logging:
@@ -65,8 +67,15 @@ paths:
   logs: var/data/logs/
 
 # Feature flags
+# `hot_reload`: a HotReloadWorker class still ships under
+# `minxg.five_pillars.transform.hotreload`, but the subsystem was
+# declared removed in v1.1.0 (see CHANGELOG); `multiligua_cli.setup`
+# defaults it to `enabled: False`. Keep this YAML flag `false`.
+# `anti_loop_guard`: legacy flag. The `AntiLoopGuard` symbol referenced
+# in `agent/conversation_loop.py` is unwired; the conversation loop
+# degrades to `None` and the guard is effectively off. Keep `false`.
 features:
-  hot_reload: true
-  anti_loop_guard: true
+  hot_reload: false
+  anti_loop_guard: false
   self_evolution: true
-  tidal_lock: true
+  tidal_lock: false

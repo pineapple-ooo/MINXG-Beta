@@ -1,7 +1,35 @@
 """
+extensions/loader.py — Discover and load MINXG extension modules.
 
+Two extension roots:
 
+  - extensions/builtin/    — ships inside the package; builtins are kept
+                             EXTENSION_ENABLED = False at the source so they
+                             never auto-attach. Users opt in explicitly with
+                             `minxg ext add <slug>`, which sets their state
+                             to True in extensions/user/<name>.state.
+  - extensions/user/       — drop-in directory; everything goes through
+                             the same validator and is opt-in by default
+                             unless the user-controlled state file says
+                             otherwise.
 
+Discovery sequence:
+  1. Walk both roots, prefer builtin if a slug is duplicated.
+  2. Each candidate is loaded with importlib.util.spec_from_file_location
+     under extensions._dynamic.<slug>; clearing the sys.modules entry on
+     reload prevents stale closures.
+  3. _validate_and_wrap enforces the contract: EXTENSION_NAME, EXTENSION_DESCRIPTION,
+     handle_command. EXTENSION_ENABLED defaults to False unless a state file
+     in extensions/user/ explicitly marks it enabled.
+
+State files live at extensions/user/<ext-name>.state with a single line
+JSON object like {"enabled": true, "version": "1.0.1"}. Lightweight by
+design — we are not building a package manager.
+
+Heavy auto-detect ladders (ADB_AVAILABLE / ROOT_AVAILABLE) are NOT consulted.
+Each builtin's `handle_command` re-probes (cheap, only when invoked) and
+returns 1 with a hint if the dependency is missing. This avoids the
+"small workshop framed as a kitchen sink" trap.
 """
 from __future__ import annotations
 
@@ -23,15 +51,15 @@ logger = logging.getLogger("extensions")
 
 REQUIRED_ATTRS = ["EXTENSION_NAME", "EXTENSION_DESCRIPTION", "handle_command"]
 OPTIONAL_ATTRS = ["register_cli", "register_hooks"]
-
 SUPPORTED_EXTENSIONS = (".py", ".zip", ".tar.gz", ".tgz")
 
 
 class ExtensionModule:
+    """Wraps an extension module with metadata for the package_cli surface."""
 
     def __init__(self, name: str, description: str, module,
                  priority: int = 50, version: str = "", source: str = "",
-                 path: str = ""):
+                 path: str = "", enabled: bool = False):
         self.name = name
         self.description = description
         self.module = module
@@ -39,6 +67,7 @@ class ExtensionModule:
         self.version = version
         self.source = source
         self.path = path
+        self.enabled = enabled
 
     def register_cli(self, subparsers) -> None:
         fn = getattr(self.module, "register_cli", None)
@@ -46,19 +75,68 @@ class ExtensionModule:
             try:
                 fn(subparsers)
             except Exception as e:
-                pass
+                logger.warning("register_cli failed for %s: %s", self.name, e)
 
     def handle(self, args) -> int:
         return self.module.handle_command(args)
 
-    def __repr__(self):
-        return f"ExtensionModule({self.name!r}, src={self.source}, pri={self.priority})"
-
-
-
+    def __repr__(self) -> str:
+        return (f"ExtensionModule({self.name!r}, src={self.source}, "
+                f"pri={self.priority}, enabled={self.enabled})")
 
 
 _TEMP_DIRS: List[tempfile.TemporaryDirectory] = []
+
+_cached: Optional[List[ExtensionModule]] = None
+
+
+def _user_state_dir() -> Path:
+    """Where per-extension opt-in state files live."""
+    return Path(__file__).parent / "user"
+
+
+def _read_state(ext_name: str) -> Dict[str, Any]:
+    """Read extensions/user/<ext_name>.state — empty dict if missing."""
+    p = _user_state_dir() / f"{ext_name}.state"
+    if not p.exists():
+        return {}
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def _write_state(ext_name: str, **fields: Any) -> None:
+    """Persist a state file under extensions/user/."""
+    user_dir = _user_state_dir()
+    user_dir.mkdir(parents=True, exist_ok=True)
+    cur = _read_state(ext_name)
+    cur.update(fields)
+    (user_dir / f"{ext_name}.state").write_text(
+        json.dumps(cur, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+
+
+def _default_enabled(mod, name: str) -> bool:
+    """Look up `enabled` from:
+       (1) the user state file at extensions/user/<name>.state,
+       (2) the module-level EXTENSION_ENABLED attribute,
+       (3) False for builtins, True for user extensions.
+    """
+    state = _read_state(name)
+    if "enabled" in state:
+        return bool(state["enabled"])
+    return bool(getattr(mod, "EXTENSION_ENABLED", False))
+
+
+def set_extension_enabled(name: str, enabled: bool) -> None:
+    """Persist opt-in state for an extension."""
+    _write_state(name, enabled=enabled)
+    if _cached is not None:
+        for ext in _cached:
+            if ext.name == name:
+                ext.enabled = enabled
+                return
 
 
 def _extract_zip(zip_path: Path) -> Optional[Path]:
@@ -69,6 +147,7 @@ def _extract_zip(zip_path: Path) -> Optional[Path]:
             zf.extractall(tmp.name)
         return Path(tmp.name)
     except Exception as e:
+        logger.warning("zip extract failed for %s: %s", zip_path, e)
         return None
 
 
@@ -80,6 +159,7 @@ def _extract_targz(tar_path: Path) -> Optional[Path]:
             tf.extractall(tmp.name)
         return Path(tmp.name)
     except Exception as e:
+        logger.warning("tar extract failed for %s: %s", tar_path, e)
         return None
 
 
@@ -102,12 +182,31 @@ def _find_main_py(extract_dir: Path) -> Optional[Path]:
             for node in ast.walk(tree):
                 if isinstance(node, ast.Assign):
                     for target in node.targets:
-                        if isinstance(target, ast.Name) and target.id == "EXTENSION_NAME":
+                        if (isinstance(target, ast.Name)
+                                and target.id == "EXTENSION_NAME"):
                             return py_file
         except SyntaxError:
             continue
-
     return None
+
+
+def _load_module_from_file(path: Path):
+    """importlib-based loader. Caches under extensions._dynamic.<slug>."""
+    mod_name = f"extensions._dynamic.{path.stem}"
+    try:
+        if mod_name in sys.modules:
+            del sys.modules[mod_name]
+        spec = importlib.util.spec_from_file_location(mod_name, path)
+        if spec is None or spec.loader is None:
+            return None
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules[mod_name] = mod
+        spec.loader.exec_module(mod)
+        return mod
+    except Exception as e:
+        sys.modules.pop(mod_name, None)
+        logger.warning("module load failed for %s: %s", path, e)
+        return None
 
 
 def _load_from_archive(archive_path: Path, source: str) -> List[ExtensionModule]:
@@ -116,218 +215,58 @@ def _load_from_archive(archive_path: Path, source: str) -> List[ExtensionModule]
         ext = ".tar.gz"
     elif archive_path.name.endswith(".tgz"):
         ext = ".tgz"
-
     if ext == ".zip":
         extract_dir = _extract_zip(archive_path)
     elif ext in (".tar.gz", ".tgz"):
         extract_dir = _extract_targz(archive_path)
     else:
         return []
-
     if extract_dir is None:
         return []
-
     main_py = _find_main_py(extract_dir)
     if main_py is None:
         return []
-
     parent = str(main_py.parent)
     if parent not in sys.path:
         sys.path.insert(0, parent)
-
     mod = _load_module_from_file(main_py)
     if mod is None:
         return []
-
     return _validate_and_wrap(mod, source, str(archive_path))
 
 
+def _load_py_extension(py_file: Path, source: str) -> List[ExtensionModule]:
+    mod = _load_module_from_file(py_file)
+    if mod is None:
+        return []
+    return _validate_and_wrap(mod, source, str(py_file))
 
 
+def _validate_and_wrap(mod, source: str, path: str) -> List[ExtensionModule]:
+    """Wrap `mod` into an ExtensionModule if it satisfies the contract.
 
-def import_hermes_skill(skill_dir: str) -> Optional[ExtensionModule]:
-    """Import a Hermes skill from SKILL.md directory."""
-    skill_path = Path(skill_dir)
-    if not skill_path.exists():
-        return None
-
-    skill_md = skill_path / "SKILL.md"
-    if not skill_md.exists():
-        return None
-
-    import yaml
-    try:
-        content = skill_md.read_text(encoding="utf-8")
-    except Exception:
-        return None
-
-    name = skill_path.name
-    description = ""
-    if content.startswith("---"):
-        parts = content.split("---", 2)
-        if len(parts) >= 3:
-            try:
-                meta = yaml.safe_load(parts[1])
-                name = meta.get("name", name)
-                description = meta.get("description", "")
-            except Exception:
-                pass
-
-EXTENSION_NAME = "{name}"
-EXTENSION_DESCRIPTION = """{description}"""
-EXTENSION_VERSION = "imported"
-EXTENSION_PRIORITY = 60
-EXTENSION_SOURCE = "hermes-import"
-
-def handle_command(args) -> int:
-    import subprocess, sys
-    skill_dir = str(skill_path)
-    skill_py = Path(skill_dir) / "skill.py"
-    if skill_py.exists():
-        import runpy
-        runpy.run_path(str(skill_py), run_name="__main__")
-        return 0
-    else:
-        return 0
-
-def register_cli(subparsers):
-    p = subparsers.add_parser("{name}", help="{description}")
-
-def register_hooks(registry):
-    @registry.pre_chat
-    def inject_skill_context(ctx):
-        skill_md = Path(skill_md)
-        if skill_md.exists():
-            ctx.setdefault("injected_context", []).append(skill_md.read_text(encoding="utf-8"))
-        return ctx
-
-    try:
-        mod = type(sys)("hermes_import_" + name)
-        mod.__dict__.update({
-            "Path": Path,
-            "print": print,
-        })
-        exec(compile(wrapper_code, "<hermes_import>", "exec"), mod.__dict__)
-    except Exception as e:
-        return None
-
-    return ExtensionModule(name, description, mod, priority=60,
-                          version="imported", source="imported-hermes",
-                          path=str(skill_path))
+    Anti auto-detect: do NOT consult ADB_AVAILABLE / ROOT_AVAILABLE.
+    Each extension is responsible for probing its own dependencies inside
+    `handle_command` and reporting back honestly. The runner stays free
+    of plugin-curated ladders.
+    """
+    name = getattr(mod, "EXTENSION_NAME", None)
+    if not isinstance(name, str) or not name:
+        logger.debug("extension at %s missing EXTENSION_NAME; skipped", path)
+        return []
+    desc = getattr(mod, "EXTENSION_DESCRIPTION", "")
+    handler = getattr(mod, "handle_command", None)
+    if not callable(handler):
+        logger.debug("extension %s missing handle_command; skipped", name)
+        return []
+    priority = int(getattr(mod, "EXTENSION_PRIORITY", 50))
+    version = str(getattr(mod, "EXTENSION_VERSION", ""))
+    enabled = _default_enabled(mod, name)
+    return [ExtensionModule(name, desc, mod, priority, version, source,
+                            path, enabled)]
 
 
-def import_claude_skill(skill_path: str) -> Optional[ExtensionModule]:
-    """Import a Claude Code skill from directory or config file."""
-    sp = Path(skill_path)
-    if not sp.exists():
-        return None
-
-    if sp.is_dir():
-        for candidate in [sp / "skill.toml", sp / "skill.json", sp / "definition.toml"]:
-            if candidate.exists():
-                sp = candidate
-                break
-        else:
-            return None
-
-    name = sp.stem
-
-    if sp.suffix == ".json":
-        try:
-            data = json.loads(sp.read_text(encoding="utf-8"))
-            name = data.get("name", name)
-            description = data.get("description", description)
-        except Exception:
-            pass
-    elif sp.suffix == ".toml":
-        try:
-            import tomllib
-            data = tomllib.loads(sp.read_text(encoding="utf-8"))
-            name = data.get("name", name)
-            description = data.get("description", description)
-        except ImportError:
-            pass
-        except Exception:
-            pass
-EXTENSION_NAME = "{name}"
-EXTENSION_DESCRIPTION = "{description}"
-EXTENSION_VERSION = "imported"
-EXTENSION_PRIORITY = 65
-EXTENSION_SOURCE = "claude-import"
-
-def handle_command(args) -> int:
-    return 0
-
-
-def import_codex_tool(tool_path: str) -> Optional[ExtensionModule]:
-    """Import a Codex tool definition from JSON file."""
-    tp = Path(tool_path)
-    if not tp.exists() or tp.suffix != ".json":
-        return None
-
-    try:
-        data = json.loads(tp.read_text(encoding="utf-8"))
-    except Exception:
-        return None
-
-    tools = data if isinstance(data, list) else [data]
-    name = tp.stem
-    return None
-
-import json
-
-
-def handle_command(args) -> int:
-    for t in _tools:
-        if isinstance(t, dict) and "function" in t:
-            print(f"  - {{t['function']['name']}}")
-    return 0
-
-def register_hooks(registry):
-    @registry.gateway_middleware
-    def inject_tools(request):
-        if hasattr(request, "extra_tools"):
-            request.extra_tools.extend(_tools)
-        return request
-
-    try:
-        mod = type(sys)("codex_import_" + name)
-        exec(compile(wrapper_code, "<codex_import>", "exec"), mod.__dict__)
-    except Exception as e:
-        return None
-
-    return ExtensionModule(name, description, mod, priority=70,
-                          version="imported", source="imported-codex",
-                          path=str(tp))
-
-
-def run_ext_import(args) -> int:
-    framework = getattr(args, "from_framework", "hermes")
-    path = args.path
-
-    if framework == "hermes":
-        ext = import_hermes_skill(path)
-    elif framework == "claude":
-        ext = import_claude_skill(path)
-    elif framework == "codex":
-        ext = import_codex_tool(path)
-    else:
-        return 1
-
-    if ext is None:
-        return 1
-
-    global _cached
-    if _cached is None:
-        _cached = []
-    _cached.append(ext)
-
-    from multiligua_cli.utils import print_success, print_info
-    return 0
-
-
-
-def _get_extensions_dirs() -> List[Path]:
+def _get_extensions_dirs() -> List[tuple]:
     base = Path(__file__).parent
     dirs = [
         (base / "builtin", "builtin"),
@@ -335,26 +274,21 @@ def _get_extensions_dirs() -> List[Path]:
     ]
     for d, _ in dirs:
         d.mkdir(parents=True, exist_ok=True)
-    return [d[0] for d in dirs]
+    return dirs
 
 
 def discover_extensions() -> List[ExtensionModule]:
+    """Walk builtin/ then user/, return every loadable extension."""
     seen: set = set()
     loaded: List[ExtensionModule] = []
-
-    for ext_dir in _get_extensions_dirs():
+    for ext_dir, source in _get_extensions_dirs():
         if not ext_dir.exists():
             continue
-
-        source = ext_dir.name
-
         items = sorted(ext_dir.iterdir(), key=lambda x: x.name)
         for item in items:
             if item.name.startswith("_") or item.name.startswith("."):
                 continue
-
             ext_name = item.name.lower()
-
             if item.is_dir():
                 init_py = item / "__init__.py"
                 if init_py.exists():
@@ -373,82 +307,17 @@ def discover_extensions() -> List[ExtensionModule]:
                 modules = _load_from_archive(item, f"{source}-targz")
             else:
                 continue
-
-            for mod in modules:
-                if mod.name in seen:
+            for ext in modules:
+                if ext.name in seen:
                     continue
-                seen.add(mod.name)
-                loaded.append(mod)
-
+                seen.add(ext.name)
+                loaded.append(ext)
     loaded.sort(key=lambda x: (x.priority, x.name))
     return loaded
 
 
-def _load_py_extension(py_file: Path, source: str) -> List[ExtensionModule]:
-    mod = _load_module_from_file(py_file)
-    if mod is None:
-        return []
-    return _validate_and_wrap(mod, source, str(py_file))
-
-
-def _validate_and_wrap(mod, source: str, path: str) -> List[ExtensionModule]:
-    enabled = getattr(mod, "EXTENSION_ENABLED", None)
-
-    adb_ok = getattr(mod, "ADB_AVAILABLE", None)
-    root_ok = getattr(mod, "ROOT_AVAILABLE", None)
-
-    if enabled is None:
-        if adb_ok is not None:
-            enabled = adb_ok
-        elif root_ok is not None:
-            enabled = root_ok
-        else:
-            enabled = True
-
-    name = getattr(mod, "EXTENSION_NAME", None)
-    desc = getattr(mod, "EXTENSION_DESCRIPTION", "")
-    handler = getattr(mod, "handle_command", None)
-    priority = getattr(mod, "EXTENSION_PRIORITY", 50)
-    version = getattr(mod, "EXTENSION_VERSION", "")
-
-    if not enabled:
-        if adb_ok is not None:
-            desc += " [INACTIVE: ADB未检测到]"
-        elif root_ok is not None:
-            desc += " [INACTIVE: 设备未ROOT]"
-        else:
-            desc += " [INACTIVE: 已禁用]"
-    else:
-        if adb_ok:
-            desc += " [ACTIVE: ADB已连接]"
-        elif root_ok:
-            desc += " [ACTIVE: ROOT已解锁]"
-
-    if not name or not handler:
-        return []
-
-    return [ExtensionModule(name, desc, mod, priority, version, source, path)]
-
-
-def _load_module_from_file(path: Path):
-    mod_name = f"extensions._dynamic.{path.stem}"
-    try:
-        if mod_name in sys.modules:
-            del sys.modules[mod_name]
-        spec = importlib.util.spec_from_file_location(mod_name, path)
-        if spec is None or spec.loader is None:
-            return None
-        mod = importlib.util.module_from_spec(spec)
-        sys.modules[mod_name] = mod
-        spec.loader.exec_module(mod)
-        return mod
-    except Exception as e:
-        sys.modules.pop(mod_name, None)
-        return None
-
-
-
 def reload_extensions() -> List[ExtensionModule]:
+    """Force a fresh discovery. Used by `minxg ext add/remove`."""
     to_pop = [k for k in sys.modules if k.startswith("extensions._dynamic.")]
     for k in to_pop:
         del sys.modules[k]
@@ -457,7 +326,8 @@ def reload_extensions() -> List[ExtensionModule]:
     return discover_extensions()
 
 
-def cleanup_temp_dirs():
+def cleanup_temp_dirs() -> None:
+    """Drop any zip-extract tmp dirs we kept alive."""
     global _TEMP_DIRS
     for td in _TEMP_DIRS:
         try:
@@ -467,11 +337,8 @@ def cleanup_temp_dirs():
     _TEMP_DIRS.clear()
 
 
-
-_cached: Optional[List[ExtensionModule]] = None
-
-
 def get_extensions() -> List[ExtensionModule]:
+    """Cached discovery; first call walks the disk, later calls hit memory."""
     global _cached
     if _cached is None:
         _cached = discover_extensions()
@@ -486,6 +353,7 @@ def get_extension(name: str) -> Optional[ExtensionModule]:
 
 
 def list_extensions() -> List[dict]:
+    """Return a JSON-friendly list of all installed extensions."""
     return [
         {
             "name": e.name,
@@ -494,6 +362,7 @@ def list_extensions() -> List[dict]:
             "source": e.source,
             "priority": e.priority,
             "path": e.path,
+            "enabled": e.enabled,
         }
         for e in get_extensions()
     ]

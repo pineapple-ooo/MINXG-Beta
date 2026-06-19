@@ -73,7 +73,7 @@ __all__ = [
     "FsIoWorker", "FsCopyWorker", "FsSearchWorker",
     "NetworkWorker", "NetworkAdvWorker",
     "MediaToolsWorker", "MediaAdvWorker",
-    "DbToolsWorker", "WebToolsWorker", "WebSearchWorker",
+    "DbToolsWorker", "WebToolsWorker", "web_search",
     "ArchiveWorker", "CloudToolsWorker",
     "SystemWorker", "ShQueryWorker", "ShExecWorker", "ProcessToolsWorker",
     "LimitsLockWorker", "LimitsBreakWorker", "PlatformWorker",
@@ -92,7 +92,7 @@ __all__ = [
     "get_tools_by_category", "get_system_capabilities",
 ]
 
-VERSION = "0.10.0"
+VERSION = "0.11.0"
 
 try:
     from . import cap as _cap

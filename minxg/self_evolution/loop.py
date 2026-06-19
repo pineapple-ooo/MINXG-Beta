@@ -113,7 +113,16 @@ class EvolutionLoop:
                         for k, v in src.items():
                             if k in out.payload:
                                 out.payload[k] = float(v)
-                except Exception:
+                except Exception as exc:
+                    # Swallow is unavoidable (the engine stays alive),
+                    # but at minimum trace the failing cell name so a
+                    # misbehaving twin swap leaves a fingerprint instead
+                    # of a no-op commit that looks like "no change".
+                    import logging, traceback
+                    logging.getLogger("minxg.self_evolution").debug(
+                        "candidate %s apply() raised: %s\n%s",
+                        cell_id, exc, traceback.format_exc(),
+                    )
                     return out
                 return out
 

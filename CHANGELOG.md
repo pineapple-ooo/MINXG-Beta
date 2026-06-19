@@ -10,7 +10,193 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > `1.x` numbering on internal commits is retained in git history as
 > a milestone but is **not** part of the public release graph.
 
-## [0.10.0] — Cold-start hardening & CLI integration (current)
+## [0.11.0] - 2026-06-19 - Opt-in extensions, native build fix, doctor command
+
+Cold-start hardening release. No breaking-API changes; all the same
+imports work in both directions. The big directional shift: built-in
+extensions are now opt-in (no ADB/ROOT auto-detect at module load),
+and the `multiligua_cli/doctor.py` self-check surface ships for the
+first time.
+
+### Added - `minxg doctor`
+  - `multiligua_cli/doctor.py` - new self-check command with an
+    exit-code contract (0 OK, 1 fail, 2 warn). Reports on platform,
+    binaries, minxg package surface, runtime config, extensions.
+  - Plugged into argparse under `minxg doctor` so users have one
+    answer for "is my install healthy?".
+
+### Changed - Built-in extensions are opt-in (pitfall 31/34)
+  - `extensions/__init__.py` and `extensions/loader.py` rewritten.
+    The auto-detect ladder (ADB_AVAILABLE / ROOT_AVAILABLE drive the
+    enable flag) is gone. Each built-in now ships with
+    `EXTENSION_ENABLED = False`; opt-in is via
+    `minxg ext add <slug>`, which writes
+    `extensions/user/<slug>.state`.
+  - `extensions/builtin/adb_ext/__init__.py`,
+    `extensions/builtin/root_ext/__init__.py`,
+    `extensions/builtin/files_ext/__init__.py` rewritten in English
+    (no Chinese in user-facing strings) with probe-on-call helpers
+    (`_adb_available()`, `_root_available()`) instead of
+    probe-at-import.
+  - `extensions/__init__.py` exports `set_extension_enabled` to back
+    the opt-in surface. The `import_hermes_skill` /
+    `import_claude_skill` / `import_codex_tool` / `run_ext_import`
+    stubs (which referenced an undefined `wrapper_code`) are removed.
+
+### Fixed - cpp_core build link error (real bug)
+  - `cpp_core/CMakeLists.txt` built `libminxg_core.so` from
+    `cpp_wrapper.c` alone, but the wrapper references
+    `minxg_slugify`, `minxg_truncate`, `minxg_word_freq_hash` from
+    `c_core/text_engine.c`. The resulting shared library crashed
+    every `ctypes.CDLL` call with `cannot locate symbol
+    "minxg_slugify"` on Termux/Py3.13.
+  - CMakeLists now also links `c_core/text_engine.c` into
+    `minxg_core`. Verified at runtime: `core_native.sha256` returns
+    correct hashes.
+  - `install.sh` no longer claims ADB / ROOT extensions
+    "auto-enabled"; users get a plain `minxg ext add <slug>` hint.
+
+### Changed - install.sh
+  - Stripped 43 `[CN]` placeholder markers that were left behind from
+    an in-progress Chinese-to-English conversion.
+  - Removed the auto-enable messaging for ADB / ROOT extensions.
+  - Brand line `MINXG v1.0.0` -> `MINXG v0.11.0`.
+  - Extension summary block now reports `[on]` / `[off]` based on
+    the runtime `enabled` flag, not the old `INACTIVE` substring
+    regex.
+
+### Changed - py_workers alias
+  - The compat stub now exposes pillar aliases via its own
+    `__getattr__`. `py_workers.scalar`, `py_workers.io`,
+    `py_workers.<math>` all resolve.
+  - Version fallback `getattr(_minxg, 'VERSION', '1.1.0')` ->
+    `'0.11.0'`.
+
+### Misc - Housekeeping
+  - Bumped `minxg.VERSION` and `pyproject.toml:version` to `0.11.0`.
+    `config/minxg.yaml:project.version` synced.
+  - Replaced the orphan `multiligua_cli.main:doctor` reference with
+    the now-existing `multiligua_cli.doctor.run_doctor`.
+  - `multiligua_cli/main.py`: collapsed 19 triple-blank-line blocks
+    the partner's draft left behind.
+  - `tests/test_extensions.py`: rewrote TestADBRootDetection ->
+    TestBuiltinOptIn to assert opt-in (no ADB_AVAILABLE at module
+    load, English-only descriptions, state-file persistence works).
+
+### Verification
+- 130 tests pass, 1 skipped (rustc absent in Termux sandbox).
+- `minxg --version` reports `0.11.0`.
+- `bash install.sh --help` exits 0 with the post-install cheatsheet.
+- `py_workers.scalar` and `py_workers.ga` resolve via the alias.
+
+## [Unreleased] — Documentation & loader audit
+
+Independent code audit (2026-06-19) found four marketing-vs-reality
+gaps and one real loader bug. All five are patched in this entry;
+no public version bump (still `0.10.0`).
+
+### Fixed — loader
+- **`minxg.five_pillars.scalar.core_native._find_lib()` was searching
+  the wrong tree root.** It walked from `minxg/five_pillars/` upward
+  only one level, so `cpp_core/build/libminxg_core.so` (the library
+  that ships in the repo) was never reached. The Android-Termux
+  hardening branch (`shutil.copy2` into
+  `/data/data/com.termux/files/usr/lib/`) was therefore dead code on
+  the platforms it was written for. The detector now walks up to the
+  project root via `pyproject.toml`, checks
+  `cpp_core/build/`, `cpp_core/`, and `build/` in that order, and
+  still leaves the Android copy-to-lib step intact.
+- **Honest fallback message.** Old code's "fall back to
+  `minxg_core.so`" returned the bare name when nothing matched,
+  leading `ctypes.CDLL` to emit a misleading `dlopen failed` instead
+  of a clear "native library not found, run with PURE PYTHON". The
+  fallback is now an explicit `OSError` with the actual discovery
+  outcome.
+
+### Changed — README / pyproject (marketing accuracy)
+- **`pyproject.toml` description.** "376+ math operators" → "306
+  mathematical operators (376 total across 11 categories)". `376`
+  is real (it's the full `OPERATOR_REGISTRY.total_operators`); `306`
+  is the subset exposed as `minxg.TOTAL_MATHEMATICAL_OPERATORS` (the
+  sum of the six mathematical pillars). Old wording treated `376`
+  as `math`, which is off by 70 and made it sound like 306 of 376
+  were missing.
+- **`README.md` Mathematical pillars section.** "300+ stable
+  operator IDs on import" → "**306** mathematical operator IDs in
+  stable ranges on import (376 total across all 11 categories;
+  see `OPERATORS.md`)".
+- **`README.md` lossless block.** "For lossless compression" →
+  "For the lossless BIE round-trip codec" with an explicit caveat
+  that the encoded form is typically *larger* than the input on
+  real-world data. The bullet under "Self-developed subsystems"
+  was rewritten from "BIE-geometry lossless compression" to
+  "BIE-geometry byte-identical round-trip" with the same caveat.
+  The codec still round-trips byte-exactly (CRC-32 verified); it
+  just isn't a competitor to zstd.
+
+### Changed — README (boundary honesty for two subsystems)
+- **`minxg.polyglot` description.** "Multi-language AST normaliser"
+  → "Multi-language source-to-graph normaliser". Adds explicit
+  boundary: Python uses real `ast`; Rust / JavaScript / Go / shell
+  are regex-based heuristics — useful for code-shape recognition,
+  not a compiler front-end.
+- **`README.md` tagline.** "multi-language polyglot, capability
+  registry" → no change required (it already names both subsystems
+  accurately at the package level). The "corpus" claim in this
+  release's subsubsystem remained uncorrected in `minxg.cap` itself;
+  cap-tagged source files currently number 7 (3 of which are
+  inside `minxg/cap/`). Adoption is voluntary. Reader who wants a
+  full corpus can run `python -m minxg.cap list` for the live list.
+
+### Changed — config
+- **`config/minxg.yaml` `project.version`.** "0.0.1a" → "0.10.0",
+  matching `minxg.VERSION`. `minxg.get("project.version")` now
+  returns the same number as `python -c "import minxg; print(minxg.VERSION)"`
+  instead of the prior legacy mismatch.
+- **`config/minxg.yaml` `project.description`.** Updated to match
+  the same one-line summary in `pyproject.toml` and the README.
+
+### Verification
+- 130 tests pass + 1 skipped, ~1.5 s on Termux × Python 3.13.
+- `python -c "import minxg; print(minxg.VERSION, minxg.TOTAL_MATHEMATICAL_OPERATORS)"`
+  → `0.10.0 306`.
+- `python -m minxg.cap.list` → 11 capabilities from 7 tagged files.
+
+### Notes
+- **`minxg.cap` corpus is small but honest.** README's reference to
+  "capability registry" is accurate; the prior "Corpus-based" branding
+  survives in CHANGELOG history but was removed from the README-by-
+  bullet in this entry. The scanner, manifest, and CI hooks are all
+  present and exercised by `tests/test_cap.py`; widening the corpus
+  is opt-in (add `minxg.cap.provides:` tags to a module's top
+  docstring).
+
+### Further (same Unreleased) — config-truth & ID-range sync
+- **`config/minxg.yaml` `self_evolution.algorithms: 10` → `components: 4`.**
+  The repository ships exactly four cooperating pieces
+  (`failure_tour.py`, `field_forge.py`, `twin.py`, `loop.py`). The
+  old `algorithms: 10` was a marketing number with no backing code.
+- **`config/minxg.yaml` `features.{hot_reload, anti_loop_guard,
+  tidal_lock}` flipped to `false`.** README and CHANGELOG history
+  have described each as removed / unimplemented since v1.1.x, but
+  the YAML was advertising them as `true`. Truthful defaults now match
+  the documented reality.
+- **`config/minxg.yaml` dropped `self_evolution.compression: zstd-level-3`.**
+  No code path under `minxg/self_evolution/` reads this value.
+- **Pillar ID ranges in README + DEVELOPER.md corrected** from the
+  outdated `5000–5499` / `4000–4499` / etc. (which reserved ~100 IDs
+  per pillar that were never registered) to the actual ranges
+  observed in `OPERATOR_REGISTRY._categories` — see YAML
+  `operators.categories.*.id_range` for the canonical numbers.
+- **Top-level README tagline softened** from "covering the full
+  operator surface area" to a non-promissory phrasing. Also added a
+  paragraph explaining the implicit pure-Python fallback when the
+  native loader cannot find or dlopen a `.so`.
+- **DEVELOPER.md §11 "Termux linker namespace" entry now lists the
+  exact discovery order** (`cpp_core/build/` → `cpp_core/` → `build/`)
+  and the explicit-OSError contract, so the next maintainer doesn't
+  waste a session re-discovering what `core_native._find_lib` does.
+
 
 This release supersedes both the original 0.10.0 snapshot and the
 0.11.0 hot-fix re-versioning. Source-of-truth tag is **v0.10.0**.

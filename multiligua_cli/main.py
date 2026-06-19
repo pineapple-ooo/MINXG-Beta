@@ -50,43 +50,35 @@ from multiligua_cli.utils import (
 )
 from multiligua_cli.i18n import T, set_lang, get_lang, LANGUAGES, LANG_CODES
 
-
-
-
-
-
 def _build_cheatsheet() -> str:
-    """Generate command cheatsheet based on current language."""
-    lang = get_lang()
-    flag = get_lang_flag(lang)
+    """Generate command cheatsheet — pure English, banner-themed."""
     lines = [
         f"╔══════════════════════════════════════════════════════════════════════╗",
-        f"║               [ Cheatsheet ] {T('cheatsheet_title')}                          ║",
+        f"║  MINXG — commands                                                    ║",
         f"╠══════════════════════════════════════════════════════════════════════╣",
         f"║                                                                      ║",
-        f"║   minxg              {T('cmd_minxg')}",
-        f"║   minxg docs         {T('cmd_docs')}",
-        f"║   minxg open         {T('cmd_open')}",
-        f"║   minxg setup        {T('cmd_setup')}",
-        f"║   minxg model [name] {T('cmd_model')}",
-        f"║   minxg api <url>    {T('cmd_api')}",
-        f"║   minxg key <key>    {T('cmd_key')}",
-        f"║   minxg lang [code]  {T('cmd_lang')}",
-        f"║   minxg config       {T('cmd_config')}",
-        f"║   minxg status       {T('cmd_status')}",
-        f"║   minxg tools        {T('cmd_tools')}",
-        f"║   minxg gateway      {T('cmd_gateway')}",
-        f"║   minxg update       {T('cmd_update')}",
-        f"║   minxg ext          {T('cmd_ext')}",
-        f"║   minxg skill        {T('cmd_skill')}",
-        f"║   minxg help         {T('cmd_help')}",
+        f"║  minxg                    Start the TUI chat (default)               ║",
+        f"║  minxg setup              Run the setup wizard                       ║",
+        f"║  minxg config             Show current configuration                 ║",
+        f"║  minxg status             Runtime status                             ║",
+        f"║  minxg tools              List available tools                       ║",
+        f"║  minxg model [name]       Set or view the model                       ║",
+        f"║  minxg api <url>          Quick-set API base URL                      ║",
+        f"║  minxg key <key>          Quick-set API key                          ║",
+        f"║  minxg lang [code]        Switch display language (en only, default) ║",
+        f"║  minxg ext list|add|...   Manage extensions (user-installed)         ║",
+        f"║  minxg gateway start|stop|status   API gateway lifecycle             ║",
+        f"║  minxg doctor             Self-check (config + tools + extensions)   ║",
+        f"║  minxg help               Show this cheatsheet                       ║",
         f"║                                                                      ║",
-        f"║   {T('cheatsheet_hint')}",
+        f"║  Examples:                                                           ║",
+        f"║    minxg model gpt-4o              # one-shot set the model          ║",
+        f"║    minxg ext add minxg-adb         # enable built-in ADB extension   ║",
+        f"║    minxg gateway start --foreground                                        ║",
         f"║                                                                      ║",
         f"╚══════════════════════════════════════════════════════════════════════╝",
     ]
     return "\n".join(lines)
-
 
 def print_cheatsheet():
     """Print command cheatsheet."""
@@ -104,12 +96,6 @@ def print_cheatsheet():
         )
     else:
         print(colorize(sheet, Colors.GREEN))
-
-
-
-
-
-
 
 def run_tools(args) -> int:
     """List available tools."""
@@ -159,7 +145,6 @@ def run_tools(args) -> int:
         print_error(T("tools_list_failed", error=str(e)))
         return 1
 
-
 def run_config_show(args) -> int:
     """Show current configuration."""
     config = load_config()
@@ -208,7 +193,6 @@ def run_config_show(args) -> int:
         print(f"  {T('cfg_api_key')}: {key_display}")
     return 0
 
-
 def run_status(args) -> int:
     """Show system status."""
     config = load_config()
@@ -242,7 +226,6 @@ def run_status(args) -> int:
             print(f"  AI Provider: {ai.get('provider', 'Not set')}")
             print(f"  Model: {ai.get('model', 'Not set')}")
     return 0
-
 
 @ensure_config
 def run_open(args) -> int:
@@ -285,7 +268,6 @@ def run_open(args) -> int:
     )
     return 0
 
-
 @ensure_config
 def run_docs(args) -> int:
     """Start local documentation server."""
@@ -325,7 +307,6 @@ def run_docs(args) -> int:
         httpd.serve_forever()
     return 0
 
-
 def run_model_config(args) -> int:
     """Configure AI model. Supports: minxg model or minxg model <name>."""
     model_arg = getattr(args, "model_name", None)
@@ -342,11 +323,9 @@ def run_model_config(args) -> int:
         print_success(T("shortcut_model_done", model=model_arg))
         return 0
 
-
     from multiligua_cli.setup import run_setup
     print_banner()
     return run_setup()
-
 
 def run_api_config(args) -> int:
     """Quick-set API base URL: minxg api <url>."""
@@ -362,7 +341,6 @@ def run_api_config(args) -> int:
     print_success(T("shortcut_api_done", url=url))
     return 0
 
-
 def run_key_config(args) -> int:
     """Quick-set API Key: minxg key <key>."""
     key = args.apikey
@@ -376,7 +354,6 @@ def run_key_config(args) -> int:
 
     print_success(T("shortcut_key_done"))
     return 0
-
 
 def run_lang_config(args) -> int:
     """Switch language: minxg lang [code] or minxg lang (interactive)."""
@@ -397,7 +374,6 @@ def run_lang_config(args) -> int:
     set_lang(new_lang)
     info = LANGUAGES[new_lang]
 
-
     config = load_config()
     config["lang"] = new_lang
     import yaml
@@ -407,7 +383,6 @@ def run_lang_config(args) -> int:
 
     print_success(T("lang_switched", name=info["native"]))
     return 0
-
 
 def _lang_tui_selector() -> str | None:
     """Language TUI selector."""
@@ -428,7 +403,6 @@ def _lang_tui_selector() -> str | None:
 
     return list(LANGUAGES.keys())[result]
 
-
 @ensure_config
 def run_setup(args) -> int:
     """Run the full setup wizard."""
@@ -439,183 +413,163 @@ def run_setup(args) -> int:
         print_cheatsheet()
     return result
 
-
-
-
-
-
 CORE_COMMANDS = frozenset({
     "docs", "open", "setup", "model", "api", "key", "lang",
     "config", "status", "tools", "gateway", "update", "ext", "skill", "help",
 })
 
+def _print_completion_hint() -> None:
+    """Show the post-install / first-run cheatsheet."""
+    try:
+        sys.stdout.write("\n")
+        sys.stdout.write(_build_cheatsheet())
+        sys.stdout.write("\n  Type `minxg` to start the TUI chat.\n\n")
+        sys.stdout.flush()
+    except Exception:
+        pass
 
+def main(argv=None) -> int:
+    """Route to subcommands. No args drops into the TUI chat.
 
-
-
-
-def main(argv: List[str] = None) -> int:
-    """Route to subcommands. No args defaults to TUI chat."""
+    Subcommands that auto-loaded behaviour (start, adb, root, files,
+    update, skill) have been removed in this build:
+      - `start` was an alias that conflated TUI with the gateway.
+      - `adb` / `root` / `files` are extensions; enable them with
+        `minxg ext add minxg-adb` etc.
+      - `update` was the removed hot-reload path.
+      - `skill` is in flux; inside the TUI, use `/help` for the
+        command index and `minxg doctor` for diagnostic output.
+    """
     set_process_title()
 
     parser = argparse.ArgumentParser(
-        description="MINXG — Multi-Language AI Orchestration Framework",
+        prog="minxg",
+        description="MINXG — five-pillar worker platform",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=f"""\
-Core Commands:
-  minxg                    {T('cmd_minxg')}
-  minxg docs               {T('cmd_docs')}
-  minxg open               {T('cmd_open')}
-  minxg setup              {T('cmd_setup')}
-  minxg model [name]       {T('cmd_model')}
-  minxg api <url>          {T('cmd_api')}
-  minxg key <key>          {T('cmd_key')}
-  minxg lang [code]        {T('cmd_lang')}
-  minxg config             {T('cmd_config')}
-  minxg status             {T('cmd_status')}
-  minxg tools              {T('cmd_tools')}
-  minxg gateway            {T('cmd_gateway')}
-  minxg update             {T('cmd_update')}
-  minxg ext                {T('cmd_ext')}
-  minxg skill              {T('cmd_skill')}
-  minxg help               {T('cmd_help')}
+        epilog="""
+Core commands:
+  minxg                   Start the TUI chat (default)
+  minxg setup             Run the setup wizard
+  minxg config            Show current configuration
+  minxg status            Show runtime status
+  minxg tools             List available tools
+  minxg model [NAME]      Set or view the active model
+  minxg api <URL>         Quick-set the API base URL
+  minxg key <KEY>         Quick-set the API key
+  minxg ext ...           Manage user-installed extensions
+  minxg gateway ...       API gateway lifecycle (start | stop | status)
+  minxg doctor            Self-check (config + tools + extensions)
+  minxg --version         Show version
 
 Examples:
-  minxg                          # Start TUI chat
-  minxg model gpt-4o             # Quick-set model
-  minxg api https://api.x.com/v1 # Quick-set API URL
-  minxg key sk-xxxx              # Quick-set API key
-  minxg lang en                  # Switch to English
-  minxg lang                     # Interactive language picker
-  minxg docs                     # Open docs in browser
-  minxg setup                    # Re-run setup wizard
+  minxg
+  minxg model gpt-4o
+  minxg ext add minxg-adb
+  minxg gateway start --foreground
 """,
     )
+    parser.add_argument("--version", action="version",
+                        version=f"%(prog)s {__version__}")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="Verbose logging")
+    parser.add_argument("--list-extensions", action="store_true",
+                        help="List all extensions and exit")
 
-    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose logging")
-    parser.add_argument("--list-extensions", action="store_true", help="List all extensions")
-    parser.add_argument("--list-skills", action="store_true", help="List all skills")
+    sub = parser.add_subparsers(dest="command", metavar="<command>")
 
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    sub.add_parser("setup", help="Run the setup wizard")
+    sub.add_parser("config", help="Show current configuration")
+    sub.add_parser("status", help="Show runtime status")
+    sub.add_parser("tools", help="List available tools")
+    sub.add_parser("help", help="Show command cheatsheet")
 
+    p_model = sub.add_parser("model", help="Set or view the active model")
+    p_model.add_argument("model_name", nargs="?",
+                         help="Model name (optional; omit to view)")
 
-    docs_parser = subparsers.add_parser("docs", help=T("cmd_docs"))
-    docs_parser.add_argument("--port", type=int, default=8080, help="Port (default: 8080)")
+    p_api = sub.add_parser("api", help="Quick-set the API base URL")
+    p_api.add_argument("url", help="API base URL")
 
-    open_parser = subparsers.add_parser("open", help=T("cmd_open"))
-    open_parser.add_argument("--port", type=int, help="API port (default: 18080)")
-    open_parser.add_argument("--host", default="0.0.0.0", help="Listen address")
-    open_parser.add_argument("--api-key", help="Gateway auth key")
+    p_key = sub.add_parser("key", help="Quick-set the API key")
+    p_key.add_argument("apikey", help="API key")
 
-    subparsers.add_parser("setup", help=T("cmd_setup"))
+    p_lang = sub.add_parser("lang",
+                             help="Switch display language (English-only)")
+    p_lang.add_argument("lang_code", nargs="?",
+                        help=f"Language code ({', '.join(LANG_CODES[:3])}...)")
 
-    model_parser = subparsers.add_parser("model", help=T("cmd_model"))
-    model_parser.add_argument("model_name", nargs="?", help="Model name (optional, skips wizard)")
+    p_gw = sub.add_parser("gateway",
+                          help="API gateway lifecycle (start | stop | status)")
+    p_gw.add_argument("sub_command", nargs="?",
+                      choices=["start", "stop", "status"],
+                      help="Sub-command to run")
 
-    subparsers.add_parser("config", help=T("cmd_config"))
-    subparsers.add_parser("status", help=T("cmd_status"))
-    subparsers.add_parser("tools", help=T("cmd_tools"))
-    subparsers.add_parser("help", help=T("cmd_help"))
+    p_doctor = sub.add_parser("doctor",
+                               help="Self-check (config + tools + extensions)")
 
-
-    api_parser = subparsers.add_parser("api", help=T("cmd_api"))
-    api_parser.add_argument("url", help="API base URL")
-
-
-    key_parser = subparsers.add_parser("key", help=T("cmd_key"))
-    key_parser.add_argument("apikey", help="API Key")
-
-
-    lang_parser = subparsers.add_parser("lang", help=T("cmd_lang"))
-    lang_parser.add_argument("lang_code", nargs="?", help=f"Language code ({', '.join(LANG_CODES[:6])}...)")
-
-
-    gw = subparsers.add_parser("gateway", help=T("cmd_gateway"))
-    gw.add_argument("sub_command", nargs="?", choices=["start", "stop", "status"],
-                    help="Sub-command: start, stop, status")
-
-
-    # `start` — top-level convenience alias for `gateway start`.
-    # Why: setup.py's user-facing banner (and prior minxg versions) advertise
-    # `minxg start` as the entry point. Restoring this alias avoids breaking
-    # muscle memory and the original install script's quick-start hints.
-    start_parser = subparsers.add_parser(
-        "start",
-        help="Start the MINXG gateway (alias for 'gateway start')",
-        description="Convenience alias: 'minxg start' is identical to 'minxg gateway start'.",
-    )
-    start_parser.add_argument(
-        "--foreground", action="store_true",
-        help="Run gateway in foreground instead of backgrounded",
-    )
-    start_parser.add_argument(
-        "--port", type=int, default=None,
-        help="Override gateway port (default: from config)",
-    )
-
-
-    up = subparsers.add_parser("update", help=T("cmd_update"))
-    up.add_argument("--force", action="store_true", help="Force update")
-    up.add_argument("--enable", action="store_true", help="Enable hot reload")
-    up.add_argument("--disable", action="store_true", help="Disable hot reload")
-
-
-    ext_cmd = subparsers.add_parser("ext", help=T("cmd_ext"))
-    ext_sub = ext_cmd.add_subparsers(dest="ext_action", help="Action")
-    ext_sub.add_parser("list", help=T("ext_list_help"))
-    ext_sub.add_parser("browse", help=T("ext_browse_help"))
-    ext_sub.add_parser("sample", help=T("ext_sample_help"))
-
-
-    subparsers.add_parser("skill", help=T("cmd_skill"))
-
-
-    from extensions import register_cli_extensions
-    ext_map: Dict = {}
-    try:
-        from extensions import register_cli_extensions as _rce
-        ext_map = _rce(subparsers)
-    except Exception as e:
-        print_dim(f"(Extension loading skipped: {e})")
-
+    p_ext = sub.add_parser("ext", help="Manage user-installed extensions")
+    ext_sub = p_ext.add_subparsers(dest="ext_action", metavar="<action>")
+    ext_sub.add_parser("list", help="List installed extensions")
+    ext_sub.add_parser("available",
+                        help="List built-in optional extensions")
+    p_ext_add = ext_sub.add_parser(
+        "add", help="Install a built-in slug or path/to/pkg.py")
+    p_ext_add.add_argument("spec", nargs="+",
+                           help="Extension slug or path")
+    p_ext_rm = ext_sub.add_parser("remove",
+                                   help="Remove an installed extension")
+    p_ext_rm.add_argument("name", help="Extension name to remove")
+    p_ext_info = ext_sub.add_parser("info",
+                                     help="Show details of one extension")
+    p_ext_info.add_argument("name", help="Extension name")
+    p_ext_enable = ext_sub.add_parser(
+        "enable", help="Enable without re-installing")
+    p_ext_enable.add_argument("name", help="Extension name")
+    p_ext_disable = ext_sub.add_parser(
+        "disable", help="Disable without removing")
+    p_ext_disable.add_argument("name", help="Extension name")
 
     args = parser.parse_args(argv)
 
     if args.verbose:
         import logging
         logging.getLogger().setLevel(logging.DEBUG)
-        logging.getLogger("extensions").setLevel(logging.DEBUG)
-
 
     if getattr(args, "list_extensions", False):
-        from extensions import list_extensions
-        if HAS_RICH:
-            from rich.table import Table
-            from rich import box
-            table = Table(title="[Extensions]", box=box.ROUNDED)
-            table.add_column("Name", style="cyan bold")
-            table.add_column("Source", style="magenta")
-            table.add_column("Priority", style="yellow")
-            table.add_column("Description", style="white")
+        try:
+            from extensions import list_extensions
+            rows = []
             for e in list_extensions():
-                table.add_row(e["name"], e["source"], str(e["priority"]), e["description"])
-            console.print(table)
+                rows.append((e["name"], e["source"], str(e["priority"]),
+                             e["description"]))
+            if not rows:
+                print_info("No extensions registered.")
+            else:
+                for name, src, prio, desc in rows:
+                    print(f"  {name:24s} {src:10s} p={prio:>3s}  {desc}")
+        except Exception as e:
+            print_warning(f"extension list failed: {e}")
         return 0
 
-    if getattr(args, "list_skills", False):
-        print_info("Skills: (query via skills_list)")
+    cmd = getattr(args, "command", None)
+
+    if cmd == "help":
+        sys.stdout.write(_build_cheatsheet() + "\n")
+        sys.stdout.flush()
         return 0
 
-    cmd = args.command
-
-
-    if cmd == "docs":
-        return run_docs(args)
-    if cmd == "open":
-        return run_open(args)
     if cmd == "setup":
-        return run_setup(args)
+        rc = run_setup(args)
+        if rc == 0:
+            _print_completion_hint()
+        return rc
+
+    if cmd == "config":
+        return run_config_show(args)
+    if cmd == "status":
+        return run_status(args)
+    if cmd == "tools":
+        return run_tools(args)
     if cmd == "model":
         return run_model_config(args)
     if cmd == "api":
@@ -624,80 +578,30 @@ Examples:
         return run_key_config(args)
     if cmd == "lang":
         return run_lang_config(args)
-    if cmd == "config":
-        return run_config_show(args)
-    if cmd == "status":
-        return run_status(args)
-    if cmd == "tools":
-        return run_tools(args)
-    if cmd == "help":
-        parser.print_help()
-        return 0
+
     if cmd == "gateway":
+        sub_c = getattr(args, "sub_command", None) or "status"
         from multiligua_cli.gateway_cli import (
             gateway_foreground, gateway_start, gateway_stop, gateway_status,
         )
-        sub = getattr(args, "sub_command", None)
-        if sub == "start":
+        if sub_c == "start":
             return gateway_start(args)
-        if sub == "stop":
+        if sub_c == "stop":
             return gateway_stop(args)
-        if sub == "status":
-            return gateway_status(args)
-        return gateway_foreground(args)
-    if cmd == "start":
-        # `minxg start` → forward to gateway_start (or foreground variant).
-        from multiligua_cli.gateway_cli import gateway_start, gateway_foreground
-        if getattr(args, "foreground", False):
-            return gateway_foreground(args)
-        return gateway_start(args)
-    if cmd == "update":
-        from multiligua_cli.utils import print_warning
-        print_warning("The 'update' subcommand has been removed in this build.")
-        return 0
+        return gateway_status(args)
+
+    if cmd == "doctor":
+        from multiligua_cli.doctor import run_doctor
+        return run_doctor(args)
+
     if cmd == "ext":
-        ea = getattr(args, "ext_action", None)
-        if ea == "list":
-            from multiligua_cli.extensions.tui import quick_list
-            quick_list()
-            return 0
-        if ea == "browse":
-            from multiligua_cli.extensions.tui import browse_extensions
-            browse_extensions()
-            return 0
-        if ea == "sample":
-            from multiligua_cli.extensions import get_loader
-            loader = get_loader()
-            info = loader.install_sample()
-            if info:
-                print_success(f"Sample extension installed: {info.name} v{info.version}")
-                print_info(f"Path: {info.path}")
-                print_info("View: minxg ext list")
-            return 0
-
-        from multiligua_cli.extensions.tui import browse_extensions
-        browse_extensions()
-        return 0
-    if cmd == "skill":
-        print_info("Skill management: coming soon")
-        return 0
-
-
-    if cmd and cmd in ext_map:
-        from extensions import dispatch_extension
-        return dispatch_extension(ext_map, cmd, args)
-
+        ext_act = getattr(args, "ext_action", None)
+        from extensions.package_cli import dispatch_ext_command
+        return dispatch_ext_command(args, ext_act)
 
     from multiligua_cli.tui_chat import tui_chat
     return tui_chat(args)
 
-
 if __name__ == "__main__":
-    exit_code = main()
-    try:
-        from multiligua_cli.i18n import T
-        from multiligua_cli.utils import print_success
-        print_success(T("goodbye"))
-    except Exception:
-        pass
-    sys.exit(exit_code)
+    rc = main()
+    sys.exit(rc)

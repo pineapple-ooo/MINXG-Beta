@@ -121,10 +121,10 @@ class CapManifest:
                 message=f"{len(unused)} capability is produced but no module consumes it",
                 detail=tuple(unused),
             ))
+        # Per-module checks: any `requires: <cap>` line that has zero
+        # providers must be flagged, in addition to the global
+        # `missing_provider` report above.
         for path, module in self.modules.items():
-            for cap in module.provides:
-                if cap not in needed:
-                    continue
             for cap in module.requires:
                 providers = self.what_provides(cap)
                 if not providers:

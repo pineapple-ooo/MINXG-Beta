@@ -4,6 +4,45 @@ Everything you need to read, modify, extend, and ship MINXG.
 
 ---
 
+## 0. v0.11.0 release notes (2026-06-19)
+
+Cold-start hardening. No breaking-API changes; same `minxg` imports,
+same worker count, same operator registry.
+
+  - **Built-in extensions are now opt-in.** The legacy
+    `ADB_AVAILABLE` / `ROOT_AVAILABLE` auto-detect ladder is gone;
+    each built-in ships with `EXTENSION_ENABLED = False`. Opt-in via
+    `minxg ext add <slug>`, which writes
+    `extensions/user/<slug>.state`. This is the structural fix for
+    pitfalls 31 and 34 in `minxg-megarefactor-v1`.
+  - **`minxg doctor` ships.** `multiligua_cli/doctor.py` is a new
+    self-check sub-command with a POSIX exit-code contract
+    (0 OK, 1 fail, 2 warn) so users can wire it into startup scripts
+    and bug-report templates.
+  - **cpp_core build link error fixed.** `cpp_core/CMakeLists.txt`
+    now also links `c_core/text_engine.c` into `libminxg_core.so`,
+    so the dlopen error `cannot locate symbol "minxg_slugify"`
+    no longer fires on a fresh Termux install. Verified at runtime:
+    `core_native.sha256(b"hi")` returns the expected hash.
+  - **`py_workers` alias hardened.** Pillar aliases
+    (`scalar`, `io`, `aggregate`, `dispatch`, `transform`) and the
+    six math pillars (`ga`, `cat`, `infogeo`, `topo`, `chaos`,
+    `fiber`) all resolve via the alias module's own `__getattr__`.
+  - **`install.sh` English-only.** Stripped 43 `[CN]` placeholder
+    markers. Brand line is `MINXG v0.11.0`.
+
+Cross-cutting variables to keep in sync when forking:
+
+  - `minxg.VERSION` (single source of truth).
+  - `pyproject.toml:version`.
+  - `config/minxg.yaml:project.version`.
+  - `install.sh` brand echo + cheatsheet.
+
+If one of these drifts, run `minxg doctor` and check that `ai.base_url`
+plus the four `--version` surfaces are still pointing at one number.
+
+---
+
 ## 1. Repository layout
 
 ```
@@ -32,8 +71,8 @@ Everything you need to read, modify, extend, and ship MINXG.
 │   ├── contracts/                 Cell / Port / Registry framework (edit isolation)
 │   ├── driver/                    Temporal Operator-Field driver engine
 │   ├── self_evolution/            closed-loop self-improvement on driver drift
-│   ├── polyglot/                  multi-language AST normaliser (5 langs)
-│   ├── lossless/                  BIE-geometry lossless compression (CRC32)
+│   ├── polyglot/                  multi-language source-to-graph normaliser (Python ast + 4-lang regex heuristics)
+│   ├── lossless/                  BIE-geometry byte-identical round-trip (CRC-32 trailer, not a zstd competitor)
 │   ├── twin/                      Python ↔ Rust RTL emitter
 │   └── lens/                      reverse-docstring export to 5 languages
 ├── py_workers/                    backward-compat alias package (do not edit)
@@ -327,8 +366,8 @@ singletons for convenient use.
 ## 9. CLI
 
 `multiligua_cli/` provides the interactive terminal. The `update`
-subcommand has been removed in v1.1.0; use `pip install --upgrade
-minxg` instead.
+subcommand has been removed in v0.11.0; use `pip install --upgrade
+minxg-beta` instead.
 
 ---
 
@@ -346,21 +385,35 @@ The suite currently covers:
 * `tests/test_09_persistence.py` — alias back-compat
 * `tests/test_driver.py` — driver engine invariants
 * `tests/test_extensions.py` — extension loader
+* `tests/test_cap.py` · `test_lens.py` · `test_lossless.py` ·
+  `test_polyglot.py` · `test_self_evolution.py` · `test_twin.py`
 
-Total: 75 tests, ~2 seconds on Android.
+Total: 130 passed + 1 skipped (no rustc on Termux), ~1.5 s on
+Android (Python 3.13).
 
 ---
 
 ## 11. Pitfalls
 
 * **Termux linker namespace** — `.so` files must live under
-  `/data/data/com.termux/files/usr/lib/`. `minxg.five_pillars.scalar.core_native`
+  `/data/data/com.termux/files/usr/lib/`. `minxg.five_pillars.scalar.core_native._find_lib()`
   auto-copies a found shared library to that path before `ctypes.CDLL`.
+  The search starts at the project root (the directory containing
+  `pyproject.toml`) and tries `cpp_core/build/`, then `cpp_core/`,
+  then `build/`, in that order. If no candidate matches, the loader
+  raises an explicit `OSError` rather than letting `ctypes.CDLL` emit
+  a misleading `dlopen failed` against an un-discovered bare name.
 * **Pillar boundary** — never use relative imports across pillars. Use
   the full `minxg.five_pillars.<pillar>.<name>` path even when importing
   a sibling. This makes refactors mechanical.
-* **Operator IDs** — the mathematical-pillar operator IDs are stable:
-  `5000–5499` for GA, `4000–4499` for CAT. Extensions start at `10000`.
+* **Operator IDs** — each mathematical-pillar operator lives in a
+  disjoint numeric range. Current ranges:
+  `5000-5049` for GA, `4000-4078` for CAT, `7000-7050` for IG,
+  `8000-8052` for TOPO, `8500-8522` for CHAOS, `6000-6052` for FIBER.
+  Outside these pillars: `0-19` math, `2000-2018` text, `3500-3511`
+  data, `5500-5512` logic, `9000-9005` system. Source of truth is
+  `config/minxg.yaml` § `operators.categories.*.id_range`. Extensions
+  start at `10000`.
 * **`platform.system()`** returns `Android` on Termux, not `Linux`. The
   `minxg.five_pillars.dispatch.platform_registry` already handles this.
 * **4-quote strings** — first-run strip_comments may emit `""""` instead
@@ -376,7 +429,7 @@ Total: 75 tests, ~2 seconds on Android.
 * `pytest -q` returns 75 passed.
 * `python -m py_compile $(find . -name '*.py' -not -path '*/_legacy/*')`
   returns 0.
-* `python -c 'import minxg; print(minxg.VERSION)'` prints `1.1.0`.
+* `python -c 'import minxg; print(minxg.VERSION)'` prints `0.11.0`.
 * All five pillar `__init__.py` re-exports match `minxg.__all__`.
 * `docs/DRIVER.md`, `docs/PILLARS.md`, `docs/ARCHITECTURE.md` exist and
   match the code.
@@ -415,8 +468,10 @@ self-evolution.
 
 ### 13.2 `minxg/polyglot`
 
-Multi-language AST normaliser. Output is a single `OperatorGraph`
-shape regardless of source language.
+Multi-language source-to-graph normaliser. Output is a single
+`OperatorGraph` shape regardless of source language. **Python uses
+real `ast`; Rust / JavaScript / Go / shell use regex-based structural
+heuristics.** Good for code-shape recognition, not a compiler front-end.
 
 ```python
 from minxg.polyglot import normalize
@@ -431,10 +486,12 @@ explicitly to skip detection.
 
 ### 13.3 `minxg/lossless`
 
-BIE-geometry lossless compression. Each byte becomes a unit-sphere
-point in (theta, phi); transitions between bytes are blades kept
-or dropped based on a curvature threshold. Reconstruction is
-guaranteed byte-identical by a CRC-32 trailer.
+BIE-geometry byte-identical round-trip. Each byte becomes a unit-sphere
+point in (theta, phi); transitions between bytes are blades kept or
+dropped based on a curvature threshold. Reconstruction is guaranteed
+byte-identical by a CRC-32 trailer. Note: the encoded form is
+typically *larger* than the input on real-world data; this is not a
+competitor to zstd/gzip.
 
 ```python
 from minxg.lossless import LosslessCodec
@@ -521,7 +578,7 @@ Compose through these.
 ## 14. Removing a Published Subsystem
 
 The GitHub `hot-reload` cycle (`git fetch && git reset --hard && pip
-install -e .`) was removed in v1.1.0. The lesson is in
+install -e .`) was removed in v0.11.0. The lesson is in
 `docs/ARCHITECTURE.md` and `minxg-megarefactor-v1/references/`.
 When a feature has shipped publicly and you decide it is wrong:
 

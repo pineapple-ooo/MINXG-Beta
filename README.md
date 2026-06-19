@@ -1,9 +1,7 @@
 # MINXG
 
-A modular AI worker platform covering the full operator surface area:
-chat, tool use, gateway, multi-language polyglot, capability registry,
-mathematical operator libraries, and a self-developed temporal
-driver engine — all in one Python project.
+A modular AI worker platform bringing workers, operators, and a
+self-developed temporal driver engine together in one Python project.
 
 `pip install minxg-beta` drops you on Termux, Linux, macOS, and WSL
 with a single `minxg` binary on `$PATH`. Workers are split across
@@ -91,8 +89,11 @@ The codebase has no compiled dependencies on install; everything in
 `minxg/five_pillars/`, `minxg/driver/`, `minxg/contracts/`,
 `minxg/self_evolution/`, `minxg/polyglot/`, `minxg/lossless/`,
 `minxg/twin/`, `minxg/lens/`, and the six mathematical pillars is
-pure Python. The Termux/Android pipeline has been verified end-to-
-end, including the loader of optional C/C++/Go native modules.
+pure Python. Fall-back to pure Python is implicit: when no native
+library is found or `dlopen` fails, the Python implementation is
+used. The Termux/Android pipeline runs end-to-end via the lazy
+loader for `cryptography` and the project-root-anchored
+`core_native._find_lib` walker.
 
 ## Quick start
 
@@ -116,16 +117,21 @@ engine = DriverEngine([smoothing_field(rate=0.4)])
 end, report = engine.run(state, n_steps=24)
 ```
 
-For lossless compression:
+For the lossless BIE round-trip codec:
 
 ```python
 from minxg.lossless import LosslessCodec
 
 codec = LosslessCodec()
-blob = codec.compress(b"some payload") .payload
-back  = codec.decompress(blob)
-assert back == b"some payload"
+result = codec.compress(b"some payload")     # wraps an MINSKE blob + CRC-32
+back = codec.decompress(result.payload)
+assert back == b"some payload"               # byte-identical, not size-optimised
 ```
+
+This is a BIE (blade-decomposition) *byte-identical round-trip* — useful
+as a structured representation of byte streams, not a competitor to
+zstd/gzip. On random or low-redundancy inputs the encoded form is
+larger than the source.
 
 ## Five pillars
 
@@ -152,12 +158,18 @@ Edit one worker, nothing else moves.
   records engine failures, a forge hunts capable Cells from the
   contracts registry, a twin engine validates a swap is drift-safe
   before committing.
-* `minxg.polyglot` — Multi-language AST normaliser. Python / Rust /
-  JavaScript / Go / shell all reduce to a single `OperatorGraph`.
-* `minxg.lossless` — BIE-geometry lossless compression. Every byte
-  becomes a unit-sphere point; transitions between bytes become
-  blades; the curvature skeleton is what gets stored, with a CRC-32
-  for byte-identical reconstruction.
+* `minxg.polyglot` — Multi-language source-to-graph normaliser.
+  Python uses real `ast`; Rust / JavaScript / Go / shell use
+  regex-based structural heuristics (not full parsers). All five
+  reduce to a single `OperatorGraph` with topological-order
+  edges — good enough for code-shape recognition, not a compiler
+  front-end.
+* `minxg.lossless` — BIE-geometry byte-identical round-trip. Every
+  byte becomes a unit-sphere point; transitions between bytes
+  become blades; the curvature skeleton is what gets stored, with
+  a CRC-32 trailer guaranteeing byte-identical reconstruction.
+  Structurally interesting; output is typically *larger* than the
+  input on real-world data.
 * `minxg.twin` — Python ↔ Rust RTL compiler. Source-equivalent twin
   emitters cover if/elif/else, while/for-range, augmented assignments,
   binop/compare expressions.
@@ -167,15 +179,17 @@ Edit one worker, nothing else moves.
 ## Mathematical pillars
 
 Six categorical libraries ship with the package and register
-300+ stable operator IDs on import:
+**306 mathematical operator IDs** in 6 non-overlapping ranges on
+import (376 operators total across all 11 categories; see
+`OPERATORS.md`):
 
 ```
-minxg.ga         5000-5499   geometric algebra
-minxg.cat        4000-4499   category theory
-minxg.infogeo    7000-7499   information geometry
-minxg.topo       8000-8499   algebraic topology
-minxg.chaos      8500-8999   dynamical systems
-minxg.fiber      6000-6499   fiber bundles
+minxg.ga         5000-5049   geometric algebra       (47 ids)
+minxg.cat        4000-4078   category theory         (79 ids)
+minxg.infogeo    7000-7050   information geometry    (51 ids)
+minxg.topo       8000-8052   algebraic topology      (53 ids)
+minxg.chaos      8500-8522   dynamical systems       (23 ids)
+minxg.fiber      6000-6052   fiber bundles           (53 ids)
 ```
 
 ## Documentation
