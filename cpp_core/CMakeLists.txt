@@ -32,3 +32,14 @@ set(CORE_SOURCES
 add_library(core STATIC ${CORE_SOURCES})
 target_include_directories(core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(core PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+
+# C++ JSON facade — flat C ABI for ctypes binding.
+# Re-parses on every call (no C++ objects cross the ABI), returns
+# malloc'd std::string buffers via cpp_json_free(); see header comment in
+# json_stringify.cpp for the rationale.
+add_library(minxg_cpp_json SHARED
+    src/json_stringify.cpp
+    src/json_fast.cpp
+)
+target_include_directories(minxg_cpp_json PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_compile_options(minxg_cpp_json PRIVATE -fPIC -O3 -std=c++17)

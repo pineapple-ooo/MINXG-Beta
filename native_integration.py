@@ -540,6 +540,400 @@ class CPPCore:
         return self._lib.minxg_data_hash(data, len(data))
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# CPP JSON CORE — libminxg_cpp_json.so
+# (flat C facade over cpp_core::json_fast, malloc-in / free-out ABI)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class CPPJsonNative:
+    """Pure C++ JSON facade: re-parse-on-call, malloc'd string buffers.
+
+    The C++ JsonValue (std::variant) is intentionally NOT exposed across
+    the C boundary — variant alignment on aarch64 Android is brittle.
+    Instead every call reparses the input and returns heap-allocated
+    UTF-8 bytes; caller frees via cpp_json_free(). No upfront state to
+    corrupt, no static-cache lifetime to leak.
+    """
+    _lib = None
+
+    @classmethod
+    def load(cls):
+        path = _find_lib("libminxg_cpp_json.so")
+        if path is None:
+            # CMake drops it under cpp_core/build/ — copy to usr/lib for
+            # the Termux linker-namespace to load it.
+            alt = _PROJ / "cpp_core" / "build" / "libminxg_cpp_json.so"
+            if alt.exists():
+                dest = Path("/data/data/com.termux/files/usr/lib") / alt.name
+                try:
+                    import shutil as _sh
+                    if (not dest.exists()
+                            or alt.stat().st_mtime > dest.stat().st_mtime):
+                        _sh.copy2(alt, dest)
+                    path = dest
+                except Exception:
+                    path = None
+        if not path:
+            cls._lib = None
+            return
+        try:
+            cls._lib = ctypes.CDLL(str(path))
+            cls._setup_funcs()
+        except Exception as e:
+            print(f"[native] cpp_json lib load failed: {e}", file=sys.stderr)
+            cls._lib = None
+
+    @classmethod
+    def _setup_funcs(cls):
+        lib = cls._lib
+        # parse(text, text_len, out_ptr, out_len) -> int rc; on success
+        # *out_ptr is a malloc'd, NUL-terminated buffer of length *out_len.
+        # NOTE: use c_void_p OUT parameters, NOT c_char_p. c_char_p makes
+        # ctypes copy the C bytes into a new Python-bytes-backed allocation
+        # (because c_char_p semantics are "string") and the C-original
+        # pointer is then lost — passing the Python-side copy back into
+        # cpp_json_free() corrupts the heap with SIGABRT. c_void_p keeps
+        # the raw C pointer intact across the call.
+        lib.cpp_json_parse.argtypes = [ctypes.c_char_p, ctypes.c_size_t,
+                                        ctypes.POINTER(ctypes.c_void_p),
+                                        ctypes.POINTER(ctypes.c_size_t)]
+        lib.cpp_json_parse.restype = ctypes.c_int
+        # free expects the EXACT malloc'd pointer returned by parse/etc.
+        lib.cpp_json_free.argtypes = [ctypes.c_void_p]
+        lib.cpp_json_free.restype = None
+        # get_string(text, text_len, key, out_ptr, out_len)
+        lib.cpp_json_get_string.argtypes = [ctypes.c_char_p, ctypes.c_size_t,
+                                             ctypes.c_char_p,
+                                             ctypes.POINTER(ctypes.c_void_p),
+                                             ctypes.POINTER(ctypes.c_size_t)]
+        lib.cpp_json_get_string.restype = ctypes.c_int
+        # get_int / get_float
+        lib.cpp_json_get_int.argtypes = [ctypes.c_char_p, ctypes.c_size_t,
+                                          ctypes.c_char_p, ctypes.c_int64]
+        lib.cpp_json_get_int.restype = ctypes.c_int64
+        lib.cpp_json_get_float.argtypes = [ctypes.c_char_p, ctypes.c_size_t,
+                                            ctypes.c_char_p, ctypes.c_double]
+        lib.cpp_json_get_float.restype = ctypes.c_double
+        # type probes
+        lib.cpp_json_is_object.argtypes = [ctypes.c_char_p, ctypes.c_size_t]
+        lib.cpp_json_is_object.restype = ctypes.c_int
+        lib.cpp_json_is_array.argtypes = [ctypes.c_char_p, ctypes.c_size_t]
+        lib.cpp_json_is_array.restype = ctypes.c_int
+        # array access
+        lib.cpp_json_array_size.argtypes = [ctypes.c_char_p, ctypes.c_size_t]
+        lib.cpp_json_array_size.restype = ctypes.c_size_t
+        lib.cpp_json_array_at_string.argtypes = [ctypes.c_char_p, ctypes.c_size_t,
+                                                   ctypes.c_size_t,
+                                                   ctypes.POINTER(ctypes.c_void_p),
+                                                   ctypes.POINTER(ctypes.c_size_t)]
+        lib.cpp_json_array_at_string.restype = ctypes.c_int
+        # batch extract
+        # (text, len, keys[], types[], n, str_rcs[], str_results[], str_lens[],
+        #  int_results[], float_results[]) -> None
+        lib.cpp_json_extract_many.argtypes = [
+            ctypes.c_char_p, ctypes.c_size_t,
+            ctypes.POINTER(ctypes.c_char_p), ctypes.POINTER(ctypes.c_int),
+            ctypes.c_size_t,
+            ctypes.POINTER(ctypes.c_int8),
+            ctypes.POINTER(ctypes.c_void_p), ctypes.POINTER(ctypes.c_size_t),
+            ctypes.POINTER(ctypes.c_int64),
+            ctypes.POINTER(ctypes.c_double),
+        ]
+        lib.cpp_json_extract_many.restype = None
+
+    @classmethod
+    def available(cls) -> bool:
+        return cls._lib is not None
+
+    # ---- parse / round-trip ------------------------------------------------
+    #
+    # Lifetime model is fiddly on Termux. The C-side `parse` mallocs a
+    # buffer of size *out_len + 1 (NUL-terminated) and returns the raw
+    # pointer via ctypes. We must:
+    #   (a) hand that EXACT pointer (and only that) to cpp_json_free(),
+    #   (b) avoid memcpy/ctypes.string_at because they copy out of the
+    #       malloc'd region into ctypes-managed memory and free() then
+    #       targets the wrong address — heap corruption -> SIGABRT.
+    #
+    # Hence `parse()` returns a `JsonBuffer` object that:
+    #   - holds the original `char*` pointer from the C call,
+    #   - exposes `.bytes` / `.decode()` views that the caller can use
+    #     without taking ownership,
+    #   - frees itself when the object is GC'd (or on explicit .free()).
+
+    class JsonBuffer:
+        __slots__ = ("_lib", "_ptr", "_len", "_alive")
+
+        def __init__(self, lib, ptr, length):
+            self._lib = lib
+            self._ptr = ptr  # raw malloc'd char* from C
+            self._len = length
+            self._alive = True
+
+        def __len__(self):
+            return self._len
+
+        @property
+        def bytes(self):
+            """Read-only view of the malloc'd buffer. The bytes object is a
+            C-side copy that survives even after this JsonBuffer is freed;
+            the JsonBuffer owns only the underlying malloc region.
+            """
+            return ctypes.string_at(self._ptr, self._len)
+
+        def decode(self, encoding="utf-8"):
+            return self.bytes.decode(encoding)
+
+        def free(self):
+            if self._alive and self._lib is not None and self._ptr:
+                self._lib.cpp_json_free(self._ptr)
+                self._alive = False
+                self._ptr = None
+
+        def __del__(self):
+            try:
+                self.free()
+            except Exception:
+                pass
+
+        def __repr__(self):
+            state = "live" if self._alive else "freed"
+            return f"JsonBuffer(len={self._len}, state={state})"
+
+    def parse(self, text):
+        """Parse + serialise. Returns a JsonBuffer on success, None on failure.
+
+        Caller frees via `JsonBuffer.free()` or relies on __del__ when
+        garbage-collected. NEVER call ctypes.string_at on the returned
+        pointer and then free() that copy — that is the heap-corruption
+        footgun from the prior session.
+        """
+        if not self._lib:
+            return None
+        b = text.encode("utf-8") if isinstance(text, str) else bytes(text)
+        # c_void_p OUT parameter — see _setup_funcs comment for why NOT c_char_p.
+        out_ptr = ctypes.c_void_p()
+        out_len = ctypes.c_size_t(0)
+        rc = self._lib.cpp_json_parse(b, len(b),
+                                       ctypes.byref(out_ptr),
+                                       ctypes.byref(out_len))
+        if rc != 0 or not out_ptr.value:
+            return None
+        return self.JsonBuffer(self._lib, out_ptr.value, out_len.value)
+
+    def parse_free(self, text):
+        """Validate-only convenience: returns True iff input parses.
+
+        The serialised buffer is freed before returning.
+        """
+        buf = self.parse(text)
+        if buf is None:
+            return False
+        buf.free()
+        return True
+
+    def free(self, buf):
+        """Free a JsonBuffer. Safe to call twice; safe to call on None."""
+        if buf is None:
+            return
+        if hasattr(buf, "free"):
+            buf.free()
+            return
+        # Backward-compat: if a raw ctypes bytes object was handed in by
+        # mistake (from an older caller), warn loudly — calling free on
+        # it would corrupt the heap.
+        raise TypeError(
+            "CPPJsonNative.free() expects a JsonBuffer, not a raw bytes "
+            "object. The bytes object is a ctypes-side copy — use "
+            "JsonBuffer.free() to release the original malloc'd region."
+        )
+
+    # ---- object access -----------------------------------------------------
+
+    def get_string(self, text, key):
+        """Return a JsonBuffer for the looked-up string value, or None.
+
+        Frees the underlying malloc region via JsonBuffer.__del__ when
+        caller drops the reference.
+        """
+        if not self._lib:
+            return None
+        b = text.encode("utf-8") if isinstance(text, str) else bytes(text)
+        kb = key.encode("utf-8") if isinstance(key, str) else bytes(key)
+        out_ptr = ctypes.c_void_p()
+        out_len = ctypes.c_size_t(0)
+        rc = self._lib.cpp_json_get_string(b, len(b), kb,
+                                            ctypes.byref(out_ptr),
+                                            ctypes.byref(out_len))
+        if rc != 0 or not out_ptr.value:
+            return None
+        return self.JsonBuffer(self._lib, out_ptr.value, out_len.value)
+
+    def get_string_value(self, text, key, default=None):
+        """Unicode-decoded string value, freed before return."""
+        buf = self.get_string(text, key)
+        if buf is None:
+            return default
+        try:
+            return buf.decode()
+        finally:
+            buf.free()
+
+    def get_int(self, text, key, fallback=0):
+        if not self._lib:
+            return fallback
+        b = text.encode("utf-8") if isinstance(text, str) else bytes(text)
+        kb = key.encode("utf-8") if isinstance(key, str) else bytes(key)
+        return int(self._lib.cpp_json_get_int(b, len(b), kb,
+                                              ctypes.c_int64(fallback)))
+
+    def get_float(self, text, key, fallback=0.0):
+        if not self._lib:
+            return fallback
+        b = text.encode("utf-8") if isinstance(text, str) else bytes(text)
+        kb = key.encode("utf-8") if isinstance(key, str) else bytes(key)
+        return float(self._lib.cpp_json_get_float(b, len(b), kb,
+                                                  ctypes.c_double(fallback)))
+
+    def is_object(self, text):
+        if not self._lib:
+            return False
+        b = text.encode("utf-8") if isinstance(text, str) else bytes(text)
+        return bool(self._lib.cpp_json_is_object(b, len(b)))
+
+    def is_array(self, text):
+        if not self._lib:
+            return False
+        b = text.encode("utf-8") if isinstance(text, str) else bytes(text)
+        return bool(self._lib.cpp_json_is_array(b, len(b)))
+
+    def array_size(self, text):
+        if not self._lib:
+            return 0
+        b = text.encode("utf-8") if isinstance(text, str) else bytes(text)
+        return int(self._lib.cpp_json_array_size(b, len(b)))
+
+    def array_at_string(self, text, idx):
+        """Return a JsonBuffer for the array element, or None."""
+        if not self._lib:
+            return None
+        b = text.encode("utf-8") if isinstance(text, str) else bytes(text)
+        out_ptr = ctypes.c_void_p()
+        out_len = ctypes.c_size_t(0)
+        rc = self._lib.cpp_json_array_at_string(b, len(b), idx,
+                                                 ctypes.byref(out_ptr),
+                                                 ctypes.byref(out_len))
+        if rc != 0 or not out_ptr.value:
+            return None
+        return self.JsonBuffer(self._lib, out_ptr.value, out_len.value)
+
+    def array_to_strings(self, text):
+        """Decode all string elements of an array. Frees each malloc'd buf."""
+        n = self.array_size(text)
+        out = []
+        for i in range(n):
+            buf = self.array_at_string(text, i)
+            if buf is None:
+                continue
+            out.append(buf.decode())
+            buf.free()
+        return out
+
+    # ---- batch -------------------------------------------------------------
+
+    # Type codes for cpp_json_extract_many
+    _T_SKIP = 0
+    _T_STRING = 1
+    _T_INT = 2
+    _T_FLOAT = 3
+
+    def extract_many(self, text, spec):
+        """spec: list of (key, "str"|"int"|"float") tuples.
+
+        Returns a list parallel to spec with the parsed values:
+          - "str" -> Python str (None on miss)
+          - "int" -> int            (0  on miss)
+          - "float" -> float        (0.0 on miss)
+        Single parse, single hashtable scan, then free the str buffers.
+        """
+        if not self._spec_supported(spec):
+            return self._extract_fallback(text, spec)
+        b = text.encode("utf-8") if isinstance(text, str) else bytes(text)
+        n = len(spec)
+        keys_t = (ctypes.c_char_p * n)()
+        types_t = (ctypes.c_int * n)()
+        type_map = {"str": self._T_STRING, "int": self._T_INT,
+                    "float": self._T_FLOAT, "skip": self._T_SKIP}
+        for i, (k, t) in enumerate(spec):
+            keys_t[i] = (k.encode("utf-8")
+                          if isinstance(k, str) else bytes(k))
+            types_t[i] = type_map.get(t, self._T_SKIP)
+        str_rcs = (ctypes.c_int8 * n)(*([-1] * n))
+        # c_void_p here preserves the malloc'd pointer unmodified across the
+        # C boundary. c_char_p would copy into a Python bytes and the
+        # cpp_json_free(str_results[i]) call would then corrupt the heap.
+        str_results = (ctypes.c_void_p * n)()
+        str_lens = (ctypes.c_size_t * n)()
+        int_results = (ctypes.c_int64 * n)()
+        float_results = (ctypes.c_double * n)()
+        self._lib.cpp_json_extract_many(
+            b, len(b), keys_t, types_t, n,
+            str_rcs, str_results, str_lens, int_results, float_results)
+        out = []
+        for i, (k, t) in enumerate(spec):
+            if t == "str":
+                if str_rcs[i] == 0 and str_results[i]:
+                    raw = ctypes.string_at(str_results[i], str_lens[i])
+                    try:
+                        out.append(raw.decode("utf-8"))
+                    finally:
+                        self._lib.cpp_json_free(str_results[i])
+                else:
+                    out.append(None)
+            elif t == "int":
+                out.append(int(int_results[i]))
+            elif t == "float":
+                out.append(float(float_results[i]))
+            else:
+                out.append(None)
+        return out
+
+    @staticmethod
+    def _spec_supported(spec):
+        return all(isinstance(t, str) and t in ("str", "int", "float", "skip")
+                    for _, t in spec)
+
+    @staticmethod
+    def _extract_fallback(text, spec):
+        """Slow Python fallback so behavioural parity holds when the lib is absent."""
+        import json as _json
+        try:
+            d = _json.loads(text)
+        except Exception:
+            return [None] * len(spec)
+        out = []
+        for k, t in spec:
+            v = d.get(k) if isinstance(d, dict) else None
+            if t == "str":
+                out.append(v if isinstance(v, str) else None)
+            elif t == "int":
+                out.append(int(v) if isinstance(v, (int, float)) else 0)
+            elif t == "float":
+                out.append(float(v) if isinstance(v, (int, float)) else 0.0)
+            else:
+                out.append(None)
+        return out
+
+    # ---- ctypes-friendly Python-side helper --------------------------------
+
+    def round_trip_valid(self, text):
+        """Parse-then-count-bytes sanity check. Useful as a smoke test."""
+        buf = self.parse(text)
+        ok = (buf is not None and len(buf) > 0)
+        if buf is not None:
+            buf.free()
+        return ok
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # GO CORE — libminxg_go.so (c-shared: health, text search, rate limit)
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -786,7 +1180,8 @@ _NATIVE: dict = {}
 
 def _init():
     """Load all native libraries. Safe to call multiple times."""
-    for name, cls in [("c", CCore), ("cpp", CPPCore), ("go", GoCore)]:
+    for name, cls in [("c", CCore), ("cpp", CPPCore),
+                       ("cpp_json", CPPJsonNative), ("go", GoCore)]:
         cls.load()
         _NATIVE[name] = cls()
 
@@ -794,12 +1189,14 @@ _init()
 
 def c() -> CCore: return _NATIVE.get("c", CCore())
 def cpp() -> CPPCore: return _NATIVE.get("cpp", CPPCore())
+def cpp_json() -> CPPJsonNative: return _NATIVE.get("cpp_json", CPPJsonNative())
 def go() -> GoCore: return _NATIVE.get("go", GoCore())
 def shell() -> ShellCore: return ShellCore()
 
 # Convenience aliases
 NATIVE_C = c()
 NATIVE_CPP = cpp()
+NATIVE_CPP_JSON = cpp_json()
 NATIVE_GO = go()
 NATIVE_SHELL = shell()
 
@@ -808,11 +1205,16 @@ def status() -> dict:
     return {
         "c":  {"available": CCore.available(), "path": str(_find_lib("libminxg_c.so") or "")},
         "cpp": {"available": CPPCore.available(), "path": str(_find_lib("libminxg_core.so") or "")},
+        "cpp_json": {"available": CPPJsonNative.available(),
+                     "path": str(_find_lib("libminxg_cpp_json.so") or
+                                  str(_PROJ / "cpp_core" / "build" / "libminxg_cpp_json.so"))},
         "go":  {"available": GoCore.available(),
                 "path": str(_find_lib("libminxg_go.so") or ""),
                 "version": GoCore().version() if GoCore.available() else "unavailable"},
         "shell_tools": ShellCore.available(),
-        "all_native": all([CCore.available(), CPPCore.available(), GoCore.available()]),
+        "all_native": all([CCore.available(), CPPCore.available(),
+                           GoCore.available(), CPPJsonNative.available()]),
+        "cpp_json_available": CPPJsonNative.available(),
     }
 
 if __name__ == "__main__":
