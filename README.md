@@ -1,7 +1,8 @@
 # MINXG
 
-A modular AI worker platform bringing workers, operators, and a
-self-developed temporal driver engine together in one Python project.
+A modular AI worker platform with a built-in chat CLI, an OpenAI-compatible
+v1 gateway, opt-in extensions (ADB / ROOT / files), and a self-developed
+temporal driver engine — all in one Python package.
 
 `pip install minxg-beta` drops you on Termux, Linux, macOS, and WSL
 with a single `minxg` binary on `$PATH`. Workers are split across
@@ -9,20 +10,25 @@ five orthogonal operator planes (io, aggregate, scalar, transform,
 dispatch), so editing one module never forces a full rebuild.
 Pure Python — no compiled step required to install or run.
 
-This is the **v0.10.0** release. It fixes six concrete CLI bugs
-(carried over from the v0.11.0 hot-fix snapshot):
+This is the **v0.11.0** release. It ships cold-start hardening plus
+a polished setup wizard:
 
-- `minxg tools` / `minxg open`: no longer abort on cold-start when
-  the `cryptography` binding fails to load (e.g. Termux + Py 3.13).
-- `minxg files` / TUI default: ChatLogger's session buffer is now
-  initialised up-front, so the first command no longer crashes.
-- Wizard menus with `readchar` missing: clean fallback to numbered
-  input with a `q`-to-quit exit.
-- `--version` and banners: now read `minxg.VERSION` everywhere —
-  no more hardcoded "1.0.0" leaked through three files.
-- `minxg help`: every line is now human-readable — duplicate
-  `i18n_data/en.json` was missing in past builds, but a built-in
-  English defaults dict ships with the package and survives.
+- `minxg` (no subcommand) now asks: chat CLI, start API gateway, or
+  run the setup wizard — instead of dropping straight into a TUI
+  shell.
+- Setup wizard supports the OpenAI-standard `reasoning_effort` knob
+  (`xhigh` / `high` / `medium` / `low` / `minimal` / `none`) with
+  per-provider support maps (OpenAI supports all five, Anthropic
+  three, Gemini five, DeepSeek / Doubao / xAI four, etc.).
+- Wizard menus strictly fit a single line per option — descriptions
+  are truncated to 28 chars so Termux 80-col screens stop spilling
+  one option across two terminal rows.
+- Built-in extensions (`minxg-adb`, `minxg-root`, `minxg-files`)
+  ship opted-OUT. Users enable with `minxg ext add <slug>`. No
+  silent auto-attaching to whatever API happens to be on PATH.
+- `cpp_core/CMakeLists.txt` link error fixed: `libminxg_core.so`
+  no longer crashes on `dlopen` with
+  `cannot locate symbol "minxg_slugify"` on Termux + Py3.13.
 - `minxg model`: the AI provider registry was missing `name`,
   `emoji`, and `description` for the second half of the providers,
   crashing the setup wizard with `KeyError: 'emoji'`. All 32
