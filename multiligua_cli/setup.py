@@ -11,6 +11,9 @@ from typing import Dict, Any, List, Optional
 
 
 from multiligua_cli.i18n import T, set_lang, get_lang, LANGUAGES, LANG_NAMES, LANG_CODES
+from multiligua_cli.providers import (
+    REASONING_LEVELS, REASONING_BY_PROVIDER, resolve_reasoning_level,
+)
 
 from multiligua_cli.wizard_ui import (
     clear_screen, print_banner, print_step_progress,
@@ -101,7 +104,7 @@ from multiligua_cli.platforms import PLATFORMS, PLATFORM_ORDER
 
 
 
-TOTAL_STEPS = 8
+TOTAL_STEPS = 5
 
 
 def setup_language(config: Dict[str, Any], existing: Dict[str, Any]) -> None:
@@ -164,6 +167,31 @@ def setup_ai_provider(config: Dict[str, Any], existing: Dict[str, Any]) -> None:
     )
     config["ai"]["model"] = model
     print_success("Model configured" + f" — {model}")
+
+    print_section("Reasoning effort (OpenAI standard)")
+    supported_levels = REASONING_BY_PROVIDER.get(provider_key)
+    level_names = [name for name, _ in REASONING_LEVELS]
+    level_descs = [desc for _, desc in REASONING_LEVELS]
+    if supported_levels:
+        ordered = [n for n in level_names if n in supported_levels] + [
+            n for n in level_names if n not in supported_levels
+        ]
+    else:
+        ordered = level_names
+    existing_level = (existing.get("ai", {}).get("reasoning_effort")
+                      or "medium")
+    default_idx = 0
+    for i, n in enumerate(ordered):
+        if resolve_reasoning_level(provider_key, existing_level) == n:
+            default_idx = i
+            break
+    selected_idx = prompt_choice(
+        "Select reasoning effort (OpenAI reasoning_effort)",
+        ordered, level_descs, default=default_idx,
+    )
+    config["ai"]["reasoning_effort"] = ordered[selected_idx]
+    print_success(
+        f"Reasoning effort: {config['ai']['reasoning_effort']}")
 
     print_section("Environment")
     existing_mt = existing.get("ai", {}).get("max_tokens")
@@ -387,6 +415,8 @@ def show_summary(config: Dict[str, Any]) -> None:
         print_kv("Max Tokens", str(ai["max_tokens"]))
     if ai.get("temperature") is not None:
         print_kv("Temperature", str(ai["temperature"]))
+    if ai.get("reasoning_effort"):
+        print_kv("Reasoning", str(ai["reasoning_effort"]))
 
     platforms = config.get("platforms", {})
     if platforms:
@@ -395,7 +425,10 @@ def show_summary(config: Dict[str, Any]) -> None:
             pinfo = PLATFORMS.get(k, {})
             print_kv(f"  {pinfo.get('name', k)}", "enabled", indent=6)
     else:
-        print_kv("Platforms", "none")
+        print_kv("Platforms", "skip")
+
+    if config.get("mode"):
+        print_kv("Usage mode", str(config["mode"]))
 
     gw = config.get("gateway", {})
     print_kv("Gateway", f"{gw.get('host', '0.0.0.0')}:{gw.get('port', 19001)}")
@@ -432,13 +465,29 @@ def run_setup():
     setup_language(config, existing)
 
     setup_ai_provider(config, existing)
-    setup_platforms(config, existing)
-    setup_gateway(config, existing)
+
+    print_step_progress(2, TOTAL_STEPS, "How you want to use MINXG")
+    mode_options = [
+        (chr(0x1F4AC), "Chat CLI (default)"),
+        (chr(0x1F310), "API Gateway"),
+        (chr(0x2699) + chr(0xFE0F), "Both (chat + gateway)"),
+    ]
+    mode_choices = [f"{e} {n}" for e, n in mode_options]
+    mode_descs = [
+        "Talk to the model directly from your terminal",
+        "Expose an OpenAI-compatible v1 endpoint for other tools",
+        "Local chat + an OpenAI-compatible HTTP endpoint on $PORT",
+    ]
+    mode_idx = prompt_choice(
+        "Pick a usage mode", mode_choices, mode_descs, default=0)
+    config["mode"] = ("chat", "gateway", "both")[mode_idx]
+    print_success(f"Mode: {config['mode']}")
+
+    if config["mode"] in ("gateway", "both"):
+        setup_gateway(config, existing)
+
     setup_environment(config, existing)
-    setup_hot_reload(config, existing)
-
     setup_browser_search(config, existing)
-
     show_summary(config)
 
     if prompt_yes_no("Save configuration?", default=True):
@@ -448,7 +497,7 @@ def run_setup():
         _post_setup_hints(config)
     else:
         print_info("Setup cancelled.")
-    
+
     print()
     print_success("Goodbye!")
 
@@ -460,21 +509,22 @@ def _post_setup_hints(config: Dict[str, Any]) -> None:
         from rich.panel import Panel
         console.print(Panel.fit(
             "  Setup complete!\n"
-            "  Start: [bold]minxg start[/bold]\n"
-            "  Docs: [bold]minxg docs[/bold]\n"
-            "  Help: [bold]minxg --help[/bold]\n"
+            "  Chat CLI:  [bold]minxg[/bold]\n"
+            "  Gateway:   [bold]minxg gateway start[/bold]\n"
+            "  Self-check:[bold]minxg doctor[/bold]\n"
+            "  Help:      [bold]minxg --help[/bold]\n"
             "  Reconfigure: [bold]minxg setup[/bold]",
             title="MINXG", border_style="gold3"
         ))
     else:
         from multiligua_cli.wizard_ui import Colors, _ansi
-        print(_ansi("╔══════════════════════════════════════╗", Colors.GOLD))
-        print(_ansi(f"║  Setup complete!                    ║", Colors.GOLD, Colors.BOLD))
-        print(_ansi(f"║  Start:   minxg start                ║", Colors.INDIGO))
-        print(_ansi(f"║  Docs:    minxg docs                 ║", Colors.TEAL))
-        print(_ansi(f"║  Help:    minxg --help               ║", Colors.SLATE))
-        print(_ansi(f"║  Config:  minxg setup                ║", Colors.AMETHYST))
-        print(_ansi("╚══════════════════════════════════════╝", Colors.GOLD))
+        print(_ansi("+=============================================+", Colors.GOLD))
+        print(_ansi("|  Setup complete!                            |", Colors.GOLD, Colors.BOLD))
+        print(_ansi("|  Chat CLI: minxg                            |", Colors.INDIGO))
+        print(_ansi("|  Gateway:  minxg gateway start              |", Colors.TEAL))
+        print(_ansi("|  Doctor:   minxg doctor                     |", Colors.SLATE))
+        print(_ansi("|  Help:     minxg --help                     |", Colors.AMETHYST))
+        print(_ansi("+=============================================+", Colors.GOLD))
     print()
 
 

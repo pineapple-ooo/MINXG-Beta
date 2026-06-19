@@ -252,3 +252,51 @@ def provider_display(key: str) -> str:
 def provider_descriptions() -> list:
     """Return the description strings for every registered provider."""
     return [AI_PROVIDERS[k].get("description", "") for k in AI_PROVIDERS]
+
+
+REASONING_LEVELS = (
+    ("xhigh",   "xhigh   - maximum reasoning effort (slowest, deepest)"),
+    ("high",    "high    - thorough reasoning (default for o-series)"),
+    ("medium",  "medium  - balanced reasoning vs. latency"),
+    ("low",     "low     - fast responses, light reasoning"),
+    ("minimal", "minimal - near-zero reasoning overhead"),
+    ("none",    "none    - disable reasoning entirely"),
+)
+
+
+REASONING_BY_PROVIDER = {
+    "openai":     ("xhigh", "high", "medium", "low", "minimal"),
+    "anthropic":  ("high", "medium", "low"),
+    "google":     ("high", "medium", "low", "minimal", "none"),
+    "deepseek":   ("high", "medium", "low", "none"),
+    "moonshot":   ("medium", "low", "none"),
+    "zhipu":      ("medium", "low", "none"),
+    "baichuan":   ("medium", "low", "none"),
+    "minimax":    ("high", "medium", "low"),
+    "stepfun":    ("medium", "low", "none"),
+    "doubao":     ("high", "medium", "low"),
+    "yi":         ("medium", "low"),
+    "spark":      ("medium", "low", "none"),
+    "meta":       ("medium", "low", "none"),
+    "mistral":    ("medium", "low", "none"),
+    "cohere":     ("medium", "low", "none"),
+    "groq":       ("medium", "low"),
+    "xai":        ("xhigh", "high", "medium", "low"),
+    "perplexity": ("medium", "low"),
+    "openrouter": ("xhigh", "high", "medium", "low", "minimal", "none"),
+}
+
+
+def resolve_reasoning_level(provider_key, requested=None):
+    """Return a reasoning-effort level valid for the given provider.
+
+    Falls back to the provider's strongest advertised level when the
+    requested one isn't supported, and to "medium" for unknown
+    providers.
+    """
+    supported = REASONING_BY_PROVIDER.get(provider_key)
+    if not supported:
+        return requested or "medium"
+    if requested in supported:
+        return requested
+    return supported[0]

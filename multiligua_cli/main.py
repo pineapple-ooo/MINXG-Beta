@@ -599,8 +599,53 @@ Examples:
         from extensions.package_cli import dispatch_ext_command
         return dispatch_ext_command(args, ext_act)
 
+    # No subcommand -> ask: chat CLI or start API gateway?
+    mode = _pick_initial_mode()
+    if mode == "gateway":
+        from multiligua_cli.gateway_cli import gateway_start
+        return gateway_start(args)
+    if mode == "setup":
+        from multiligua_cli.setup import run_setup
+        rc = run_setup()
+        if rc == 0:
+            _print_completion_hint()
+        return rc
     from multiligua_cli.tui_chat import tui_chat
     return tui_chat(args)
+
+
+def _pick_initial_mode() -> str:
+    """One-shot picker for `minxg` with no subcommand.
+
+    Lets the user choose between starting the chat CLI immediately
+    or starting an OpenAI-compatible v1 gateway endpoint. Returns
+    'chat' on any non-interactive / EOF / auto-pick default.
+    """
+    try:
+        from multiligua_cli.utils import HAS_RICH, console, Colors
+        from multiligua_cli.wizard_ui import (
+            print_banner, print_section, prompt_choice,
+        )
+        print_banner()
+        print_section("What do you want to do?")
+        choices = [
+            f"{chr(0x1F4AC)} Chat CLI",
+            f"{chr(0x1F310)} Start API gateway",
+            f"{chr(0x2699)}{chr(0xFE0F)} Run setup wizard",
+        ]
+        descs = [
+            "talk to the model directly",
+            "expose an OpenAI-compatible v1 endpoint",
+            "change language, provider, model, reasoning, gateway",
+        ]
+        idx = prompt_choice("Pick a starting mode",
+                            choices, descs, default=0)
+        return ("chat", "gateway", "setup")[idx]
+    except (KeyboardInterrupt, EOFError):
+        print()
+        return "chat"
+    except Exception:
+        return "chat"
 
 if __name__ == "__main__":
     rc = main()

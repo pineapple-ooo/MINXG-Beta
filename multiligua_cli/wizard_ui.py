@@ -146,23 +146,45 @@ def print_step_progress(step: int, total: int, title: str):
         print(f"  {_ansi('─' * 50, Colors.SLATE)}")
 
 
-def print_option_item(selected: bool, text: str, desc: str = "", indent: int = 2):
-    if selected:
-        marker = "◈"
-    else:
-        marker = "◇"
+def _truncate_desc(desc: str, max_len: int = 28) -> str:
+    """Cap a description so the line stays singular on Termux."""
+    if not desc:
+        return ""
+    if len(desc) <= max_len:
+        return desc
+    if max_len <= 1:
+        return desc[:max_len]
+    return desc[: max_len - 1] + "\u2026"
 
+
+def print_option_item(selected: bool, text: str, desc: str = "",
+                      indent: int = 2) -> None:
+    """Render one menu option on a SINGLE line.
+
+    Long descriptions are truncated so the layout survives narrow
+    terminals (Termux ~ 80 cols).
+    """
+    marker = "\u25c8" if selected else "\u25c7"
+    short_desc = _truncate_desc(desc)
     if HAS_RICH:
         style = "bold gold3" if selected else "dim"
         line = f"{' ' * indent}[{style}]{marker} {text}[/{style}]"
-        if desc:
-            line += f"  [{'italic dim' if not selected else 'italic teal'}]{desc}[/{'italic dim' if not selected else 'italic teal'}]"
+        if short_desc:
+            sub = "italic teal" if selected else "italic dim"
+            line += f"  [{sub}]{short_desc}[/{sub}]"
         console.print(line)
     else:
         if selected:
-            print(f"{' ' * indent}{_ansi(f'{marker} {text}', Colors.GOLD, Colors.BOLD)}  {_ansi(desc, Colors.TEAL, Colors.ITALIC)}")
+            head = _ansi(f"{marker} {text}", Colors.GOLD, Colors.BOLD)
+            tail = _ansi(short_desc, Colors.TEAL,
+                         Colors.ITALIC) if short_desc else ""
         else:
-            print(f"{' ' * indent}{_ansi(f'{marker} {text}', Colors.SLATE)}  {_ansi(desc, Colors.DIM)}")
+            head = _ansi(f"{marker} {text}", Colors.SLATE)
+            tail = _ansi(short_desc, Colors.DIM) if short_desc else ""
+        if tail:
+            print(f"{' ' * indent}{head}  {tail}")
+        else:
+            print(f"{' ' * indent}{head}")
 
 
 def print_success(msg: str):
