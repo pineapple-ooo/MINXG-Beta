@@ -17,6 +17,11 @@ build/
 *.class
 *.jar
 
+# ASan reproducibility harness — keep both source and pre-built .so in VCS
+# so an auditor can rerun the leak check without a fresh toolchain.
+!tests/asan_harness.c
+!build_asan/libminxg_asan.so
+
 # C/C++ build subdirs (in case `build/` is moved)
 cmake-build-*/
 CMakeFiles/

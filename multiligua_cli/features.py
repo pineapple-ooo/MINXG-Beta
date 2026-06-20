@@ -1,4 +1,26 @@
 """
+multiligua_cli/features.py — secondary feature surface.
+
+This module is **experimental**. Nothing in here is wired into the
+shipped CLI surface (no command, no TUI menu, no wizard reach) —
+it exists so the design ideas are recoverable before we know whether
+they earn a real home.
+
+Experimental surface (call at your own risk):
+  - Spinner, context_usage_bar     (rich-free terminal helpers)
+  - export_to_markdown             (chat → markdown dump)
+  - share_to_gist                  (prints the `gh` command to run)
+  - play_notification              (BEL char — disabled by default)
+  - THEMES, SHORTCUTS              (placeholders, not surfaced)
+  - welcome_animation              (not wired)
+  - SessionManager, QuickFeedback  (no driver interface yet)
+  - SilentFeatures                 (singleton: get_silent())
+        auto_save / gc_sessions / disk_usage_report / rotate_logs
+        keepalive_check / optimize_memory_index / silent_error_log
+        collect_metrics / check_updates(*None*) / dependency_health
+
+Anything you call from this module may print warnings at runtime
+("EXPERIMENTAL …"). The stable TUI is in `multiligua_cli.tui_chat`.
 """
 from __future__ import annotations
 import os
@@ -13,8 +35,17 @@ from typing import Dict, Optional, List, Any, Callable
 log = logging.getLogger("features")
 
 
+_EXPERIMENTAL_FEATURE_NAMES = frozenset({
+    "Spinner", "context_usage_bar", "export_to_markdown",
+    "share_to_gist", "play_notification", "THEMES", "SHORTCUTS",
+    "welcome_animation", "SessionManager", "QuickFeedback",
+    "SilentFeatures", "get_silent", "role_color",
+})
 
 
+def _warn_experimental(name: str) -> None:
+    """Log a one-line warning when an experimental feature is invoked."""
+    log.warning("EXPERIMENTAL feature %s is not part of the stable CLI surface", name)
 def role_color(role: str) -> str:
     return {
     }.get(role, "\033[0m")
@@ -164,23 +195,41 @@ class QuickFeedback:
 
 
 class SilentFeatures:
+    """[EXPERIMENTAL] Background metrics & self-care surface.
+
+    *Not* surfaced by the stable CLI. Methods may change, may no-op,
+    or may be removed without notice. Call only if you read the source.
+    """
 
     def __init__(self):
+        _warn_experimental("SilentFeatures.__init__")
         self._start_time = time.time()
         self._stats = {
             "commands_run": 0, "tools_called": 0, "total_tokens": 0,
             "errors": 0, "sessions": 0, "uptime_start": self._start_time,
         }
+        self._experimental_warned = set()  # warn-once per method name
+
+    def _warn_method(self, name: str) -> None:
+        if name not in self._experimental_warned:
+            _warn_experimental(f"SilentFeatures.{name}")
+            self._experimental_warned.add(name)
 
     def auto_save(self, session_id: str, messages: List[Dict]):
+        """[EXPERIMENTAL] save a chat session to ~/.minxg/sessions."""
+        self._warn_method("auto_save")
         mgr = SessionManager()
         mgr.save(session_id, messages)
 
     def gc_sessions(self):
+        """[EXPERIMENTAL] remove sessions older than 30 days."""
+        self._warn_method("gc_sessions")
         mgr = SessionManager()
         mgr.cleanup()
 
-    def disk_usage_report(self, data_dir: str = None) -> dict:
+    def disk_usage_report(self, data_dir: Optional[str] = None) -> dict:
+        """[EXPERIMENTAL] report total disk usage under `data_dir`."""
+        self._warn_method("disk_usage_report")
         d = Path(data_dir or os.path.expanduser("~/.minxg"))
         total = 0
         try:
@@ -191,7 +240,9 @@ class SilentFeatures:
             pass
         return {"dir": str(d), "total_bytes": total, "mb": round(total / (1024*1024), 2)}
 
-    def rotate_logs(self, log_dir: str = None, max_files: int = 10):
+    def rotate_logs(self, log_dir: Optional[str] = None, max_files: int = 10):
+        """[EXPERIMENTAL] keep only the latest `max_files` log files."""
+        self._warn_method("rotate_logs")
         import glob
         patterns = ["*.log", "*.log.*"]
         ld = Path(log_dir or os.path.expanduser("~/.minxg/logs"))
@@ -200,7 +251,15 @@ class SilentFeatures:
             while len(files) > max_files:
                 files.pop(0).unlink()
 
-    def keepalive_check(self, url: str = "https://api.openai.com/v1/models", timeout: int = 3):
+    def keepalive_check(
+        self, url: str = "https://api.openai.com/v1/models", timeout: int = 3
+    ) -> bool:
+        """[EXPERIMENTAL] probe `url` to see if the AI provider is reachable.
+
+        Returns True on 2xx, False otherwise. Does **not** authenticate
+        — only checks that the endpoint is up.
+        """
+        self._warn_method("keepalive_check")
         import urllib.request
         try:
             req = urllib.request.Request(url)
@@ -210,6 +269,8 @@ class SilentFeatures:
             return False
 
     def optimize_memory_index(self):
+        """[EXPERIMENTAL] run `PRAGMA optimize` on ~/.minxg/memory.db if present."""
+        self._warn_method("optimize_memory_index")
         try:
             import sqlite3
             db = Path(os.path.expanduser("~/.minxg/memory.db"))
@@ -221,16 +282,26 @@ class SilentFeatures:
             pass
 
     def silent_error_log(self, error: Exception, context: str = ""):
+        """[EXPERIMENTAL] log an error to the features log channel only."""
+        self._warn_method("silent_error_log")
         log.error("[SILENT] %s: %s", context, error)
 
     def collect_metrics(self, metric: str, value: float):
+        """[EXPERIMENTAL] increment an in-memory counter `metric` by `value`."""
+        self._warn_method("collect_metrics")
         self._stats[metric] = self._stats.get(metric, 0) + value
 
     def check_updates(self, repo_url: str = "https://github.com/minxg/minxg"):
+        """[EXPERIMENTAL] STUB. Always returns None until the check
+        backend is implemented; callers must not rely on a version bump
+        prompt from this entry point in this release."""
+        self._warn_method("check_updates")
         return None
 
     def dependency_health(self) -> Dict[str, bool]:
-        checks = {}
+        """[EXPERIMENTAL] ad-hoc import probe of common deps. Diagnostic only."""
+        self._warn_method("dependency_health")
+        checks: Dict[str, bool] = {}
         for mod in ["rich", "prompt_toolkit", "jinja2", "PIL", "yaml", "sqlite3"]:
             try:
                 __import__(mod)
@@ -242,8 +313,16 @@ class SilentFeatures:
 
 _silent: Optional[SilentFeatures] = None
 
+
 def get_silent() -> SilentFeatures:
+    """[EXPERIMENTAL] return the process-wide SilentFeatures singleton."""
+    _warn_experimental("get_silent")
     global _silent
     if _silent is None:
         _silent = SilentFeatures()
     return _silent
+
+
+def list_experimental_exports():
+    """Return a sorted list of every EXPERIMENTAL symbol in this module."""
+    return sorted(_EXPERIMENTAL_FEATURE_NAMES)

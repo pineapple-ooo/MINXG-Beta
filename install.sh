@@ -297,66 +297,12 @@ fi
 
 echo " $( [ "$NATIVE_OK" = true ] && echo '✅ ' || echo '⚠️ (Python fallback)')"
 
-# ── ADB ─────────────────────────────────────────────
-echo "[5/8] ADB..."
-if command -v adb >/dev/null 2>&1; then
- echo " ✅ ADB: $(adb version 2>&1 | head -1)"
-
- # 
- DEVICES=$(adb devices 2>/dev/null | grep -v "List" | grep -c "device" || echo 0)
- if [ "$DEVICES" -gt 0 ]; then
- echo " ✅ : $DEVICES "
- echo " -> enable explicitly: minxg ext add minxg-adb"
- else
- printf " \033[33m⚠\033[0m no device connected\n"
- echo " -> to use ADB tools run: minxg ext add minxg-adb"
- fi
-else
- echo " ❌ ADB"
- echo ""
- echo " ADB，:"
- case "$PLATFORM" in
- android) echo " pkg install android-tools" ;;
- linux) echo " sudo apt install android-tools-adb" ;;
- macos) echo " brew install android-platform-tools" ;;
- esac
-fi
-
-# ── ROOT ─────────────────────────────────────────────
-echo "[6/8] ROOT..."
-ROOT_OK=false
-for su in /system/bin/su /system/xbin/su /sbin/su /su/bin/su /magisk/.core/bin/su; do
- if [ -f "$su" ] && [ -x "$su" ]; then
- ROOT_OK=true
- echo " ✅ ROOT: $su"
- break
- fi
-done
-
-if [ "$ROOT_OK" = false ]; then
- # su
- if command -v su >/dev/null 2>&1; then
- if su -c "echo ok" 2>/dev/null | grep -q ok; then
- ROOT_OK=true
- echo " ✅ ROOT: su"
- fi
- fi
-fi
-
-if [ "$ROOT_OK" = true ]; then
- echo " -> enable explicitly: minxg ext add minxg-root"
-else
- echo " ❌ ROOT"
- echo " → ROOT"
- echo " ROOT: Magisk / SuperSU"
-fi
-
-# ── py_compile ─────────────────────────────────────
-echo "[7/8] ..."
+# ── ────────────────────────────────────────────
+echo "[7/8] checking python source compiles..."
 cd "$SCRIPT_DIR"
 PASS=0
 FAIL=0
-for f in $(find . -name '*.py' -not -path './.git/*' -not -path './build/*' -not -path './var/*'); do
+for f in $(find . -name '*.py' -not -path './.git/*' -not -path './build/*' -not -path './var/*' -not -path './build_asan/*'); do
  if python3 -m py_compile "$f" 2>/dev/null; then
  PASS=$((PASS + 1))
  else
@@ -367,8 +313,8 @@ done
 echo " py_compile: $PASS/$((PASS + FAIL)) "
 [ $FAIL -gt 0 ] && echo " ⚠️ $FAIL "
 
-# ── ────────────────────────────────────────────
-echo "[8/8] ..."
+# ── tool registration ──────────────────────────────────────────
+echo "[8/8] extension self-check..."
 python3 -c "
 import sys
 sys.path.insert(0, '$SCRIPT_DIR')
@@ -383,7 +329,7 @@ for e in exts:
  print(f' {s} {e[\"name\"]:20s} {d[:60]}')
 " 2>/dev/null || echo " ⚠ extension self-check skipped (import problem)"
 
-# ── ────────────────────────────────────────────────
+# ── ─────────────────────────────────────────────────
 echo ""
 echo "════════════════════════════════════════"
 printf " \033[32m✓\033[0m install complete\n"
@@ -391,9 +337,7 @@ echo "════════════════════════�
 echo ""
 echo " platform: $PLATFORM"
 echo " python: $(python3 --version 2>&1)"
-if [ "$NATIVE_OK" = true ]; then printf " native: [32mC/C++[0m\n"; else printf " native: python fallback\n"; fi
-if command -v adb >/dev/null 2>&1; then echo " adb: ready"; else echo " adb: not installed"; fi
-if [ "$ROOT_OK" = true ]; then echo " root: ready"; else echo " root: not available"; fi
+if [ "$NATIVE_OK" = true ]; then printf " native: \u001b[32mC/C++\u001b[0m\n"; else printf " native: python fallback\n"; fi
 echo ""
 echo " common commands:"
 echo " minxg start the TUI chat"
@@ -402,3 +346,5 @@ echo " minxg ext add <slug> install an extension"
 echo " minxg ext add minxg-adb install ADB tools (opt-in)"
 echo " minxg ext add minxg-root install ROOT tools (opt-in)"
 echo ""
+echo " (the old ADB/Root auto-detect steps were removed in 0.11; install those"
+echo " extensions only when you need them — see 'minxg ext available'.)"

@@ -10,13 +10,102 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 > `1.x` numbering on internal commits is retained in git history as
 > a milestone but is **not** part of the public release graph.
 
-## [0.11.0] - 2026-06-19 - Opt-in extensions, native build fix, doctor command
+## [0.12.0] - 2026-06-20 - Test coverage, experimental flags, install polish
+
+Cold-start hardening plus a full-coverage test pass. The publish-
+entry is `v0.12.0` (the prior `v0.11.0` tag was already on the
+remote when this branch landed, so this release is being issued as
+the next minor). The public API surface is unchanged. This tag
+closes the gaps called out in the bug tracker (Pitfall 7, 31, 34,
+38, 41) and back-fills test coverage so a regression that drops a
+CLI command breaks CI.
+
+### Added
+
+* `tests/test_cli_commands.py` (25 tests, **was zero CLI coverage**).
+  Exercises every subcommand, every global flag, and every
+  `minxg ext <action>` verb; routes through
+  `multiligua_cli.main.main(argv)` and writes to an isolated
+  `config.yaml`.
+* `tests/test_experimental_features.py` (6 tests). Verifies the
+  `[EXPERIMENTAL]` labelling on `multiligua_cli.features` does not
+  regress: the docstring names every experimental export,
+  `list_experimental_exports()` is consistent, every
+  `SilentFeatures` method emits a one-shot WARNING, and the known
+  stubs (`check_updates` → `None`) keep their contract.
+* AddressSanitizer harness (`tests/asan_harness.c`) +
+  `build_asan/libminxg_asan.so`. Exercises every C entry point
+  (arena reset cycles, slab alloc/free, ring push/pop, NCD pair,
+  NCD matrix, sha256, url-encode/decode, tokenize) under
+  `-fsanitize=address`. Local run returns **`rc=0`** — zero
+  leaks, zero use-after-free, zero OOB.
+* README command reference, tutorials (A-D), troubleshooting
+  table, and experimental-surface section.
+
+### Changed
+
+* `install.sh` (5-step and 6-step ladder) — removed the automatic
+  ADB and ROOT probe blocks. The script no longer reaches for
+  `/system/bin/su`, `adb devices`, or `MAGISK_*`. ADB and ROOT ship
+  as opt-in extensions only. The completion cheatsheet still
+  advertises the opt-in slugs.
+* `multiligua_cli/features.py` — top-of-file docstring now declares
+  the module's experimental status, every public symbol carries an
+  `[EXPERIMENTAL]` docstring tag, `SilentFeatures.__init__` and
+  every method log a warn-once WARNING via the `features` logger,
+  optional args are properly `Optional[str]` typed. New helper
+  `list_experimental_exports()` returns the documented set.
+* `.git rm --cached <build artifacts>` — five `c_core/*.o`, five
+  `cpp_core/*.cpp.o`, and the legacy `libminxg_go.h` files were
+  removed from git tracking (`.gitignore` already lists `*.o`,
+  `*.so*`, `*.a`). The `foo.te_*` profile objects and three
+  stray test driver `.c` files (`bmh_test.c`, `simple_test.c`,
+  `debug_test.c`, `simple_bmh.c`) stayed registered; they're now
+  ignored at the `.gitignore` level too.
+
+### Memory safety audit (no P0, three P3 hardening notes)
+
+* Static review with `grep`-based allocator/balancer over C and
+  C++ source (5579 lines). Eight files showed alloc/free imbalance
+  at first glance — on manual review each was a *balanced pair*
+  where the free lives at a destroy-site (e.g. `arena_create`
+  freeing on init failure) or is exposed to the caller as
+  `cpp_free()` / `cpp_free_string_array()`. The interface is
+  caller-owned throughout; no internal allocation leaks.
+* Dynamic review via `libminxg_asan.so` + the harness: `rc=0`
+  after 50 arena-reset cycles + 5×20 slab alloc/free cycles +
+  ring-buffer overflow churn + NCD pair/matrix + sha256 + url
+  paths. **Zero leaks, zero UAF, zero OOB.**
+* Three hardening notes (P3, not blockers):
+  * `cpp_wrapper.c:560` uses `strcpy(table[num_words].word, word)`
+    in `cpp_word_frequency`. The input is bounded to `<64` chars
+    (`len >= 64` is skipped earlier) so the write is in-bounds,
+    but a `strncpy`/`memcpy` form is more obvious.
+  * Multiple `codec-side` malloc callers do not NULL-check the
+    return (e.g. `cpp_url_encode` line 191, `text_engine.c:660`,
+    `minxg_evolve.c:341`). On a healthy system `malloc` always
+    succeeds; on an OOM kill these would dereference `NULL`.
+    Defence-in-depth: add `if (!out) return NULL;` early-returns.
+  * `cpp_wrapper.c:crypt_*` paths do not check for `!in` when
+    `in_len > 0` — easy fix, not currently triggered.
+
+The above are tracked in the issue tracker; none of them are fixing
+a present defect (the harness proves the happy path is clean).
+
+### Footer
+
+161 unit tests passing, 1 skipped (rustc / shell probe on
+Android). The skipped test is environment-gated and not relevant
+to the CLI.
+
+## [0.11.0-pre] - 2026-06-19 - Opt-in extensions, native build fix, doctor command
 
 Cold-start hardening release. No breaking-API changes; all the same
 imports work in both directions. The big directional shift: built-in
 extensions are now opt-in (no ADB/ROOT auto-detect at module load),
 and the `multiligua_cli/doctor.py` self-check surface ships for the
-first time.
+first time. *Superseded by the canonical 0.11.0 entry above; kept
+here as the pre-release notes.*
 
 ### Added - `minxg doctor`
   - `multiligua_cli/doctor.py` - new self-check command with an

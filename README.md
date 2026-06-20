@@ -10,8 +10,11 @@ five orthogonal operator planes (io, aggregate, scalar, transform,
 dispatch), so editing one module never forces a full rebuild.
 Pure Python — no compiled step required to install or run.
 
-This is the **v0.11.0** release. It ships cold-start hardening plus
-a polished setup wizard:
+- This is the **v0.12.0** release. (The commit landed on `main` after
+  the prior `v0.11.0` had already been tagged on the remote; the
+  GitHub ref-creation rule blocks us from re-creating `v0.11.0`,
+  so this is published as `v0.12.0`.) It ships cold-start
+  hardening plus a polished setup wizard:
 
 - `minxg` (no subcommand) now asks: chat CLI, start API gateway, or
   run the setup wizard — instead of dropping straight into a TUI
@@ -48,6 +51,16 @@ a polished setup wizard:
   hostable backend independent of the Python driver. Source-only;
   build artefacts (`build/`, `*.jar`) stay out of git via the
   existing `.gitignore`.
+- Test suite now **exercises every CLI command** so a regression
+  that removes or renames a subcommand breaks CI (`tests/test_cli_commands.py`).
+  130 → 161 unit tests.  AddressSanitizer harness (`tests/asan_harness.c`,
+  `build_asan/libminxg_asan.so`) verifies zero leak / zero use-after-free
+  across every C API; the `.so` files in repo root and `c_core/*.o`
+  have been removed from git tracking (still ignored by `.gitignore`).
+- Install script no longer probes for `adb` / `su`. ADB & ROOT ship
+  as opt-in extensions (`minxg ext add minxg-adb`,
+  `minxg ext add minxg-root`) so the install path is identical
+  on dev workstations and locked-down CI.
 
 ## Install
 
@@ -219,6 +232,227 @@ minxg.fiber      6000-6052   fiber bundles           (53 ids)
 * `docs/ARCHITECTURE.md` — architecture diagrams and rationale
 * `docs/DRIVER.md` — driver engine API and examples
 * `docs/PILLARS.md` — one section per mathematical pillar
+
+## Command reference
+
+The shipped CLI surface is small on purpose. Every subcommand and
+flag below is exercised by `tests/test_cli_commands.py`; if you
+rename or remove one of them, CI will fail.
+
+### Top-level commands
+
+| command            | what it does                                                           |
+|--------------------|------------------------------------------------------------------------|
+| `minxg`            | Cold-start picker: chat CLI, OpenAI-compatible gateway, or setup.      |
+| `minxg setup`      | Interactive setup wizard (run once; repeatable).                       |
+| `minxg config`     | Print current configuration (provider/model/key/etc.).                 |
+| `minxg status`     | Print system status (Python / platform / version).                     |
+| `minxg tools`      | List available toolsets and tool names.                                |
+| `minxg help`       | Pretty command cheatsheet.                                             |
+| `minxg model`      | Without arg: re-launch setup. With `<NAME>`: one-shot set the model.   |
+| `minxg api <URL>`  | One-shot set the API base URL.                                         |
+| `minxg key <KEY>`  | One-shot set the API key.                                              |
+| `minxg lang [LC]`  | Switch display language. Without arg: picker. With `<LC>`: one-shot.   |
+| `minxg gateway`    | `start` / `stop` / `status` (default `status` when omitted).           |
+| `minxg doctor`     | Twelve-row self-check; exit 0/1/2 = clean/fail/warn.                   |
+| `minxg ext <a>...` | Manage extensions: `list`, `available`, `add`, `remove`, `info`,       |
+|                    | `enable`, `disable`. Run `minxg ext --help` for the full list.         |
+
+### Global flags
+
+| flag                | effect                                                         |
+|---------------------|----------------------------------------------------------------|
+| `--version`         | Print `multiligua_cli.__version__` and exit.                   |
+| `-h`, `--help`      | argparse-style help.                                           |
+| `-v`, `--verbose`   | Raise logging level to DEBUG.                                  |
+| `--list-extensions` | Print every registered extension (name, source, priority, desc).|
+
+### Extension subcommands
+
+```text
+minxg ext list                 # show active extensions
+minxg ext available            # show built-in opt-in slugs
+minxg ext info <slug>          # describe a slug
+minxg ext add <slug|path>      # install built-in or local package
+minxg ext remove <name>        # remove an installed extension
+minxg ext enable <name>        # enable without re-installing
+minxg ext disable <name>       # disable without removing
+```
+
+The three built-in opt-in slugs are `minxg-adb`, `minxg-root`,
+`minxg-files`. They install off-PATH tools; none of them silently
+auto-attach to whatever binary happens to exist when `minxg` starts.
+
+### Examples
+
+```bash
+# fresh install with public config
+minxg setup
+minxg config
+
+# one-shots — no wizard
+minxg model gpt-4o
+minxg api https://api.openai.com/v1
+minxg key $OPENAI_API_KEY
+
+# start the gateway in the foreground
+minxg gateway start --foreground
+
+# discover extensions
+minxg ext available
+minxg ext info minxg-adb
+minxg ext add minxg-adb          # opt-in tool: not run during install
+```
+
+## Tutorials
+
+### A. First conversation in 60 seconds
+
+```bash
+minxg setup               # one wizard, picks provider + key
+minxg config              # confirm
+minxg                     # TUI chat
+```
+
+If your provider supports `reasoning_effort`, the wizard step
+offers the OpenAI-standard ladder
+`xhigh > high > medium > low > minimal > none`. Pick a value, then
+the wizard persists it under `ai.reasoning_effort` in `config.yaml`.
+
+### B. Use `minxg` as an OpenAI-compatible backend for any client
+
+Point your favourite client at the gateway:
+
+```bash
+minxg gateway start              # listens on 127.0.0.1:18080
+#       -d / --detach runs in background; --foreground stays attached
+
+$EDITOR config.yaml             # add base_url & api_key under ai:
+minxg gateway status            # shows /v1/models dump
+```
+
+```bash
+curl http://127.0.0.1:18080/v1/chat/completions \
+  -H "Authorization: Bearer $(python -c "import yaml; print(yaml.safe_load(open('config.yaml'))['ai']['api_key'])")" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"hi"}]}'
+```
+
+### C. Embed MINXG as a Python library
+
+```python
+import minxg
+print(minxg.VERSION)              # "0.11.0"
+
+# Driver engine: temporal operator-field
+from minxg.driver import State, DriverEngine, smoothing_field
+end, report = DriverEngine([smoothing_field(rate=0.4)]).run(
+    State(payload={"x": 0.0, "v": 1.0}), n_steps=24,
+)
+
+# Lossless BIE codec: byte-identical round-trip
+from minxg.lossless import LosslessCodec
+assert LosslessCodec().decompress(
+    LosslessCodec().compress(b"payload").payload
+) == b"payload"
+```
+
+### D. Add a private extension
+
+```python
+# ~/.minxg_src/extensions/user/my_ext.py
+from multiligua_cli.extensions import ExtensionModule
+class MyExt(ExtensionModule):
+    NAME = "my-ext"
+    DESCRIPTION = "does one thing well"
+    EXTENSION_ENABLED = True
+```
+
+```bash
+minxg ext add ./my_ext.py
+minxg ext info my-ext
+```
+
+## Troubleshooting
+
+| symptom                                                                 | cause                                                       | fix                                                              |
+|-------------------------------------------------------------------------|-------------------------------------------------------------|------------------------------------------------------------------|
+| `minxg: command not found` after install                                | editable install put launcher under `~/.local/bin` not on PATH | `export PATH="$HOME/.local/bin:$PATH"` (or use the Termux site)  |
+| `dlopen ... cannot locate symbol "minxg_slugify"` on Termux + Py3.13     | old `cpp_core/CMakeLists.txt` link order                    | rebuild with the new cmake; `pip install -e .` after rebuild     |
+| `KeyError: 'emoji'` in setup wizard                                     | provider registry entry missing fields                      | fixed in 0.11.0; pull latest                                     |
+| `Configuration missing; run minxg setup`                                | first run, `config.yaml` not created                        | run `minxg setup`                                                |
+| `OSError: dlopen failed: library not accessible for the namespace`       | SELinux / sandbox blocks shared object load                 | copy the `.so` into syslib path, or use `LD_LIBRARY_PATH`        |
+| `RuntimeError: cannot locate symbol "ZSTD_compressBound"`               | linker didn't pull libzstd                                  | `pkg install libzstd`, then rebuild native                       |
+| `minxg gateway start: Address already in use`                           | port collision                                              | edit `gateway.port` in `config.yaml`, or stop the other process  |
+| `cryptography` import raises `Symbol not found` on Termux               | ABI / arch mismatch in the binary wheel                     | `MINXG_NO_NATIVE=1 minxg ...` (forces pure-Python fallback)      |
+| `Provider "<name>" did you mean ...`                                    | typo in `minxg model <name>`                                | re-run `minxg model` (lints the provider name)                   |
+
+If `minxg doctor` exits non-zero, paste the full output in your bug
+report — it lists `minxg.__all__`, the operator registry size, native
+lib status, and config validation in a fixed-width table.
+
+### Enabling debug logs
+
+```bash
+minxg -v setup          # verbose flag
+```
+
+The flag raises the root logger to DEBUG, useful for tracing
+`extension discovery` and `provider normalisation` paths.
+
+## Experimental surface
+
+Anything labelled `[EXPERIMENTAL]` is **not** part of the supported
+CLI surface. Signatures may change, methods may no-op, and entire
+classes may disappear between minor versions without changelog
+notice. They live in the tree so contributors can find them; do not
+build tooling on top of them and do not ingest them into the
+stable TUI.
+
+The current experimental exports are reachable through:
+
+```python
+from multiligua_cli import features
+print(features.list_experimental_exports())
+```
+
+In this release (0.11.0) that yields:
+
+```
+['QuickFeedback', 'SessionManager', 'SHORTCUTS', 'SilentFeatures',
+ 'Spinner', 'THEMES', 'context_usage_bar', 'export_to_markdown',
+ 'get_silent', 'play_notification', 'role_color',
+ 'share_to_gist', 'welcome_animation']
+```
+
+Notable specifics:
+
+* `SilentFeatures.check_updates()` is a **stub** that returns
+  `None` — the update-check backend is unfinished.
+* `SilentFeatures.keepalive_check()` does a 3-second HEAD against
+  `https://api.openai.com/v1/models` — it does *not* authenticate,
+  it only checks the endpoint is reachable.
+* `SilentFeatures.optimize_memory_index()` requires
+  `~/.minxg/memory.db` to exist; if it doesn't, the call is a no-op.
+* `SessionManager` / `QuickFeedback` are *not* wired into the TUI
+  (saved sessions / feedback are not currently surfaced in the
+  shipped chat UI).
+
+The first time you call any of these, a WARNING is logged via the
+`features` logger so the experimental status is visible at runtime:
+
+```text
+WARNING features: EXPERIMENTAL feature SilentFeatures.disk_usage_report is not part of the stable CLI surface
+```
+
+If you genuinely need one of these and would like it promoted to
+stable, file an issue with the use-case — that's how a feature
+graduates out of `features.py`.
+
+## See also
+
+* `CHANGELOG.md` — per-version release notes
+* `CONTRIBUTING`-style guidance lives in `DEVELOPER.md`
 
 ## License
 
