@@ -2,6 +2,25 @@
 
 All notable changes to MINXG are documented in this file.
 
+## [0.12.2] - 2026-06-21 - PyPI publication + release automation
+
+### Published on PyPI
+- `minxg-beta` is now installable directly from PyPI:
+  `pip install minxg-beta`.
+- Releases are fully automated via `.github/workflows/release.yml` —
+  pushing a `v*.*.*` tag triggers Trusted Publishing (OIDC) for PyPI
+  and creates a GitHub Release with the wheel + sdist attached.
+  No PyPI API token is stored in the repository.
+
+### Housekeeping
+- README: top-of-file PyPI / Downloads / GitHub Release / License badges.
+- README: replaced "PyPI publication is on the roadmap but not yet done"
+  with a real `pip install minxg-beta` block and a `Releasing` section.
+- pyproject: project `description` now mentions the PyPI name and
+  install command so it surfaces on the PyPI page itself.
+- PyPI metadata: removed retired `Topic :: Artificial Intelligence`
+  classifier (PyPI no longer accepts it).
+
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
