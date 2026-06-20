@@ -29,6 +29,9 @@ CMakeCache.txt
 CMakeUserPresets.json
 compile_commands.json
 
+# cmake build output (one per cmake target dir)
+**/build/
+
 # Profiling / coverage
 .coverage
 .coverage.*

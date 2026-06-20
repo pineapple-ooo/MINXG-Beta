@@ -12,17 +12,20 @@ from __future__ import annotations
 from typing import Optional
 
 
-# 5-row ASCII art MINXG wordmark. Sized for a 80-column TTY.
+# MINXG wordmark — blocky 5-row figure that fits an 80-col TTY.
+# Designed to read clearly even when the user's terminal has
+# anti-aliased fonts and weird metric ratios.
 _BANNER_LINES = [
-    r"  __  __ ___ _   _  ____  ",
-    r" |  \/  |_ _| \ | |/ ___| ",
-    r" | |\/| || ||  \| | |  _  ",
-    r" | |  | || || |\  | |_| | ",
-    r" |_|  |_|___|_| \_|\____| ",
+    r"███╗   ███╗██╗███╗   ██╗██╗  ██╗ ██████╗ ",
+    r"████╗ ████║██║████╗  ██║╚██╗██╔╝██╔════╝ ",
+    r"██╔████╔██║██║██╔██╗ ██║ ╚███╔╝ ██║  ███╗",
+    r"██║╚██╔╝██║██║██║╚██╗██║ ██╔██╗ ██║   ██║",
+    r"██║ ╚═╝ ██║██║██║ ╚████║██╔╝ ██╗╚██████╔╝",
+    r"╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝ ╚═════╝ ",
 ]
 
 
-SUBTITLE = "five-pillar worker platform  |  v{version}"
+SUBTITLE = "five-pillar worker platform  ·  v{version}"
 
 
 def banner_figure(color: Optional[str] = None) -> str:

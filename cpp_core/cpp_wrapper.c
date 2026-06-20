@@ -557,7 +557,11 @@ int cpp_word_frequency(const char* in, size_t in_len, int top_n,
         if (found >= 0) {
             table[found].count++;
         } else if (num_words < 1024) {
-            strcpy(table[num_words].word, word);
+            /* input len is bounded (<64) earlier in the loop so
+             * `len` fits in `word[64]`; use memcpy + NUL to avoid
+             * any future regression where the bound slips. */
+            memcpy(table[num_words].word, word, len);
+            table[num_words].word[len] = '\0';
             table[num_words].count = 1;
             table[num_words].used = 1;
             num_words++;

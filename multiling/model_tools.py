@@ -272,12 +272,22 @@ def handle_function_call(function_name: str, function_args: dict, task_id: str =
 
     ensure_tools_discovered()
 
-    
+    # Platform cap: a tool that the user can't reach (above the
+    # registered-budget cap on this platform) is treated as
+    # unknown — calling it would yield an empty / confusing result.
+    try:
+        from multiling.platform_cap import is_active
+        if not is_active(function_name):
+            return json.dumps({"error": f"Tool unavailable on this platform: {function_name}",
+                               "blocked": True})
+    except Exception:
+        pass
+
     if guard is not None:
         from src.ai.safety.guard import AntiLoopGuard
         allowed, reason = guard.pre_check(function_name, function_args)
         if not allowed and reason != "cached":
-            
+
             return json.dumps({"error": f"Tool call blocked: {reason}",
                                "blocked": True})
 
@@ -317,9 +327,14 @@ def handle_function_call(function_name: str, function_args: dict, task_id: str =
 
 
 def get_all_tool_names() -> List[str]:
-    """Return all registered tool names."""
+    """Return tool names visible on this platform (after platform-cap)."""
     ensure_tools_discovered()
-    return registry.get_all_tool_names()
+    names = registry.get_all_tool_names()
+    try:
+        from multiling.platform_cap import is_active
+        return [n for n in names if is_active(n)]
+    except Exception:
+        return list(names)
 
 
 def get_toolset_for_tool(name: str) -> Optional[str]:
@@ -328,9 +343,20 @@ def get_toolset_for_tool(name: str) -> Optional[str]:
 
 
 def get_available_toolsets() -> Dict[str, dict]:
-    """Return toolset metadata."""
+    """Return toolset metadata filtered to currently-active tools."""
     ensure_tools_discovered()
-    return registry.get_available_toolsets()
+    out = registry.get_available_toolsets()
+    try:
+        from multiling.platform_cap import is_active
+        filtered: Dict[str, dict] = {}
+        for ts_name, ts_data in out.items():
+            tools = [t for t in ts_data.get("tools", []) if is_active(t)]
+            if tools:
+                filtered[ts_name] = {**ts_data, "tools": tools,
+                                       "available": ts_data.get("available", False)}
+        return filtered
+    except Exception:
+        return out
 
 
 def check_toolset_requirements() -> Dict[str, bool]:

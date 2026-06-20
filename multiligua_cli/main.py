@@ -101,8 +101,20 @@ def run_tools(args) -> int:
     """List available tools."""
     try:
         from multiling.model_tools import get_available_toolsets, get_all_tool_names
+        from multiling.platform_cap import detect_platform_key, cap_for, summary
         toolsets = get_available_toolsets()
         all_tools = get_all_tool_names()
+
+        ps = summary()
+        cap_line = (
+            f" platform: {ps['platform']} · "
+            f"cap: {ps['cap']} · "
+            f"active: {ps['active_count']}/{ps['registered_count']} tools"
+        )
+        if HAS_RICH:
+            console.print()
+            console.print(cap_line, style="cyan")
+            console.print()
 
         if HAS_RICH:
             from rich.table import Table
@@ -130,6 +142,7 @@ def run_tools(args) -> int:
             )
         else:
             print(colorize(f"\n[Tools] {T('tools_title')}:", Colors.CYAN, Colors.BOLD))
+            print(cap_line)
             for ts_name, ts_data in sorted(toolsets.items()):
                 status = "OK " if ts_data.get("available", False) else "FAIL"
                 n = len(ts_data.get("tools", []))

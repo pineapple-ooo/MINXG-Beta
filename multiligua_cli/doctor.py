@@ -222,6 +222,25 @@ def _check_extensions() -> Section:
     return rows
 
 
+def _check_platform_cap() -> Section:
+    """Tell the user how many tools their host can dispatch."""
+    rows: Section = []
+    try:
+        from multiling.platform_cap import summary, cap_for
+        s = summary()
+        rows.append(("platform", "OK", s["platform"]))
+        rows.append(("tool cap", "OK", str(s["cap"])))
+        rows.append(("active tools", "OK",
+                     f"{s['active_count']} / {s['registered_count']}"))
+        if s["dropped_count"] > 0:
+            rows.append(("dropped tools", "INFO",
+                         f"{s['dropped_count']} hidden above cap "
+                         "(raise MINXG_TOOL_CAP to expose)"))
+    except Exception as e:
+        rows.append(("platform_cap", "WARN", repr(e)))
+    return rows
+
+
 def _render_section(title: str, rows: Section) -> str:
     """Render one section as a fixed-column table."""
     body_lines = [_row(*r) for r in rows]
@@ -248,6 +267,7 @@ def run_doctor(args) -> int:
         ("Binaries", _check_binaries()),
         ("minxg package", _check_minxg()),
         ("Config", _check_config()),
+        ("Tool cap", _check_platform_cap()),
         ("Extensions", _check_extensions()),
     ]
 

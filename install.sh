@@ -77,7 +77,7 @@ fi
 
 # ── — URL ───────────────────
 # Priority: $1 > $REPO_URL > . ($1="") env.
-REPO_URL_DEFAULT="https://github.com/Disability-Human/MINXG-Beta.git"
+REPO_URL_DEFAULT="https://github.com/pineapple-ooo/MINXG-Beta.git"
 REPO_URL="${1:-${REPO_URL:-$REPO_URL_DEFAULT}}"
 INSTALL_DIR="${MINXG_DIR:-${2:-$HOME/.minxg-src}}"
 CLONE_BRANCH="${MINXG_BRANCH:-${3:-}}"
@@ -191,8 +191,8 @@ PLATFORM=$(detect_platform)
 echo " platform: $PLATFORM"
 echo ""
 
-# ── Python ──────────────────────────────────────────
-echo "[1/8] checking python..."
+# ── ────────────────────────────────────────────
+echo "[1/6] checking python..."
 python3 --version || {
  echo ""
  printf " \033[31m✗\033[0m python 3.10+ required\n"
@@ -211,8 +211,7 @@ python3 --version || {
 }
 echo " ✅ Python: $(python3 --version)"
 
-# ── Python ──────────────────────────────────────
-echo "[2/8] installing python dependencies..."
+echo "[2/6] installing python dependencies..."
 if [ -f "$SCRIPT_DIR/requirements.txt" ]; then
  pip install -q --disable-pip-version-check -r "$SCRIPT_DIR/requirements.txt" 2>/dev/null || {
  printf " \033[33m⚠\033[0m some dependencies failed; continuing\n"
@@ -228,7 +227,7 @@ printf " \033[32m✓\033[0m dependencies installed\n"
 # type `python3 -m multiligua_cli` after every install. `pip install -e .` reads the
 # entry-points table and drops a launcher in $(python -m site --user-base)/bin
 # (or termux-prefix/usr/bin) so `minxg --help` works from any directory.
-echo "[3/8] registering global command (pip install -e .)..."
+echo "[3/6] registering global command (pip install -e .)..."
 if [ -f "$SCRIPT_DIR/pyproject.toml" ]; then
  # Prefer the python that ships the deps we just installed.
  PY_FOR_INSTALL="${PYTHON:-python3}"
@@ -251,70 +250,95 @@ else
 fi
 
 # ── C/C++ ─────────────────────────────────────
-echo "[4/8] building native library..."
+echo "[4/6] building native library..."
 NATIVE_OK=false
 
-if [ -d "$SCRIPT_DIR/c_core" ]; then
- cd "$SCRIPT_DIR/c_core"
- if command -v gcc >/dev/null 2>&1 || command -v clang >/dev/null 2>&1; then
- CC=${CC:-gcc}
- CFLAGS="-std=c11 -O3 -fPIC -shared"
-
- # minxg_evolve.c — self-evolution engine
- if [ -f "minxg_evolve.c" ]; then
- echo " building minxg_evolve..."
- $CC $CFLAGS minxg_evolve.c -lxxhash -lzstd -lm -lpthread \
- -o "$SCRIPT_DIR/build/libminxg_evolve.so" 2>/dev/null && {
- echo " ✅ libminxg_evolve.so"
- NATIVE_OK=true
- } || {
- printf " \033[33m⚠\033[0m libminxg_evolve build failed (no xxhash/zstd dev libs)\n"
- }
- fi
-
- # text_engine.c — text processing
- if [ -f "text_engine.c" ]; then
- echo " building text_engine..."
- $CC $CFLAGS text_engine.c -lm -lpthread \
- -o "$SCRIPT_DIR/build/libtext_engine.so" 2>/dev/null && {
- echo " ✅ libtext_engine.so"
- } || printf " \033[33m⚠\033[0m text_engine build failed\n"
- fi
+# cpp_core (CMake) produces libminxg_core.so + libminxg_cpp_json.so.
+# These are REQUIRED for the in-process core path; a pythonnative
+# fallback keeps the CLI usable, but TUI chats will degrade to
+# pure-python hashes / encoders if we skip this step.
+if [ -d "$SCRIPT_DIR/cpp_core" ] && [ -f "$SCRIPT_DIR/cpp_core/CMakeLists.txt" ]; then
+ if command -v cmake >/dev/null 2>&1; then
+  echo " → cmake: $SCRIPT_DIR/cpp_core"
+  mkdir -p "$SCRIPT_DIR/cpp_core/build"
+  (cd "$SCRIPT_DIR/cpp_core/build" && cmake .. >/dev/null 2>&1 \
+   && make -j4 >/dev/null 2>&1) && {
+   echo " ✅ libminxg_core.so, libminxg_cpp_json.so"
+   NATIVE_OK=true
+  } || {
+   printf " \033[33m⚠\033[0m cpp_core cmake build failed (using pure-Python fallback)\n"
+  }
  else
- printf " \033[33m⚠\033[0m no C compiler found (gcc/clang); skipping native build\n"
- echo " : pkg install clang (Termux) apt install gcc (Linux)"
+  printf " \033[33m⚠\033[0m cmake not found; install: pkg install cmake / apt install cmake\n"
+  printf " \033[33m⚠\033[0m cpp_core skipped (pure-Python fallback)\n"
  fi
- cd "$SCRIPT_DIR"
 fi
 
-# Android: .so
-if [ "$PLATFORM" = "android" ] && [ "$NATIVE_OK" = true ]; then
+# Optional in-tree self-evolution engine + text engine (c_core).
+# Build only when compiler + dev libs are present. These are tied
+# to the historical libminxg_evolve.so artefact; cpp_core supersedes
+# them functionally.
+if [ -d "$SCRIPT_DIR/c_core" ]; then
+ if command -v gcc >/dev/null 2>&1 || command -v clang >/dev/null 2>&1; then
+  mkdir -p "$SCRIPT_DIR/build"
+  CC=${CC:-gcc}
+  CFLAGS="-std=c11 -O3 -fPIC -shared"
+
+  if [ -f "$SCRIPT_DIR/c_core/minxg_evolve.c" ]; then
+   echo " → c_core/minxg_evolve.c (legacy, optional)"
+   (cd "$SCRIPT_DIR/c_core" \
+    && $CC $CFLAGS minxg_evolve.c -lxxhash -lzstd -lm -lpthread \
+       -o "$SCRIPT_DIR/build/libminxg_evolve.so") 2>/dev/null \
+    && echo " ✅ libminxg_evolve.so" \
+    || printf " \033[33m⚠\033[0m libminxg_evolve build skipped (no xxhash/zstd dev libs)\n"
+  fi
+  if [ -f "$SCRIPT_DIR/c_core/text_engine.c" ]; then
+   echo " → c_core/text_engine.c (legacy, optional)"
+   (cd "$SCRIPT_DIR/c_core" \
+    && $CC $CFLAGS text_engine.c -lm -lpthread \
+       -o "$SCRIPT_DIR/build/libtext_engine.so") 2>/dev/null \
+    && echo " ✅ libtext_engine.so" \
+    || printf " \033[33m⚠\033[0m libtext_engine build skipped\n"
+  fi
+ else
+  printf " \033[33m⚠\033[0m no C compiler (gcc/clang); legacy c_core skipped\n"
+  echo " install: pkg install clang (Termux) apt install gcc (Linux)"
+ fi
+fi
+
+# Android: surface built .so on syslib so dlopen() finds it without PATH=magic.
+if [ "$PLATFORM" = "android" ] && [ -d "$SCRIPT_DIR/cpp_core/build" ]; then
  LIBDIR="/data/data/com.termux/files/usr/lib"
- for so in "$SCRIPT_DIR/build/"*.so; do
- [ -f "$so" ] && cp "$so" "$LIBDIR/" 2>/dev/null && echo " -> copied: $(basename $so)"
+ for so in "$SCRIPT_DIR/cpp_core/build/"*.so "$SCRIPT_DIR/build/"*.so; do
+  [ -f "$so" ] && cp "$so" "$LIBDIR/" 2>/dev/null \
+   && echo " → copied: $(basename "$so")"
  done
 fi
 
-echo " $( [ "$NATIVE_OK" = true ] && echo '✅ ' || echo '⚠️ (Python fallback)')"
+if [ "$NATIVE_OK" = true ]; then
+ printf " \033[32m✓\033[0m python fallback enabled\n"
+else
+ printf " \033[33m⚠\033[0m native build unavailable; pure-Python fallback only\n"
+fi
 
-# ── ────────────────────────────────────────────
-echo "[7/8] checking python source compiles..."
+# ── py_compile ──────────────────────────────────────
+echo "[5/6] checking python source compiles..."
 cd "$SCRIPT_DIR"
 PASS=0
 FAIL=0
-for f in $(find . -name '*.py' -not -path './.git/*' -not -path './build/*' -not -path './var/*' -not -path './build_asan/*'); do
+for f in $(find . -name '*.py' -not -path './.git/*' -not -path './build/*' -not -path './var/*' -not -path './build_asan/*' -not -path '*/__pycache__/*' -not -path '*/cpp_core/build/*'); do
  if python3 -m py_compile "$f" 2>/dev/null; then
  PASS=$((PASS + 1))
  else
  FAIL=$((FAIL + 1))
- [ $FAIL -le 3 ] && echo " ❌ $f"
+ [ $FAIL -le 5 ] && echo " ❌ $f"
  fi
 done
 echo " py_compile: $PASS/$((PASS + FAIL)) "
-[ $FAIL -gt 0 ] && echo " ⚠️ $FAIL "
+[ $FAIL -gt 0 ] && echo " ⚠️ $FAIL compile errors"
 
-# ── tool registration ──────────────────────────────────────────
-echo "[8/8] extension self-check..."
+# ── tool registration ────────────────────────────────────────
+echo "[6/6] extension self-check..."
 python3 -c "
 import sys
 sys.path.insert(0, '$SCRIPT_DIR')
@@ -329,7 +353,7 @@ for e in exts:
  print(f' {s} {e[\"name\"]:20s} {d[:60]}')
 " 2>/dev/null || echo " ⚠ extension self-check skipped (import problem)"
 
-# ── ─────────────────────────────────────────────────
+# ── completion banner ──────────────────────────────────────
 echo ""
 echo "════════════════════════════════════════"
 printf " \033[32m✓\033[0m install complete\n"
@@ -345,6 +369,30 @@ echo " minxg ext list show installed extensions"
 echo " minxg ext add <slug> install an extension"
 echo " minxg ext add minxg-adb install ADB tools (opt-in)"
 echo " minxg ext add minxg-root install ROOT tools (opt-in)"
+echo " minxg doctor self-check"
 echo ""
-echo " (the old ADB/Root auto-detect steps were removed in 0.11; install those"
-echo " extensions only when you need them — see 'minxg ext available'.)"
+echo " (the old ADB/Root auto-detect steps were removed in 0.11; install"
+echo " those extensions only when you need them — see 'minxg ext available'.)"
+
+# ── Termux / ZeroTermux notification ───────────────────────────
+# Fire AND-log only when we're inside Termux (NOT just Android).
+# On every other platform this is a no-op — Windows/Mac/Linux users
+# never see anything even when --notify is set, by design: Termux-API
+# is a Termux-only stack and there's no equivalent portable backend.
+if [ "${MINXG_NOTIFY:-0}" = "1" ]; then
+ python3 -c "
+import sys
+sys.path.insert(0, '$SCRIPT_DIR')
+try:
+    from src.ai.notify import termux
+    if termux.notify_task_completed(
+        title='MINXG install done',
+        body='platform=$PLATFORM · native=$NATIVE_OK',
+    ):
+        print(' 📱 notification sent (Termux/ZeroTermux)')
+    else:
+        print(' (skip notify: not in Termux)')
+except Exception as e:
+    print(f' (notify skipped: {e})')
+" 2>/dev/null || true
+fi

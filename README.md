@@ -70,7 +70,7 @@ top-level import is **`minxg`**.
 ### One-liner (any platform)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Disability-Human/MINXG-Beta/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/pineapple-ooo/MINXG-Beta/main/install.sh | bash
 ```
 
 That single command:
@@ -85,10 +85,10 @@ Variants:
 
 ```bash
 # custom clone dir
-MINXG_DIR=/opt/minxg curl -fsSL https://raw.githubusercontent.com/Disability-Human/MINXG-Beta/main/install.sh | bash
+MINXG_DIR=/opt/minxg curl -fsSL https://raw.githubusercontent.com/pineapple-ooo/MINXG-Beta/main/install.sh | bash
 
 # explicit repo URL (when forking)
-REPO_URL=https://github.com/you/minxg.git curl -fsSL https://raw.githubusercontent.com/Disability-Human/MINXG-Beta/main/install.sh | bash
+REPO_URL=https://github.com/you/minxg.git curl -fsSL https://raw.githubusercontent.com/pineapple-ooo/MINXG-Beta/main/install.sh | bash
 ```
 
 ### Local clone (developer)
