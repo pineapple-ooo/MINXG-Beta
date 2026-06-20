@@ -1,5 +1,10 @@
 # MINXG
 
+[![PyPI version](https://img.shields.io/pypi/v/minxg-beta.svg)](https://pypi.org/project/minxg-beta/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/minxg-beta.svg)](https://pypi.org/project/minxg-beta/#files)
+[![GitHub Release](https://img.shields.io/github/v/release/pineapple-ooo/MINXG-Beta)](https://github.com/pineapple-ooo/MINXG-Beta/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A modular AI worker platform with a built-in chat CLI, an OpenAI-compatible
 v1 gateway, opt-in extensions (ADB / ROOT / files), and a self-developed
 temporal driver engine — all in one Python package.
@@ -112,9 +117,24 @@ $ python3 -c "import minxg; print(minxg.VERSION, len(minxg.__all__), 'workers;',
 0.10.0 55 workers; 306 math ops
 ```
 
-**PyPI publication is on the roadmap but not yet done.** Until the
-package shows up on PyPI under the `minxg-beta` name, the source-
-tree mode above is the supported install path.
+**Published on PyPI.** Install the prebuilt package with:
+
+```bash
+pip install minxg-beta
+```
+
+(or `pip install -U minxg-beta` to upgrade). PyPI now serves the served
+sdist + wheel for **v0.12.1**; subsequent releases are pushed
+automatically when a `v*.*.*` git tag is pushed — see **Releasing** below.
+
+If you want the latest unreleased source tree, clone and editable-install
+instead:
+
+```bash
+git clone https://github.com/pineapple-ooo/MINXG-Beta.git
+cd MINXG-Beta
+pip install -e ".[dev]"
+```
 
 The codebase has no compiled dependencies on install; everything in
 `minxg/five_pillars/`, `minxg/driver/`, `minxg/contracts/`,
@@ -445,6 +465,32 @@ WARNING features: EXPERIMENTAL feature SilentFeatures.disk_usage_report is not p
 If you genuinely need one of these and would like it promoted to
 stable, file an issue with the use-case — that's how a feature
 graduates out of `features.py`.
+
+## Releasing
+
+Releases are fully automated via GitHub Actions (.github/workflows/release.yml).
+To cut a new version:
+
+1. Bump `version` in `pyproject.toml`.
+2. Add a `## [<new>]` entry at the top of `CHANGELOG.md`.
+3. Commit, tag, push:
+
+   ```bash
+   git add pyproject.toml CHANGELOG.md
+   git commit -m "release: <new> — <one-line summary>"
+   git tag v<new>
+   git push origin main v<new>
+   ```
+
+On push of the `v*.*.*` tag, the workflow:
+
+- builds sdist + wheel,
+- publishes them to PyPI via [Trusted Publishing](https://docs.pypi.org/trusted-publishers/)
+  (OIDC — **no PyPI API token stored in the repo**),
+- creates a GitHub Release with the wheel and sdist attached,
+  release notes auto-extracted from the matching `## [<version>]` block in `CHANGELOG.md`.
+
+The PyPI project is `minxg-beta`; the import is `minxg`.
 
 ## See also
 
