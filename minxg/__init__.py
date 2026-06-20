@@ -92,7 +92,7 @@ __all__ = [
     "get_tools_by_category", "get_system_capabilities",
 ]
 
-VERSION = "0.11.0"
+VERSION = "0.12.1"
 
 try:
     from . import cap as _cap

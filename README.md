@@ -10,10 +10,7 @@ five orthogonal operator planes (io, aggregate, scalar, transform,
 dispatch), so editing one module never forces a full rebuild.
 Pure Python — no compiled step required to install or run.
 
-- This is the **v0.12.0** release. (The commit landed on `main` after
-  the prior `v0.11.0` had already been tagged on the remote; the
-  GitHub ref-creation rule blocks us from re-creating `v0.11.0`,
-  so this is published as `v0.12.0`.) It ships cold-start
+- This is the **v0.12.1** release. v0.12.1 closes every outstanding gap in the v0.12.0 surface: anti-loop guard, entropic multi-tier memory, per-platform tool cap, Termux notification hook, and the polyglot CMake build. It ships cold-start
   hardening plus a polished setup wizard:
 
 - `minxg` (no subcommand) now asks: chat CLI, start API gateway, or
@@ -342,7 +339,7 @@ curl http://127.0.0.1:18080/v1/chat/completions \
 
 ```python
 import minxg
-print(minxg.VERSION)              # "0.11.0"
+print(minxg.VERSION)              # "0.12.1"
 
 # Driver engine: temporal operator-field
 from minxg.driver import State, DriverEngine, smoothing_field

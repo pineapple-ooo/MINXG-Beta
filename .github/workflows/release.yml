@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"          # 匹配 v0.12.2 这种 tag
+  workflow_dispatch:        # 也允许在网页手动点按钮触发
+
+permissions:
+  contents: write          # 用来创建 GitHub Release
+
+jobs:
+  build:
+    name: Build sdist + wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tooling
+        run: python -m pip install --upgrade build
+
+      - name: Build distributions
+        run: python -m build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi            # 在 repo Settings → Environments 里配置 trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish (OIDC, no token needed)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        # 不需要 with: token: ...
+        # PyPI 后台配好 trusted publisher 就会自动用 OIDC 拿短期凭证
+
+  github-release:
+    name: GitHub Release + CHANGELOG
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Extract CHANGELOG section for this version
+        id: changelog
+        run: |
+          # 从 CHANGELOG.md 里提取 ## [VERSION] 段落，直到下一个 ## 或文件末尾
+          VERSION="${GITHUB_REF_NAME#v}"   # 去掉开头的 v
+          python - <<PY
+          import re, pathlib
+          text = pathlib.Path("CHANGELOG.md").read_text(encoding="utf-8")
+          m = re.search(rf"^## \[{re.escape("$VERSION")}\].*?(?=^## \[|\Z)",
+                        text, re.M | re.S)
+          if m:
+              notes = m.group(0).rstrip() + "\n"
+          else:
+              notes = f"## [{'$VERSION'}](CHANGELOG.md)\n\nSee CHANGELOG.md for details.\n"
+          pathlib.Path("$GITHUB_OUTPUT").write_text("")   # ensure file exists
+          with open("$GITHUB_OUTPUT", "a", encoding="utf-8") as f:
+              f.write("notes<<EOF\n" + notes + "EOF\n")
+          PY
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.notes }}
+          fail_on_unmatched_files: false
+          # wheel 和 sdist 会自动作为附件挂上去
