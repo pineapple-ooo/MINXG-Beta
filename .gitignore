@@ -88,6 +88,10 @@ skills/
 # Agent plan files
 .hermes/plans/
 
+# Release-tools scratchpads / private release notes
+.release_notes_*.md
+/output/
+
 # Legacy artifacts (kept locally, not for GitHub)
 _legacy/
 
