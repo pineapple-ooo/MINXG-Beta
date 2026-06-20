@@ -1,0 +1,25 @@
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+  # 也可以手动点 [Actions] -> Run workflow 触发
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          # 仓库根有 release-please-config.json + .release-please-manifest.json
+          # 这个 action 只负责检测 conventional-commits commit、
+          # 开/更新 release PR、按版本 bump manifest。
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # 你 merge 这个 PR 后，bot 会自动打 tag v*.*.*，触发 .github/workflows/release.yml 跑
+          # (release.yml 已经支持 tag-triggered，做 build + PyPI publish + GH Release)

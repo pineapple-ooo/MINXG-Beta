@@ -29,6 +29,10 @@ CMakeCache.txt
 CMakeUserPresets.json
 compile_commands.json
 
+# Release-please bot rewrites this manifest on every release PR;
+# it must stay tracked-by-bot-only.
+!.release-please-manifest.json
+
 # cmake build output (one per cmake target dir)
 **/build/
 
