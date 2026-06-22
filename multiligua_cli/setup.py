@@ -104,7 +104,7 @@ from multiligua_cli.platforms import PLATFORMS, PLATFORM_ORDER
 
 
 
-TOTAL_STEPS = 5
+TOTAL_STEPS = 6
 
 
 def setup_language(config: Dict[str, Any], existing: Dict[str, Any]) -> None:
@@ -260,8 +260,14 @@ def _fetch_models(base_url: str, api_key: str) -> List[str]:
 
 
 def setup_platforms(config: Dict[str, Any], existing: Dict[str, Any]) -> None:
-    print_step_progress(3, TOTAL_STEPS, "Platforms")
-    print_info("Select platforms to enable:")
+    """Dead path — kept for compatibility with older config loader calls.
+
+    No real wizard step currently invokes `setup_platforms`; platforms are
+    auto-detected at runtime. The wizard's prompt flow is:
+      1 Language · 2 AI Provider · 3 Mode · 4 Gateway · 5 Environment
+      · 6 Browser Search · (Summary).
+    """
+    print_info("Selecting platforms to enable:")
 
     platforms = {}
     existing_platforms = existing.get("platforms", {})
@@ -364,8 +370,8 @@ def setup_hot_reload(config: Dict[str, Any], existing: Dict[str, Any]) -> None:
 
 
 def setup_browser_search(config: Dict[str, Any], existing: Dict[str, Any]) -> None:
-    """Step 7: Browser search configuration."""
-    print_step_progress(7, TOTAL_STEPS, "Browser Search")
+    """Browser search configuration (final prompt step)."""
+    print_step_progress(6, TOTAL_STEPS, "Browser Search")
 
     existing_bs = existing.get("browser_search", {})
 
@@ -400,8 +406,20 @@ def setup_browser_search(config: Dict[str, Any], existing: Dict[str, Any]) -> No
 
 
 def show_summary(config: Dict[str, Any]) -> None:
-    """Step 8: Configuration summary + save."""
-    print_step_progress(8, TOTAL_STEPS, "Summary & Save")
+    """Show a non-step summary panel of the configuration before saving."""
+    if HAS_RICH:
+        from rich.panel import Panel as _Panel
+        from rich import box as _box
+        from multiligua_cli.wizard_ui import console as _console
+        _console.print(_Panel.fit(
+            "[bold gold3]Review your configuration[/bold gold3]\n"
+            "[dim]We'll save this when you answer 'yes' below.[/dim]",
+            border_style="gold3", box=_box.ROUNDED,
+        ))
+    else:
+        from multiligua_cli.wizard_ui import Colors, _ansi
+        print(_ansi("── Review your configuration ──────────────────",
+                    Colors.GOLD, Colors.BOLD))
     print()
 
     lang = config.get("lang", "en")
@@ -466,7 +484,7 @@ def run_setup():
 
     setup_ai_provider(config, existing)
 
-    print_step_progress(2, TOTAL_STEPS, "How you want to use MINXG")
+    print_step_progress(3, TOTAL_STEPS, "How you want to use MINXG")
     mode_options = [
         (chr(0x1F4AC), "Chat CLI (default)"),
         (chr(0x1F310), "API Gateway"),
@@ -503,28 +521,51 @@ def run_setup():
 
 
 def _post_setup_hints(config: Dict[str, Any]) -> None:
-    """Post-setup hints."""
+    """Show a celebration panel + a quick-reference hint table after save."""
     print()
     if HAS_RICH:
         from rich.panel import Panel
-        console.print(Panel.fit(
-            "  Setup complete!\n"
-            "  Chat CLI:  [bold]minxg[/bold]\n"
-            "  Gateway:   [bold]minxg gateway start[/bold]\n"
-            "  Self-check:[bold]minxg doctor[/bold]\n"
-            "  Help:      [bold]minxg --help[/bold]\n"
-            "  Reconfigure: [bold]minxg setup[/bold]",
-            title="MINXG", border_style="gold3"
+        from rich.columns import Columns
+        from multiligua_cli.wizard_ui import console as _console
+        _console.print(Panel.fit(
+            "[bold gold3]✓ Setup complete[/bold gold3]\n"
+            "[dim]Your configuration is saved. Re-run anytime with:[/dim]\n"
+            "[bold]minxg setup[/bold]",
+            title="[bright_blue]MINXG[/bright_blue]",
+            border_style="gold3", padding=(1, 4),
         ))
+        print()
+        from rich.table import Table
+        t = Table.grid(padding=(0, 2))
+        t.add_column(style="bold teal", justify="right")
+        t.add_column(style="dim")
+        t.add_row("minxg",                "start the TUI chat")
+        t.add_row("minxg chat",           "alias for the chat CLI")
+        t.add_row("minxg gateway start",  "OpenAI-compatible v1 endpoint")
+        t.add_row("minxg doctor",         "self-check (config + tools + extensions)")
+        t.add_row("minxg --help",         "command cheatsheet")
+        t.add_row("minxg -v status",      "runtime status with verbose logging")
+        _console.print(t)
     else:
         from multiligua_cli.wizard_ui import Colors, _ansi
-        print(_ansi("+=============================================+", Colors.GOLD))
-        print(_ansi("|  Setup complete!                            |", Colors.GOLD, Colors.BOLD))
-        print(_ansi("|  Chat CLI: minxg                            |", Colors.INDIGO))
-        print(_ansi("|  Gateway:  minxg gateway start              |", Colors.TEAL))
-        print(_ansi("|  Doctor:   minxg doctor                     |", Colors.SLATE))
-        print(_ansi("|  Help:     minxg --help                     |", Colors.AMETHYST))
-        print(_ansi("+=============================================+", Colors.GOLD))
+        print(_ansi("╔═════════════════════════════════════════════════════════╗",
+                    Colors.GOLD, Colors.BOLD))
+        print(_ansi("║  ✓ Setup complete                                       ║",
+                    Colors.GOLD, Colors.BOLD))
+        print(_ansi("║  Config saved. Re-run with: minxg setup                 ║",
+                    Colors.GOLD))
+        print(_ansi("╠═════════════════════════════════════════════════════════╣",
+                    Colors.GOLD))
+        print(_ansi("║  minxg                  start the TUI chat              ║",
+                    Colors.BRIGHT_BLUE, Colors.BOLD))
+        print(_ansi("║  minxg gateway start    OpenAI-compatible v1 endpoint   ║",
+                    Colors.TEAL))
+        print(_ansi("║  minxg doctor           self-check                      ║",
+                    Colors.SLATE))
+        print(_ansi("║  minxg --help           full command cheatsheet         ║",
+                    Colors.AMETHYST))
+        print(_ansi("╚═════════════════════════════════════════════════════════╝",
+                    Colors.GOLD, Colors.BOLD))
     print()
 
 

@@ -22,8 +22,20 @@ from pathlib import Path
 from collections import OrderedDict
 from dataclasses import dataclass, field, asdict
 
+def _resolve_log_level() -> int:
+    """Default to WARNING in interactive shells so `INFO` chatter is hidden.
+
+    Override at runtime via ``-v`` (handled in main()) or by exporting
+    ``MINXG_LOG_LEVEL=INFO`` / ``DEBUG`` for diagnostics.
+    """
+    env = os.environ.get("MINXG_LOG_LEVEL", "").strip().upper()
+    if env in ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"):
+        return getattr(logging, env)
+    return logging.WARNING
+
+
 logging.basicConfig(
-    level=logging.INFO,
+    level=_resolve_log_level(),
     format='%(asctime)s | %(levelname)-7s | %(message)s',
     handlers=[logging.StreamHandler(sys.stderr)]
 )

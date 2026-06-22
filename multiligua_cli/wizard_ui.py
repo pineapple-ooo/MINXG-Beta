@@ -10,6 +10,7 @@ Design Philosophy:
 
 import os
 import sys
+import shutil
 from typing import Optional, List
 
 
@@ -65,6 +66,7 @@ class Colors:
     CORAL   = "\033[38;5;209m"
     AMBER   = "\033[38;5;214m"
     SILVER  = "\033[38;5;250m"
+    BRIGHT_BLUE = "\033[38;5;75m"
 
     BG_INDIGO = "\033[48;5;99m"
     BG_VIOLET = "\033[48;5;183m"
@@ -108,10 +110,16 @@ def print_banner():
         for line in art:
             banner_text.append(line + "\n", style="bold violet")
 
-        banner_text.append(f"\n  {tagline}", style="bold gold3")
-        banner_text.append(f"  v{ver}\n\n", style="italic dim")
+        banner_text.append("\n  ", style="")
+        banner_text.append("◆ ", style="bold gold3")
+        banner_text.append(tagline, style="bold gold3")
+        banner_text.append(f"  v{ver}", style="italic dim cyan")
+        banner_text.append("\n", style="")
+        banner_text.append("  setup wizard\n",
+                          style="dim italic")
 
-        console.print(Panel(banner_text, box=box.HEAVY, border_style="bright_blue", padding=(1, 2)))
+        console.print(Panel(banner_text, box=box.HEAVY,
+                            border_style="bright_blue", padding=(1, 2)))
     else:
         art = f"""
 {_ansi("    ██╗███╗   ██╗██╗  ██╗ ██████╗ ", Colors.INDIGO, Colors.BOLD)}
@@ -121,39 +129,59 @@ def print_banner():
 {_ansi("    ██║██║ ╚████║██╔╝ ██╗╚██████╔╝", Colors.VIOLET, Colors.BOLD)}
 {_ansi("    ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝ ╚═════╝ ", Colors.AMETHYST, Colors.BOLD)}
 
-  {_ansi(tagline, Colors.GOLD, Colors.BOLD)}
-  {_ansi(f"v{ver}", Colors.SLATE)}
+  {_ansi("◆ ", Colors.GOLD, Colors.BOLD)}{_ansi(tagline, Colors.GOLD, Colors.BOLD)}  {_ansi(f"v{ver}", Colors.SLATE)}
+  {_ansi("setup wizard", Colors.SLATE)}
 """
         print(art)
 
 
 def print_step_progress(step: int, total: int, title: str):
-    filled = int(30 * step / total)
+    """Render a one-line progress header like  `[2/6] ████░░ Step Name`."""
+    bar_w = 28
+    filled = max(0, min(bar_w, int(bar_w * step / total)))
     bar_fill = "█" * filled
-    bar_empty = "░" * (30 - filled)
+    bar_empty = "░" * (bar_w - filled)
 
     if HAS_RICH:
         progress_text = Text()
         progress_text.append(f"  [{step}/{total}] ", style="bold teal")
         progress_text.append(bar_fill, style="bold gold3")
         progress_text.append(bar_empty, style="dim")
-        progress_text.append(f" {title}", style="bold gold3")
+        progress_text.append(f"  {title}", style="bold bright_blue")
         console.print(progress_text)
         console.print(f"  {_ansi('─' * 50, Colors.SLATE)}")
     else:
-        bar = _ansi(bar_fill, Colors.GOLD, Colors.BOLD) + _ansi(bar_empty, Colors.SLATE)
-        print(f"  {_ansi(f'[{step}/{total}]', Colors.TEAL, Colors.BOLD)} {bar} {_ansi(title, Colors.GOLD, Colors.BOLD)}")
+        bar = (_ansi(bar_fill, Colors.GOLD, Colors.BOLD)
+               + _ansi(bar_empty, Colors.SLATE))
+        head = _ansi(f"[{step}/{total}]", Colors.TEAL, Colors.BOLD)
+        label = _ansi(title, Colors.BRIGHT_BLUE, Colors.BOLD)
+        print(f"  {head} {bar} {label}")
         print(f"  {_ansi('─' * 50, Colors.SLATE)}")
 
 
-def _truncate_desc(desc: str, max_len: int = 28) -> str:
-    """Cap a description so the line stays singular on Termux."""
+def _truncate_desc(desc: str, max_len: int | None = None) -> str:
+    """Cap a description so the line stays singular on Termux.
+
+    ``max_len=None`` (default) picks a width from the live terminal so
+    descriptions can use more of a wide screen on desktop while still
+    surviving narrow Termux pipes.
+    """
     if not desc:
         return ""
+    if max_len is None:
+        try:
+            cols = shutil.get_terminal_size((80, 20)).columns
+        except Exception:
+            cols = 80
+        # 28 was the original fixed budget; allow up to 56 on wide terminals
+        # but never below 28 so layout stays predictable.
+        max_len = max(28, min(56, cols - 30))
+    if max_len <= 0:
+        return desc
     if len(desc) <= max_len:
         return desc
-    if max_len <= 1:
-        return desc[:max_len]
+    if max_len == 1:
+        return desc[:1]
     return desc[: max_len - 1] + "\u2026"
 
 

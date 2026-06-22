@@ -416,11 +416,10 @@ def _lang_tui_selector() -> str | None:
 
     return list(LANGUAGES.keys())[result]
 
-@ensure_config
-def run_setup(args) -> int:
-    """Run the full setup wizard."""
+def cmd_setup(args) -> int:
+    """Run the full setup wizard (dispatched from main())."""
     from multiligua_cli.setup import run_setup as setup_main
-    print_banner()
+    # setup.py prints the rich banner itself — don't double up.
     result = setup_main()
     if result == 0:
         print_cheatsheet()
@@ -546,7 +545,8 @@ Examples:
 
     if args.verbose:
         import logging
-        logging.getLogger().setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.INFO)
+        os.environ["MINXG_LOG_LEVEL"] = "INFO"
 
     if getattr(args, "list_extensions", False):
         try:
@@ -572,7 +572,7 @@ Examples:
         return 0
 
     if cmd == "setup":
-        rc = run_setup(args)
+        rc = cmd_setup(args)
         if rc == 0:
             _print_completion_hint()
         return rc

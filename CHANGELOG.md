@@ -2,6 +2,56 @@
 
 All notable changes to MINXG are documented in this file.
 
+## [0.12.3] - 2026-06-22 - CLI polish + setup wizard UnboundLocalError fix
+
+### Bug fix
+- **`minxg setup` no longer raises `UnboundLocalError: cannot access local
+  variable 'run_setup'`.** The wizard's full-run dispatcher in
+  `multiligua_cli/main.py` was named `run_setup`, which shadowed the
+  same-named import inside `main()` and made the symbol local —
+  the very first invocation from the CLI now hit the classic
+  local-before-assignment trap. The dispatcher is renamed to
+  `cmd_setup`, the `@ensure_config` decorator is removed (wizards
+  don't need to recursively invoke themselves), and the resulting
+  duplicated banner is dropped because the wizard prints its own
+  rich panel. `minxg model`, `minxg api`, `minxg key`, `minxg config`,
+  and `minxg status` were already fine — only the `setup` path was
+  exposed.
+
+### CLI beautification
+- **Quiet by default.** The `Loading tool modules...` and
+  `Registered N tools from new system` INFO lines from
+  `multiling/orchestrator.py` no longer print to stderr on every
+  command. The logging root now starts at WARNING in interactive
+  shells and is bumped to INFO only when `minxg -v` is passed
+  (or `MINXG_LOG_LEVEL=DEBUG` is exported for diagnostics).
+- **Banner shows the real version.** The header panel now reads
+  `MINXG — Five-Pillar Worker Platform v0.12.3` (the
+  `minxg.VERSION` constant is rendered live instead of relying on
+  whichever snapshot was last edited into the banner template).
+- **Setup wizard ribbon.** The wizard banner gets a `◆ tagline   vX.Y.Z`
+  accent line and a `setup wizard` sub-line so the user knows what the
+  screen is for the moment they enter `minxg setup`.
+- **Step counter is correct.** `TOTAL_STEPS` is now `6` (was `5`), the
+  duplicate `step 2 of 5` for the mode prompt is now `step 3 of 6`,
+  the orphaned `step 7 of 5` for Browser Search is now `step 6 of 6`,
+  and the dead-step `step 8 of 5` Summary banner has been removed in
+  favour of a non-step gold "Review your configuration" panel.
+  `setup_platforms` (and the now-redundant comment) is documented as
+  a compatibility shim so future readers don't think it ran.
+- **Wide-terminal-aware descriptions.** Menu descriptions used to be
+  hard-truncated to 28 characters. They now size themselves between
+  28 and 56 based on `shutil.get_terminal_size`, so a desktop user
+  gets the full provider description while Termux users still keep a
+  single-line layout.
+- **Setup finishes with a celebration.** `_post_setup_hints` now prints
+  a centred `✓ Setup complete` panel plus a two-column quick-reference
+  grid (`minxg`, `minxg gateway start`, `minxg doctor`, …) so the
+  first action after install is obvious.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/),
+and this project adheres to [Semantic Versioning](https://semver.org/).
+
 ## [0.12.2] - 2026-06-21 - PyPI publication + release automation
 
 ### Published on PyPI
