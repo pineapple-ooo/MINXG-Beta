@@ -2,6 +2,72 @@
 
 All notable changes to MINXG are documented in this file.
 
+## [0.12.4] - 2026-06-22 - MINXG Chat rewrite + flicker-free picker + safe print
+
+### MINXG Chat rebuild
+- **A proper REPL replaces the old "you > " stub.**
+  `tui_chat()` now lives entirely in `multiligua_cli/tui_chat.py`
+  and ships a polished three-region UI: a top status bar
+  (`provider · model · host · depth/cost`), a scrolling conversation
+  thread that streams tokens under `rich.live`, and a
+  helper-rich bottom input box. The brand label inside the banner is
+  **`MINXG Chat`** (formerly the ambiguous "chat CLI") — the change
+  is documented in README §Tutorial A.
+- **Brand refactor.** The hard-coded product name in the chat
+  surface, `/help`, README, and DEVELOPER.md is consolidated under
+  `tui_chat._BRAND = "MINXG Chat"`. Updating the brand now means
+  changing one constant.
+- **Streaming faithful to upstream events.**
+  `_stream` consumes `text / thinking / tool_call / tool_result /
+  done / error` events from `NexusOrchestrator.chat_stream` and
+  renders tool calls as inline `→ name (Nms)` widgets with a
+  yellow anti-loop warning line if the safety guard fires.
+
+### In-place reconfiguration (no chat restart)
+- **New slash commands**: `/setup`, `/provider [slug]`, `/model
+  [name]`, `/url [URL]`, `/apikey [KEY]`, `/lang [code]`,
+  `/history`. They hot-swap the orchestrator, save the config
+  atomically (`tmp + os.replace`), and re-paint the status bar
+  without dropping the session.
+- **`/provider <slug>` is non-interactive** (omit the slug for the
+  picker). `/model <name>` tries to fetch `GET /models` from the
+  current provider; if the API is reachable, the picker shows the
+  real list of available models. If the fetch fails, it falls back
+  to the provider's `default_model` and accepts typed input.
+- **`/setup` reruns the wizard with the existing config as
+  defaults**, then re-renders the chat banner — no more "exit chat
+  → `minxg setup` → re-enter chat" round-trip.
+- **`/apikey` is masked** before being written to disk, the way
+  the wizard has always done it. Naked key payloads no longer leak
+  to log files.
+
+### Bug fixes
+- **`MinxgMenu` no longer flickers under Termux.** The old
+  `_render` forked `clear` on every arrow-key press and wiped the
+  whole scrollback; the new implementation paints in place using
+  `\033[<n>A` (cursor up) + `\033[J` (erase to end of screen), so
+  the chat scrollback stays intact and no full-screen flicker
+  shows up under tmux/SSH/screen.
+- **`print_error / print_success / print_info / print_warning /
+  print_dim` no longer crash on user messages that contain
+  brackets.** A new `_escape_markup` escapes `[` and `]` in
+  inbound strings before handing them to rich, so URLs, exception
+  messages and model names with brackets stop raising
+  `rich.errors.MarkupError` inside the chat prompt.
+
+### NUANCE alignment
+- The new `_save_config` (atomic write) centralises every
+  one-shot setter that previously hand-rolled `yaml.dump` —
+  `minxg model <name>`, `minxg api <url>`, `minxg key <key>`,
+  `minxg lang <code>` now share one error-handling path.
+- All chat-side saves log a friendly `Config saved to ...` /
+  `Save failed: <hint>` line so the user can see exactly which
+  file was touched (and why) — instead of dumping a yaml
+  traceback on top of a half-finished wizard panel.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/),
+and this project adheres to [Semantic Versioning](https://semver.org/).
+
 ## [0.12.3] - 2026-06-22 - CLI polish + setup wizard UnboundLocalError fix
 
 ### Bug fix

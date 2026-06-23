@@ -637,9 +637,9 @@ def _pick_initial_mode() -> str:
     try:
         from multiligua_cli.utils import HAS_RICH, console, Colors
         from multiligua_cli.wizard_ui import (
-            print_banner, print_section, prompt_choice,
+            print_chat_banner, print_section, prompt_choice,
         )
-        print_banner()
+        print_chat_banner()
         print_section("What do you want to do?")
         choices = [
             f"{chr(0x1F4AC)} Chat CLI",

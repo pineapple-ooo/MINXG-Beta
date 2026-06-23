@@ -135,6 +135,58 @@ def print_banner():
         print(art)
 
 
+def print_chat_banner():
+    """The chat-surface variant of the wizard banner — substitutes the
+    "setup wizard" sub-line for the "MINXG Chat" brand line so the same
+    banner module serves both surfaces without context bleed.
+    """
+    try:
+        from minxg import VERSION
+        ver = VERSION
+    except Exception:
+        ver = "0.0.0+unknown"
+    lang = get_lang()
+    tagline = T("brand_full")
+
+    if HAS_RICH:
+        banner_text = Text()
+
+        art = [
+            "    ██╗███╗   ██╗██╗  ██╗ ██████╗ ",
+            "    ██║████╗  ██║╚██╗██╔╝██╔════╝ ",
+            "    ██║██╔██╗ ██║ ╚███╔╝ ██║  ███╗",
+            "    ██║██║╚██╗██║ ██╔██╗ ██║   ██║",
+            "    ██║██║ ╚████║██╔╝ ██╗╚██████╔╝",
+            "    ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝ ╚═════╝ ",
+        ]
+        for line in art:
+            banner_text.append(line + "\n", style="bold violet")
+
+        banner_text.append("\n  ", style="")
+        banner_text.append("◆ ", style="bold gold3")
+        banner_text.append(tagline, style="bold gold3")
+        banner_text.append(f"  v{ver}", style="italic dim cyan")
+        banner_text.append("\n", style="")
+        banner_text.append("  MINXG Chat — interactive REPL\n",
+                          style="dim italic")
+
+        console.print(Panel(banner_text, box=box.HEAVY,
+                            border_style="bright_blue", padding=(1, 2)))
+    else:
+        art = f"""
+{_ansi("    ██╗███╗   ██╗██╗  ██╗ ██████╗ ", Colors.INDIGO, Colors.BOLD)}
+{_ansi("    ██║████╗  ██║╚██╗██╔╝██╔════╝ ", Colors.VIOLET, Colors.BOLD)}
+{_ansi("    ██║██╔██╗ ██║ ╚███╔╝ ██║  ███╗", Colors.AMETHYST, Colors.BOLD)}
+{_ansi("    ██║██║╚██╗██║ ██╔██╗ ██║   ██║", Colors.INDIGO, Colors.BOLD)}
+{_ansi("    ██║██║ ╚████║██╔╝ ██╗╚██████╔╝", Colors.VIOLET, Colors.BOLD)}
+{_ansi("    ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝ ╚═════╝ ", Colors.AMETHYST, Colors.BOLD)}
+
+  {_ansi("◆ ", Colors.GOLD, Colors.BOLD)}{_ansi(tagline, Colors.GOLD, Colors.BOLD)}  {_ansi(f"v{ver}", Colors.SLATE)}
+  {_ansi("MINXG Chat — interactive REPL", Colors.SLATE)}
+"""
+        print(art)
+
+
 def print_step_progress(step: int, total: int, title: str):
     """Render a one-line progress header like  `[2/6] ████░░ Step Name`."""
     bar_w = 28
@@ -261,7 +313,15 @@ def print_kv(key: str, value: str, indent: int = 4):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 class MinxgMenu:
-    """MINXG Menu - interactive selection widget."""
+    """MINXG Menu - interactive selection widget.
+
+    Auto-sizing single-line menu that paints *in place* on every key
+    press instead of fork-bombing ``clear`` to wipe the screen. The
+    first render establishes how many rows the widget needs; later
+    renders move the cursor up to the widget's top row and rewrite
+    those lines only, so the chat scrollback above the widget
+    stays put and no full-screen flicker shows up under Termux.
+    """
 
     def __init__(self, title: str, options: List[str], descriptions: List[str] = None):
         self.title = title
@@ -269,25 +329,128 @@ class MinxgMenu:
         self.descriptions = descriptions or [""] * len(options)
         self.selected = 0
         self.running = True
+        self._painted_rows = 0       # rows the previous render occupied
+        self._supports_ansi = (
+            sys.stdout.isatty() and not os.environ.get("TERM") == "dumb"
+        )
 
-    def _render(self):
-        clear_screen()
+    @staticmethod
+    def _strip_ansi(s: str) -> str:
+        import re
+        return re.sub(r"\x1b\[[0-9;?]*[a-zA-Z]", "", s)
+
+    @staticmethod
+    def _line_width(s: str) -> int:
+        """Visual width of a string ignoring ANSI escape sequences.
+
+        Emoji / wide CJK glyphs occupy two cells; we measure them via
+        ``unicodedata.east_asian_width``. Falls back to ``len`` if the
+        stream is unicode.* and east_asian_width mis-classifies a
+        specific glyph on a niche terminal.
+        """
+        try:
+            import unicodedata
+            width = 0
+            for ch in MinxgMenu._strip_ansi(s):
+                if unicodedata.east_asian_width(ch) in ("F", "W"):
+                    width += 2
+                else:
+                    width += 1
+            return width
+        except Exception:
+            return len(MinxgMenu._strip_ansi(s))
+
+    def _move_up_and_clear(self):
+        """Park the cursor on the widget's first row, erase below."""
+        if not self._supports_ansi or self._painted_rows <= 0:
+            return
+        # Move cursor up to the first line of the widget.
+        if self._painted_rows > 1:
+            sys.stdout.write(f"\033[{self._painted_rows - 1}A")
+        # Erase from cursor to end of screen.
+        sys.stdout.write("\033[J")
+        sys.stdout.flush()
+
+    def _calc_render_rows(self, rendered_lines: List[str]) -> int:
+        rows = 0
+        for line in rendered_lines:
+            # Each line + 1 newline. Long lines wrap based on terminal width.
+            try:
+                cols = shutil.get_terminal_size((80, 20)).columns
+            except Exception:
+                cols = 80
+            visible = max(1, self._line_width(line))
+            rows += (visible + cols - 1) // cols or 1
+        return rows
+
+    def _render_first(self):
+        """First time: paint fresh, no cursor hacks needed."""
+        self._supports_ansi = (
+            sys.stdout.isatty() and not os.environ.get("TERM") == "dumb"
+        )
         if HAS_RICH:
             console.print(f"\n  [bold gold3]{self.title}[/bold gold3]\n")
             for i, (opt, desc) in enumerate(zip(self.options, self.descriptions)):
                 print_option_item(i == self.selected, opt, desc)
-            nav_hint = T("wizard_nav_hint")
-            console.print(f"\n  [dim]{nav_hint}[/dim]")
+            console.print(f"\n  [dim]{T('wizard_nav_hint')}[/dim]\n")
+            lines = [self.title]
+            for i, (opt, desc) in enumerate(zip(self.options, self.descriptions)):
+                lines.append(self._build_option_line(i == self.selected, opt, desc))
+            lines.append(T("wizard_nav_hint"))
+            self._painted_rows = self._calc_render_rows(lines)
         else:
             print(f"\n  {_ansi(self.title, Colors.GOLD, Colors.BOLD)}\n")
             for i, (opt, desc) in enumerate(zip(self.options, self.descriptions)):
                 print_option_item(i == self.selected, opt, desc)
-            print(f"\n  {_ansi(T('wizard_nav_hint'), Colors.SLATE)}")
+            print(f"\n  {_ansi(T('wizard_nav_hint'), Colors.SLATE)}\n")
+            lines = [self.title]
+            for i, (opt, desc) in enumerate(zip(self.options, self.descriptions)):
+                lines.append(self._build_option_line(i == self.selected, opt, desc))
+            lines.append(T("wizard_nav_hint"))
+            self._painted_rows = self._calc_render_rows(lines)
+
+    def _build_option_line(self, selected: bool, text: str, desc: str) -> str:
+        """Return a single visual line for one menu entry."""
+        marker = "\u25c8" if selected else "\u25c7"
+        short_desc = _truncate_desc(desc)
+        if selected:
+            head = f"{marker} {text}"
+            tail = f"  {short_desc}" if short_desc else ""
+        else:
+            head = f"{marker} {text}"
+            tail = f"  {short_desc}" if short_desc else ""
+        return f"  {head}{tail}"
+
+    def _render(self):
+        if self._painted_rows == 0:
+            self._render_first()
+            return
+        self._move_up_and_clear()
+        if HAS_RICH:
+            console.print(f"  [bold gold3]{self.title}[/bold gold3]")
+            for i, (opt, desc) in enumerate(zip(self.options, self.descriptions)):
+                print_option_item(i == self.selected, opt, desc)
+            console.print(f"  [dim]{T('wizard_nav_hint')}[/dim]")
+            lines = [self.title]
+            for i, (opt, desc) in enumerate(zip(self.options, self.descriptions)):
+                lines.append(self._build_option_line(i == self.selected, opt, desc))
+            lines.append(T("wizard_nav_hint"))
+            self._painted_rows = self._calc_render_rows(lines)
+        else:
+            print(f"  {_ansi(self.title, Colors.GOLD, Colors.BOLD)}")
+            for i, (opt, desc) in enumerate(zip(self.options, self.descriptions)):
+                print_option_item(i == self.selected, opt, desc)
+            print(f"  {_ansi(T('wizard_nav_hint'), Colors.SLATE)}")
+            lines = [self.title]
+            for i, (opt, desc) in enumerate(zip(self.options, self.descriptions)):
+                lines.append(self._build_option_line(i == self.selected, opt, desc))
+            lines.append(T("wizard_nav_hint"))
+            self._painted_rows = self._calc_render_rows(lines)
 
     def run(self) -> Optional[int]:
         # Path 1: readchar unavailable — fall back to plain numbered input.
         if not HAS_READCHAR:
-            self._render()
+            self._render_first()
             while True:
                 try:
                     for i, opt in enumerate(self.options):
@@ -315,9 +478,15 @@ class MinxgMenu:
             elif key == readchar.key.DOWN:
                 self.selected = (self.selected + 1) % len(self.options)
                 self._render()
-            elif key == readchar.key.ENTER:
+            elif key == readchar.key.ENTER or key == readchar.key.CR:
+                # Erase widget from layout so subsequent app output flows
+                # from the cursor position the user expects.
+                self._move_up_and_clear()
+                self._painted_rows = 0
                 return self.selected
             elif key.lower() == 'q':
+                self._move_up_and_clear()
+                self._painted_rows = 0
                 return None
 
 

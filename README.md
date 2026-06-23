@@ -5,8 +5,8 @@
 [![GitHub Release](https://img.shields.io/github/v/release/pineapple-ooo/MINXG-Beta)](https://github.com/pineapple-ooo/MINXG-Beta/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A modular AI worker platform with a built-in chat CLI, an OpenAI-compatible
-v1 gateway, opt-in extensions (ADB / ROOT / files), and a self-developed
+A modular AI worker platform with a built-in [**MINXG Chat**](https://github.com/pineapple-ooo/MINXG-Beta#a-first-conversation-in-60-seconds) REPL,
+an OpenAI-compatible v1 gateway, opt-in extensions (ADB / ROOT / files), and a self-developed
 temporal driver engine — all in one Python package.
 
 `pip install minxg-beta` drops you on Termux, Linux, macOS, and WSL
@@ -15,12 +15,15 @@ five orthogonal operator planes (io, aggregate, scalar, transform,
 dispatch), so editing one module never forces a full rebuild.
 Pure Python — no compiled step required to install or run.
 
-- This is the **v0.12.1** release. v0.12.1 closes every outstanding gap in the v0.12.0 surface: anti-loop guard, entropic multi-tier memory, per-platform tool cap, Termux notification hook, and the polyglot CMake build. It ships cold-start
-  hardening plus a polished setup wizard:
+- This is the **v0.12.4** release. v0.12.4 rebuilds MINXG Chat
+  (formerly "chat CLI") as a proper three-region REPL with hot-
+  swappable slash commands (`/provider`, `/model`, `/url`,
+  `/apikey`, `/setup`, `/history`) and ships two stack-trace
+  bug-fixes on top of v0.12.3:
 
-- `minxg` (no subcommand) now asks: chat CLI, start API gateway, or
-  run the setup wizard — instead of dropping straight into a TUI
-  shell.
+- `minxg` (no subcommand) now asks: drop into MINXG Chat, start the
+  API gateway, or run the setup wizard — instead of dropping straight
+  into a TUI shell.
 - Setup wizard supports the OpenAI-standard `reasoning_effort` knob
   (`xhigh` / `high` / `medium` / `low` / `minimal` / `none`) with
   per-provider support maps (OpenAI supports all five, Anthropic
@@ -260,7 +263,7 @@ rename or remove one of them, CI will fail.
 
 | command            | what it does                                                           |
 |--------------------|------------------------------------------------------------------------|
-| `minxg`            | Cold-start picker: chat CLI, OpenAI-compatible gateway, or setup.      |
+| `minxg`            | Cold-start picker: drop into **MINXG Chat**, start the OpenAI-compatible gateway, or run the setup wizard. |
 | `minxg setup`      | Interactive setup wizard (run once; repeatable).                       |
 | `minxg config`     | Print current configuration (provider/model/key/etc.).                 |
 | `minxg status`     | Print system status (Python / platform / version).                     |
@@ -328,13 +331,56 @@ minxg ext add minxg-adb          # opt-in tool: not run during install
 ```bash
 minxg setup               # one wizard, picks provider + key
 minxg config              # confirm
-minxg                     # TUI chat
+minxg                     # MINXG Chat REPL
 ```
 
 If your provider supports `reasoning_effort`, the wizard step
 offers the OpenAI-standard ladder
 `xhigh > high > medium > low > minimal > none`. Pick a value, then
 the wizard persists it under `ai.reasoning_effort` in `config.yaml`.
+
+#### MINXG Chat — in-loop command cheatsheet
+
+Type `minxg` with no subcommand to drop into the **MINXG Chat** REPL
+(formerly documented as "chat CLI"). Once you're in, the slash bar
+puts the controller at your fingertips without ever leaving the
+session — saves land on disk immediately, no chat restart, no wizard
+re-run:
+
+```text
+/help                     show this list
+/status                   runtime status (provider / model / depth / cost)
+/config                   show the active config
+/tools                    list available tools (platform-capped)
+/memory                   memory tier snapshot (L0/L1/L2)
+/doctor                   self-check (config + tools + extensions)
+
+  # In-place reconfig — saved immediately, no exit required
+/setup                    re-run the setup wizard using current config
+/provider openai          switch provider (or omit for the picker)
+/model gpt-4o             switch model (or omit — fetches /models)
+/url https://api.openai.com/v1
+/apikey sk-...            set or update the API key (saved on Enter)
+/lang en                  language picker (English-only release)
+
+  # Memory priming
+/history                  show the last 20 user/assistant turns
+/forget                   reset the per-turn anti-loop counter
+/reset                    reset the entropic memory engine
+
+  # Layout + exit
+/clear                    clear screen, re-paint banner + status bar
+/exit, /quit              quit (Ctrl-D also works)
+```
+
+Anything that isn't a slash command is streamed to the active model.
+Streaming goes through `NexusOrchestrator.chat_stream` and surfaces
+tool calls as inline `→ toolname (Nms)` widgets, the assistant's
+streaming tokens render live under rich's `Live` so the box doesn't
+flicker on long agents. Type `/url https://...` to switch providers
+on the fly — the orchestrator is hot-swapped without dropping the
+session, and `config.yaml` is rewritten atomically
+(`tmp + os.replace`) so a half-flushed file never escapes.
 
 ### B. Use `minxg` as an OpenAI-compatible backend for any client
 

@@ -166,37 +166,49 @@ def print_banner() -> None:
         print(colorize(banner, Colors.CYAN, Colors.BOLD))
 
 
+def _escape_markup(text: str) -> str:
+    """Escape user-provided strings so they don't trip rich's markup parser.
+
+    ``\\[`` in chat payloads (URLs with brackets, model names with brackets,
+    exception messages with array/list reprs, etc.) used to throw
+    ``rich.errors.MarkupError`` from inside ``console.print`` and bubble
+    up as a local UnboundLocalError-style traceback at the chat prompt.
+    Escaping once at the print boundary is cheap and the right fix.
+    """
+    return text.replace("[", "\\[").replace("]", "\\]")
+
+
 def print_error(msg: str) -> None:
     if HAS_RICH:
-        console.print(f"[red]✗ {msg}[/red]")
+        console.print(f"[red]✗ {_escape_markup(msg)}[/red]")
     else:
         print(colorize(f"✗ {msg}", Colors.RED))
 
 
 def print_success(msg: str) -> None:
     if HAS_RICH:
-        console.print(f"[green]✓ {msg}[/green]")
+        console.print(f"[green]✓ {_escape_markup(msg)}[/green]")
     else:
         print(colorize(f"✓ {msg}", Colors.GREEN))
 
 
 def print_info(msg: str) -> None:
     if HAS_RICH:
-        console.print(f"[yellow]ℹ {msg}[/yellow]")
+        console.print(f"[yellow]ℹ {_escape_markup(msg)}[/yellow]")
     else:
         print(colorize(f"ℹ {msg}", Colors.YELLOW))
 
 
 def print_dim(msg: str) -> None:
     if HAS_RICH:
-        console.print(f"[dim]{msg}[/dim]")
+        console.print(f"[dim]{_escape_markup(msg)}[/dim]")
     else:
         print(colorize(msg, Colors.DIM))
 
 
 def print_warning(msg: str) -> None:
     if HAS_RICH:
-        console.print(f"[orange3]⚠ {msg}[/orange3]")
+        console.print(f"[orange3]⚠ {_escape_markup(msg)}[/orange3]")
     else:
         print(colorize(f"⚠ {msg}", Colors.YELLOW, Colors.BOLD))
 
