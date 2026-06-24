@@ -15,11 +15,11 @@ five orthogonal operator planes (io, aggregate, scalar, transform,
 dispatch), so editing one module never forces a full rebuild.
 Pure Python — no compiled step required to install or run.
 
-- This is the **v0.12.4** release. v0.12.4 rebuilds MINXG Chat
-  (formerly "chat CLI") as a proper three-region REPL with hot-
-  swappable slash commands (`/provider`, `/model`, `/url`,
-  `/apikey`, `/setup`, `/history`) and ships two stack-trace
-  bug-fixes on top of v0.12.3:
+- This is the **v0.12.5** release. v0.12.5 expands the test suite
+  from 196 to 413 passing cases across 18 new files, switches the
+  Makefile test target to pytest, and fixes the AI 405 error caused
+  by a corrupted model field in `config.yaml` plus trailing-slash
+  normalization in the orchestrator and gateway inference paths.
 
 - `minxg` (no subcommand) now asks: drop into MINXG Chat, start the
   API gateway, or run the setup wizard — instead of dropping straight
