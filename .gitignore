@@ -1,0 +1,105 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Native build artefacts
+*.so
+*.so.*
+*.a
+*.o
+*.obj
+*.dll
+*.dylib
+*.class
+*.jar
+
+# ASan reproducibility harness — keep both source and pre-built .so in VCS
+# so an auditor can rerun the leak check without a fresh toolchain.
+!tests/asan_harness.c
+!build_asan/libminxg_asan.so
+
+# C/C++ build subdirs (in case `build/` is moved)
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+CMakeUserPresets.json
+compile_commands.json
+
+# cmake build output (one per cmake target dir)
+**/build/
+
+# Profiling / coverage
+.coverage
+.coverage.*
+htmlcov/
+*.gcda
+*.gcno
+*.gcov
+.tox/
+.benchmarks/
+.pytest_cache/
+
+# 数据库
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# 日志
+*.log
+*.log.*
+
+# 环境
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 文档生成输出
+docs/*.html
+docs/search.json
+docs/sitemap.xml
+!docs/index.html
+
+# 数据
+data/
+!data/.gitkeep
+
+# 临时文件
+/tmp/
+*.tmp
+*.bak
+
+# Docker
+.docker/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Skills (project-local, not Hermes global)
+skills/
+
+# Agent plan files
+.hermes/plans/
+
+# Release-tools scratchpads / private release notes
+.release_notes_*.md
+/output/
+
+# Legacy artifacts (kept locally, not for GitHub)
+_legacy/
+
+# Local test artefact databases
+.test_entropic/
+
+# Internal agent scratchpads (AI planning notes, not source)
+.agent_plans/

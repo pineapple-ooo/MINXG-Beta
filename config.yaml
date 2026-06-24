@@ -1,0 +1,22 @@
+lang: en
+ai:
+  provider: custom
+  base_url: https://example.com/v1
+  api_key: sk-test-1234
+  model: minimax/MiniMax-M3-80k-A01b
+  reasoning_effort: xhigh
+  max_tokens: 128000
+  concurrency: 3
+  max_tool_calls: 1000
+  temperature: 0.2
+mode: chat
+perf:
+  mobile_optimization: true
+environment:
+  log_level: DEBUG
+  debug: true
+  workers_port: 19001
+  workers_autostart: true
+  health_check_interval: 60
+browser_search:
+  enabled: false
