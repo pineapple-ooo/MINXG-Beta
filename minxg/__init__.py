@@ -1,4 +1,4 @@
-"""minxg — Five-Pillar Operator Architecture v1.1.0
+"""minxg — Five-Pillar Operator Architecture v0.12.5
 
 A modular worker platform organized along five mathematical/functional
 operator dimensions. Each pillar is independently importable so that
