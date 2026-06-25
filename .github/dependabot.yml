@@ -3,7 +3,9 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
+      time: "01:00"
+      timezone: "Asia/Shanghai"
     open-pull-requests-limit: 0
     commit-message:
       prefix: "deps"
