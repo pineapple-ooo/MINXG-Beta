@@ -1,4 +1,4 @@
-"""minxg — Five-Pillar Operator Architecture v0.13.0
+"""minxg — Five-Pillar Operator Architecture v0.13.1
 
 A modular worker platform organized along five mathematical/functional
 operator dimensions. Each pillar is independently importable so that
@@ -95,7 +95,7 @@ __all__ = [
     "twin", "lens", "self_evolution", "polyglot",
 ]
 
-VERSION = "0.13.0"
+VERSION = "0.13.1"
 
 try:
     from . import cap as _cap

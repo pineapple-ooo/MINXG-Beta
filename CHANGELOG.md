@@ -2,6 +2,13 @@
 
 All notable changes to MINXG are documented in this file.
 
+## [0.13.1] - 2026-06-26 - Version bump + GitHub release
+
+### Release
+- Bumped version lock across `pyproject.toml`, `minxg/__init__.py`,
+  `README.md`, and `CHANGELOG.md` to **0.13.1**.
+- Tagged `v0.13.1` and pushed to GitHub.
+
 ## [0.13.0] - 2026-06-25 - Surface sweep + experimental verbs
 
 ### Top-level promotion

@@ -15,7 +15,7 @@ five orthogonal operator planes (io, aggregate, scalar, transform,
 dispatch), so editing one module never forces a full rebuild.
 Pure Python — no compiled step required to install or run.
 
-- This is the **v0.13.0** release. Highlights: subpackages
+- This is the **v0.13.1** release. Highlights: subpackages
   (`minxg.twin`, `minxg.lens`, `minxg.lossless`, `minxg.self_evolution`,
   `minxg.polyglot`, `minxg.driver`, `minxg.cap`, `minxg.contracts`)
   are now exposed at the top level so `import minxg; minxg.twin` works,
@@ -109,17 +109,17 @@ After install:
 
 ```python
 import minxg
-print(minxg.VERSION)         # "0.13.0"
+print(minxg.VERSION)         # "0.13.1"
 print(minxg.detect_platform())
 ```
 
 Verified end-to-end on Termux/Android (`Python 3.13`) and Linux:
 ```bash
 $ pip install -e .
-Successfully installed minxg-beta-0.13.0
+Successfully installed minxg-beta-0.13.1
 
 $ python3 -c "import minxg; print(minxg.VERSION, len(minxg.__all__), 'workers;', minxg.TOTAL_MATHEMATICAL_OPERATORS, 'math ops')"
-0.13.0 55 workers; 306 math ops
+0.13.1 55 workers; 306 math ops
 ```
 
 **Published on PyPI.** Install the prebuilt package with:
@@ -421,7 +421,7 @@ curl http://127.0.0.1:18080/v1/chat/completions \
 
 ```python
 import minxg
-print(minxg.VERSION)              # "0.13.0"
+print(minxg.VERSION)              # "0.13.1"
 
 # Driver engine: temporal operator-field
 from minxg.driver import State, DriverEngine, smoothing_field
@@ -495,7 +495,7 @@ from multiligua_cli import features
 print(features.list_experimental_exports())
 ```
 
-In the current release (0.13.0) that yields the same 13 names.
+In the current release (0.13.1) that yields the same 13 names.
 Anything listed lives in `multiligua_cli/features.py`; new experimental
 surfaces added in 0.13.0 are reachable through:
 
