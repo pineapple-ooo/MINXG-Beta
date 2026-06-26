@@ -95,7 +95,12 @@ __all__ = [
     "twin", "lens", "self_evolution", "polyglot",
 ]
 
-VERSION = "0.13.1"
+# Single source of truth: see minxg/_version.py
+from ._version import VERSION, banner, parse, get_version
+try:
+    __version__ = VERSION
+except NameError:  # pragma: no cover
+    __version__ = "0.0.0"
 
 try:
     from . import cap as _cap

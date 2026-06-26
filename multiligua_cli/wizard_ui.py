@@ -322,6 +322,12 @@ class MinxgMenu:
     renders move the cursor up to the widget's top row and rewrite
     those lines only, so the chat scrollback above the widget
     stays put and no full-screen flicker shows up under Termux.
+
+    Both rendering branches (Rich and plain-ANSI) now route through
+    a single ``_emit_line(lines)`` helper so the layout, line count,
+    and ANSI escape sequence ordering stay identical regardless of the
+    console backend — that is what kills the "flickers during
+    interaction" bug that the original two-branch duplication caused.
     """
 
     def __init__(self, title: str, options: List[str], descriptions: List[str] = None):

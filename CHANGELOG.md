@@ -2,6 +2,26 @@
 
 All notable changes to MINXG are documented in this file.
 
+## [0.13.2] - 2026-06-27 - Single source of truth for VERSION
+
+### Refactor
+- **Centralised the version number.** Added `minxg/_version.py` carrying
+  the single source of truth (`VERSION`, `parse()`, `banner()`, `get_version()`).
+- `pyproject.toml` now declares `dynamic = ["version"]` plus
+  `[tool.setuptools.dynamic] version.attr = "minxg._version.VERSION"`,
+  so setuptools reads the version from the SSoT at build time.
+- `minxg/__init__.py` no longer holds its own literal; it imports
+  `from ._version import VERSION as __version__`. `import minxg;
+  minxg.__version__` still returns `"0.13.2"`.
+- Rewrite of `tests/test_version_lock.py`: now distinguishes between
+  the **code-path SSoT** (pytest imports `_version` directly and asserts
+  code locations pull from it) and the **documentation surfaces** that
+  must still echo the SSoT manually (`README.md`, `CHANGELOG.md`,
+  `DEVELOPER.md` publish checklist).
+- Bumping the version is now a single-file edit: change `VERSION` in
+  `minxg/_version.py` and run `python -m pytest tests/test_version_lock.py`
+  to confirm both code paths and doc surfaces propagate.
+
 ## [0.13.1] - 2026-06-26 - Version bump + GitHub release
 
 ### Release

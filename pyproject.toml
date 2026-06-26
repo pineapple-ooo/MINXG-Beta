@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "minxg-beta"
-version = "0.13.1"
+dynamic = ["version"]
 description = "MINXG — modular AI worker platform with a chat CLI, an OpenAI-compatible v1 gateway, opt-in extensions (ADB/ROOT/files), and a self-developed temporal driver engine. 376 operators in 11 categories (306 of them mathematical across 6 pillars). Pure Python. Published on PyPI as `minxg-beta` — `pip install minxg-beta`."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -134,3 +134,5 @@ select = ["PLW1514"]
 "tests/**" = ["PLW1514"]
 "skills/**" = ["PLW1514"]
 "plugins/**" = ["PLW1514"]
+[tool.setuptools.dynamic]
+version = {attr = "minxg._version.VERSION"}

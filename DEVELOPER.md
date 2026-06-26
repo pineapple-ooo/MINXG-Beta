@@ -483,10 +483,10 @@ Android (Python 3.13).
 ## 12. Publishing checklist
 
 * `pytest -q` returns the current count (≥ 470 passed in this release;
-  historical chain 196 → 413 → ≥ 470 across 0.12.0/0.12.5/0.13.0).
+  historical chain 196 → 413 → ≥ 470 across 0.12.0/0.12.5/0.13.2).
 * `python -m py_compile $(find . -name '*.py' -not -path '*/_legacy/*')`
   returns 0.
-* `python -c 'import minxg; print(minxg.VERSION)'` prints `0.13.0`.
+* `python -c 'import minxg; print(minxg.VERSION)'` prints `0.13.2`.
 * All five pillar `__init__.py` re-exports match `minxg.__all__`.
 * The eight subsystem modules
   (`minxg.{twin,lens,lossless,self_evolution,polyglot,driver,cap,contracts}`)

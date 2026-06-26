@@ -373,8 +373,8 @@ async def _stream(orch, user_message: str, session_id: Optional[str],
 
     # Persist to entropic engine + session history (best-effort).
     final_text = "".join(text_parts)
-    history_list.append(f"You > {user_message}")
-    history_list.append(f"AI   > {final_text[:240]}{'…' if len(final_text) > 240 else ''}")
+    history_list.append(f"> {user_message}")
+    history_list.append(f"AI > {final_text[:240]}{'…' if len(final_text) > 240 else ''}")
 
     try:
         from src.ai.memory.entropic_evolution import get_entropic_engine
@@ -600,16 +600,18 @@ def _print_status_bar(provider: str, model: str) -> None:
 
 
 def _print_prompt() -> None:
-    """Draw the bottom prompt prefix only (input itself is up to the host)."""
+    """Draw the bottom prompt prefix only (input itself is up to the host).
+
+    Note: the leading user identity ("you") was removed in v0.13.2 —
+    a single-arrow prefix is enough; the chat turn buffer already
+    distinguishes who's speaking without needing a redundant label here.
+    """
     if HAS_RICH:
         sys.stdout.write("\n")
-        console.print("  [bold gold3]you[/bold gold3] "
-                      "[bold bright_black]▸[/bold bright_black] ",
+        console.print("  [bold bright_black]▸[/bold bright_black] ",
                       end="")
     else:
-        sys.stdout.write("\n  " +
-                          _ansi("you", WColors.GOLD, WColors.BOLD) +
-                          " " + _ansi("▸", "") + " ")
+        sys.stdout.write("\n  " + _ansi("▸", "") + " ")
     sys.stdout.flush()
 
 
