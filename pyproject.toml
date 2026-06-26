@@ -1,0 +1,136 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "minxg-beta"
+version = "0.13.0"
+description = "MINXG — modular AI worker platform with a chat CLI, an OpenAI-compatible v1 gateway, opt-in extensions (ADB/ROOT/files), and a self-developed temporal driver engine. 376 operators in 11 categories (306 of them mathematical across 6 pillars). Pure Python. Published on PyPI as `minxg-beta` — `pip install minxg-beta`."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "MINXG Authors" }]
+license = { text = "MIT" }
+keywords = ["ai", "orchestration", "workers", "operator", "driver", "five-pillars", "self-evolution", "lossless", "polyglot", "minxg"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+# (Intentionally NOT using 'Topic :: Artificial Intelligence' — it's retired from
+# the PyPI classifier trove. Keep keywords instead.)
+
+dependencies = [
+    "aiohttp>=3.9.0",
+    "cryptography>=41.0.0",
+    "PyYAML>=6.0.0",
+    "python-dotenv>=1.0.0",
+    "prometheus-client>=0.19.0",
+    "ujson>=5.9.0",
+    # High-performance hashing and compression (self-evolution engine)
+    "zstandard>=0.22.0",
+    "xxhash>=3.4.0",
+    # High-performance JSON (secure store)
+    "orjson>=3.9.0",
+    # Web framework for gateway
+    "fastapi>=0.104.0,<1",
+    "uvicorn[standard]>=0.24.0,<1",
+    # Rich CLI output
+    "rich>=13.0.0",
+    # Arrow key navigation
+    "readchar>=2.0.0",
+    # Async HTTP client
+    "httpx[socks]>=0.27.0",
+    # Cron scheduling
+    "croniter>=6.0.0",
+]
+
+[project.optional-dependencies]
+# Development
+dev = [
+    "pytest>=9.0.0",
+    "pytest-asyncio>=1.0.0",
+    "pytest-timeout>=2.4.0",
+    "ruff>=0.15.0",
+]
+
+[project.scripts]
+# Main command
+minxg = "multiligua_cli.main:main"
+
+[project.urls]
+Homepage = "https://github.com/pineapple-ooo/MINXG-Beta"
+Documentation = "https://github.com/pineapple-ooo/MINXG-Beta/blob/main/README.md"
+Repository = "https://github.com/pineapple-ooo/MINXG-Beta"
+Issues = "https://github.com/pineapple-ooo/MINXG-Beta/issues"
+Changelog = "https://github.com/pineapple-ooo/MINXG-Beta/blob/main/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+    "multiling",
+    "multiling.*",
+    "agent",
+    "agent.*",
+    "tools",
+    "tools.*",
+    "multiligua_cli",
+    "multiligua_cli.*",
+    "gateway",
+    "gateway.*",
+    "minxg",
+    "minxg.*",
+    "minxg.five_pillars",
+    "minxg.five_pillars.*",
+    "minxg.contracts",
+    "minxg.contracts.*",
+    "minxg.driver",
+    "minxg.driver.*",
+    "minxg.self_evolution",
+    "minxg.self_evolution.*",
+    "minxg.polyglot",
+    "minxg.polyglot.*",
+    "minxg.lossless",
+    "minxg.lossless.*",
+    "minxg.twin",
+    "minxg.twin.*",
+    "minxg.lens",
+    "minxg.lens.*",
+    "minxg.ga",
+    "minxg.ga.*",
+    "minxg.cat",
+    "minxg.cat.*",
+    "minxg.infogeo",
+    "minxg.infogeo.*",
+    "minxg.topo",
+    "minxg.topo.*",
+    "minxg.chaos",
+    "minxg.chaos.*",
+    "minxg.fiber",
+    "minxg.fiber.*",
+    "extensions",
+    "extensions.*",
+]
+
+[tool.setuptools.package-data]
+multiligua_cli = ["py.typed"]
+gateway = ["assets/**/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-m 'not integration'"
+
+[tool.ruff]
+preview = true
+
+[tool.ruff.lint]
+select = ["PLW1514"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["PLW1514"]
+"skills/**" = ["PLW1514"]
+"plugins/**" = ["PLW1514"]
