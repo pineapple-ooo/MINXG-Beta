@@ -1,0 +1,31 @@
+# MINXG Gateway config — single source of truth for the open gateway.
+# Editing this file (NOT any code) is enough to change runtime behavior.
+# All fields are optional; defaults are in `gateway/config.py`.
+
+gateway:
+  host: 0.0.0.0
+  port: 18080
+
+ai:
+  provider: openai            # openai | anthropic | minimax | custom
+  model: MiniMax-M3
+  base_url: https://api.iamhc.cn/v1
+  api_key: ""                 # leave empty; CLI `minxg key` will fill it
+
+workers:
+  host: 127.0.0.1
+  port: 19001
+
+# Channels (inspired by the channel/manager pattern in
+# /storage/emulated/0/文件/mmm/gateway — reimplemented natively here).
+# Each entry becomes a ChannelConfig on GatewayConfig.channels.
+channels:
+  - {name: default, enabled: true,  adapter: memory}
+  - {name: cli,     enabled: true,  adapter: memory}
+  - {name: rest,    enabled: true,  adapter: http, options: {path: /v1/chat/completions}}
+
+legacy:
+  enable: false
+  routes: []
+
+schema_cache_ttl: 60.0

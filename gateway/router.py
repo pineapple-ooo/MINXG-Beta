@@ -4,10 +4,13 @@
 """
 from __future__ import annotations
 import asyncio
+import functools
 import json
 import logging
 import time
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
+
+from gateway.config import GatewayConfig
 
 logger = logging.getLogger("gateway.router")
 

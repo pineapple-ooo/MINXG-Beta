@@ -3,7 +3,7 @@
 
 project:
   name: minxg
-  version: 0.13.2
+  version: 0.14.0
   description: "Five-pillar worker platform with self-developed driver engine"
 
 # Operator registry — IDs and categories

@@ -16,6 +16,7 @@ API endpoints:
   POST /rag/search               → Search knowledge
 """
 from __future__ import annotations
+
 import asyncio
 import json
 import logging
@@ -24,10 +25,33 @@ import time
 import uuid
 import secrets
 import hashlib
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union
+
+from .config import GatewayConfig, DEFAULT_GATEWAY_HOST, DEFAULT_GATEWAY_PORT
 
 logger = logging.getLogger("gateway.server")
 
+
+# Backwards compatible alias: older callers pass a plain dict.
+_ConfigLike = Union[Dict[str, Any], GatewayConfig, None]
+
+
+def _coerce_config(config: _ConfigLike) -> GatewayConfig:
+    """Accept either a :class:`GatewayConfig` or a raw dict.
+
+    This shim is the *only* place the old ``Dict[str, Any]`` API meets the
+    new :class:`GatewayConfig`. Anywhere else in the codebase should
+    pass the structured config.
+    """
+    if isinstance(config, GatewayConfig):
+        return config
+    if config is None:
+        return GatewayConfig.from_sources()
+    if isinstance(config, dict):
+        return GatewayConfig.from_dict(config)
+    raise TypeError(
+        f"GatewayServer config must be GatewayConfig or dict, got {type(config).__name__}"
+    )
 
 
 
@@ -36,53 +60,81 @@ class GatewayServer:
     """
     OpenAI-compatible Gateway server.
     Each session maintains a StructuredWorkspace for infinite context.
+
+    New in v0.14.0: the constructor takes either a ``GatewayConfig`` or a
+    raw dict (auto-coerced). Every internal component is wired from the
+    same config object — there is no longer any place where the gateway
+    silently falls back to env-vars or kubectl-style hot-patches mid-request.
     """
 
-    def __init__(self, config: Dict[str, Any] = None):
-        if config is None:
-            config = {}
+    def __init__(self, config: _ConfigLike = None):
+        self.cfg = _coerce_config(config)
+        gw_cfg = self.cfg.gateway
+        ai_cfg = self.cfg.ai
+        wk_cfg = self.cfg.workers
 
-        ai_cfg = config.get("ai", {})
-        gw_cfg = config.get("gateway", {})
-        wk_cfg = config.get("workers", {})
-
-        
-        self.host = gw_cfg.get("host", "0.0.0.0")
-        self.port = gw_cfg.get("port", 18080)
+        self.host: str = gw_cfg.host
+        self.port: int = gw_cfg.port
         self.version = "1.0.0"
 
-        
-        self.ai_provider = ai_cfg.get("provider", "openai")
-        self.ai_model = ai_cfg.get("model", "MiniMax-M3")
-        self.ai_base_url = ai_cfg.get("base_url", "https://api.iamhc.cn/v1")
-        self.ai_api_key = os.getenv("AI_API_KEY") or ai_cfg.get("api_key", "")
-        self.default_api_key = secrets.token_hex(16)
+        self.ai_provider: str = ai_cfg.provider
+        self.ai_model: str = ai_cfg.model
+        self.ai_base_url: str = ai_cfg.base_url
+        self.ai_api_key: str = ai_cfg.api_key
+        self.default_api_key = self.cfg.auth_token or secrets.token_hex(16)
 
-        
-        self.py_worker_url = f"http://{wk_cfg.get('host', '127.0.0.1')}:{wk_cfg.get('port', 19001)}"
-        self.enable_legacy = config.get("legacy", {}).get("enable", False)
-        self.legacy_routes = config.get("legacy", {}).get("routes", [])
+        self.py_worker_url: str = wk_cfg.url
+        self.enable_legacy = bool(self.cfg.legacy.get("enable", False))
+        self.legacy_routes = list(self.cfg.legacy.get("routes", []) or [])
 
-        
-        self.config = config
+        # Legacy nested-dict view is built at the END of ``__init__`` (see
+        # below). Putting it here would trip ``_flat_dict`` on attributes
+        # like ``_schema_ttl`` that are only set later — the failing test
+        # ``tests/test_gateway_runner.py::TestGatewayServerInstantiation``
+        # catches exactly this ordering bug.
+        self.config: Dict[str, Any] = {}
 
-        
-        self.router: Optional[Any] = None  
-        self.dispatcher: Optional[Any] = None  
-        self.rag: Optional[Any] = None  
+        self.router: Optional[Any] = None
+        self.dispatcher: Optional[Any] = None
+        self.rag: Optional[Any] = None
+        self.channel_manager: Optional[Any] = None
 
-        
         self._workspaces: Dict[str, Any] = {}
         self._ws_lock = asyncio.Lock()
 
-        
         self._tool_schemas: List[Dict] = []
         self._schema_ts: float = 0.0
-        self._schema_ttl: float = 60.0  
+        self._schema_ttl: float = float(self.cfg.schema_cache_ttl)
 
-        
         self._request_count: int = 0
         self._tool_call_count: int = 0
+
+        # Now that every slot is populated, render the legacy view once.
+        self.config = self._flat_dict()
+
+    def _flat_dict(self) -> Dict[str, Any]:
+        """Produce the legacy nested-dict view that pre-0.14 code expected."""
+        return {
+            "ai": {
+                "provider": self.ai_provider,
+                "model": self.ai_model,
+                "base_url": self.ai_base_url,
+                "api_key": self.ai_api_key,
+            },
+            "gateway": {"host": self.host, "port": self.port},
+            "workers": {"host": self.cfg.workers.host, "port": self.cfg.workers.port},
+            "legacy": {
+                "enable": self.enable_legacy,
+                "routes": list(self.legacy_routes),
+            },
+            "channels": [
+                {"name": c.name, "enabled": c.enabled, "adapter": c.adapter,
+                 "options": dict(c.options)}
+                for c in self.cfg.channels
+            ],
+            "auth_token": self.default_api_key,
+            "schema_cache_ttl": self._schema_ttl,
+        }
 
     async def initialize(self):
         """Initialize all core components."""
@@ -130,7 +182,11 @@ class GatewayServer:
             ))
         logger.info("InferenceDispatcher: %d model levels", len(self.dispatcher.models))
 
-        
+        from gateway.channels import ChannelManager
+        self.channel_manager = ChannelManager(
+            self.cfg.channels, self._handle_channel_message,
+        )
+
         await self._refresh_tool_schemas()
 
         logger.info("GatewayServer v%s initialized", self.version)
@@ -163,6 +219,48 @@ class GatewayServer:
             del self._workspaces[sid]
         if stale:
             logger.info("Cleaned %d stale workspaces", len(stale))
+
+    async def _handle_channel_message(self, msg) -> str:
+        """Dispatch one inbound channel message through the OpenAI chat path."""
+        from gateway.channels import ChannelMessage
+        if not isinstance(msg, ChannelMessage):
+            return "[error: invalid message envelope]"
+        if self.dispatcher is None or self.rag is None or self.router is None:
+            return "[error: gateway not initialized]"
+
+        session_id = msg.session_id or f"ch_{uuid.uuid4().hex[:8]}"
+        ws = await self._get_workspace(session_id)
+        if ws.turn_count == 0:
+            ws.set_objective(msg.content)
+
+        from gateway.inference import TaskGrader
+        task_level = TaskGrader.grade(msg.content, ws.tool_calls_count, ws.turn_count)
+        model_profile = self.dispatcher.select(task_level)
+
+        final_messages = ws.build_context(include_workspace=True, include_recent=True)
+        rag_text = self.rag.inject_context(msg.content, max_tokens=500)
+        if rag_text:
+            final_messages.append({"role": "system", "content": rag_text})
+        final_messages.append({"role": "user", "content": msg.content})
+
+        await self._refresh_tool_schemas()
+        try:
+            llm_response = await self.dispatcher.chat_completion(
+                messages=final_messages,
+                model=model_profile,
+                tools=self._tool_schemas,
+                stream=False,
+                temperature=0.7,
+            )
+        except Exception as exc:
+            logger.exception("Channel LLM call failed")
+            return f"[error: {exc}]"
+
+        choice = (llm_response.get("choices") or [{}])[0]
+        content = str(choice.get("message", {}).get("content", ""))
+        ws.add_message("assistant", content)
+        ws.advance_turn()
+        return content
 
 
 
@@ -586,6 +684,9 @@ async def _build_app(gw: GatewayServer) -> Any:
     app.router.add_get("/tools", get_tool_schemas)
     app.router.add_get("/stats", gateway_stats)
 
+    if gw.channel_manager is not None:
+        gw.channel_manager.add_routes(app)
+
     
     async def cleanup_middleware(app, handler):
         async def middleware_handler(req):
@@ -600,12 +701,16 @@ async def _build_app(gw: GatewayServer) -> Any:
     
     async def on_startup(app):
         await gw.initialize()
+        if gw.channel_manager is not None:
+            await gw.channel_manager.start()
         logger.info("GatewayServer started and initialized")
 
     app.on_startup.append(on_startup)
 
     
     async def on_cleanup(app):
+        if gw.channel_manager is not None:
+            await gw.channel_manager.stop()
         if gw.router:
             await gw.router.close()
         logger.info("GatewayServer shutdown complete")

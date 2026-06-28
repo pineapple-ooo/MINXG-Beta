@@ -47,12 +47,22 @@ A focused cleanup that:
     IDs end at `5046`; corrected to `5000-5046`. Other ranges were
     already accurate.
 
-Cross-cutting variables to keep in sync when forking:
-  - `minxg.VERSION` (single source of truth).
-  - `pyproject.toml:version`.
-  - `config/minxg.yaml:project.version` (if present).
-  - `install.sh` brand echo + cheatsheet.
-  - `README.md` ¶ "v0.X.Y release" highlight.
+## 0. v0.14.0 release notes (2026-06-27) - Polyglot expansion + gateway hardening
+
+Lead with a one-line summary, then list the changes. The exact set will be
+filled in when 0.14.0 ships; the ``Version:`` line below is what
+``tests/test_version_lock.py`` reads to enforce cross-surface parity.
+
+**Cross-cutting variables to keep in sync when forking:**
+- `minxg/_version.py:VERSION` — **single source of truth**.
+- `pyproject.toml` reads the version from the SSoT via setuptools dynamic.
+- `minxg/__init__.__version__` imports `from ._version import VERSION`.
+- `config/minxg.yaml:project.version` (if present).
+- `install.sh` brand echo + cheatsheet.
+- `README.md` ¶ "v0.X.Y release" highlight.
+- `CHANGELOG.md` top section.
+
+Version: 0.14.0
 
 If any of these drift, `minxg doctor` and the `tests/test_version_lock.py`
 test will fire. Now `413 + 1 skipped` v0.12.5 baseline expands to
@@ -483,10 +493,10 @@ Android (Python 3.13).
 ## 12. Publishing checklist
 
 * `pytest -q` returns the current count (≥ 470 passed in this release;
-  historical chain 196 → 413 → ≥ 470 across 0.12.0/0.12.5/0.13.2).
+  historical chain 196 → 413 → ≥ 470 across 0.12.0/0.12.5/0.14.0).
 * `python -m py_compile $(find . -name '*.py' -not -path '*/_legacy/*')`
   returns 0.
-* `python -c 'import minxg; print(minxg.VERSION)'` prints `0.13.2`.
+* `python -c 'import minxg; print(minxg.VERSION)'` prints `0.14.0`.
 * All five pillar `__init__.py` re-exports match `minxg.__all__`.
 * The eight subsystem modules
   (`minxg.{twin,lens,lossless,self_evolution,polyglot,driver,cap,contracts}`)

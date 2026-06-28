@@ -91,9 +91,9 @@ def interactive_mode(args) -> int:
         while True:
             try:
                 user_input = (
-                    console.input("\n[bold cyan]You:[/bold cyan] ")
+                    console.input("\n[bold bright_black]▸[/bold bright_black] ")
                     if HAS_RICH
-                    else input(colorize("\n👤 You: ", Colors.CYAN, Colors.BOLD))
+                    else input(colorize("\n▸ ", Colors.CYAN, Colors.BOLD))
                 ).strip()
 
                 if not user_input:

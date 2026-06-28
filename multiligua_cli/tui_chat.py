@@ -296,7 +296,12 @@ def _render_event_to_text(event: dict, body: Text) -> None:
     if kind == "text":
         body.append(event.get("content", ""))
     elif kind == "thinking":
-        body.append("\n[dim italic]" + event.get("content", "") + "[/dim italic]\n")
+        # 0.14.0 — wrap the model's CoT in ``[thinking]...[/thinking]`` so the
+        # user can distinguish reasoning from the final answer at a glance
+        # even when the output is exported to markdown or replayed through
+        # the experimental ``minxg replay`` verb later.
+        body.append("\n[dim italic][[thinking]]" +
+                    event.get("content", "") + "[[/thinking]][/dim italic]\n")
     elif kind == "tool_call":
         name = event.get("name", "?")
         args = event.get("args") or {}
@@ -337,6 +342,13 @@ async def _stream(orch, user_message: str, session_id: Optional[str],
                 live.update(body)
                 if event.get("type") == "text":
                     text_parts.append(event.get("content", ""))
+                elif event.get("type") == "thinking":
+                    # Capture thinking for the final text too — that way
+                    # markdown / log replays still contain the
+                    # ``[thinking]...[/thinking]`` block, not just the dim rich
+                    # formatted in-line view.
+                    text_parts.append("[thinking]" +
+                                      event.get("content", "") + "[/thinking]")
                 elif event.get("type") == "tool_call":
                     tool_events.append((event.get("name", "?"), 0))
         sys.stdout.write("\n")
@@ -349,6 +361,15 @@ async def _stream(orch, user_message: str, session_id: Optional[str],
                 chunk = event.get("content", "")
                 text_parts.append(chunk)
                 sys.stdout.write(chunk)
+                sys.stdout.flush()
+            elif kind == "thinking":
+                # Mirror the rich life-renderer's behaviour but as plain
+                # text wrapped in ``[thinking]...[/thinking]`` so downstream
+                # markdown replays / non-rich output still knows which
+                # slice is reasoning vs the answer.
+                think_chunk = "[thinking]" + event.get("content", "") + "[/thinking]"
+                text_parts.append(think_chunk)
+                sys.stdout.write(think_chunk)
                 sys.stdout.flush()
             elif kind == "tool_call":
                 name = event.get("name", "?")

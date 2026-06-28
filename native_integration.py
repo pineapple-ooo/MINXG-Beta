@@ -19,7 +19,13 @@ from typing import Optional, List, Tuple, Any
 # PATH RESOLUTION
 # ═══════════════════════════════════════════════════════════════════════════════
 
-_PROJ = Path("/storage/emulated/0/MINXG-Beta-0.11.0")
+_PROJ_CANDIDATES = (
+    Path(os.environ.get("MINXG_NATIVE_ROOT", "")),
+    Path(__file__).resolve().parent,
+    Path("/storage/emulated/0/MINXG"),
+    Path("/storage/emulated/0/MINXG-Beta-0.11.0"),
+)
+_PROJ = next((p for p in _PROJ_CANDIDATES if p and p.exists()), _PROJ_CANDIDATES[1])
 _libs: dict = {}
 
 def _find_lib(name: str) -> Optional[Path]:

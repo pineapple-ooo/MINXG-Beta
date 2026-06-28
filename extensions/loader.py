@@ -51,7 +51,16 @@ logger = logging.getLogger("extensions")
 
 REQUIRED_ATTRS = ["EXTENSION_NAME", "EXTENSION_DESCRIPTION", "handle_command"]
 OPTIONAL_ATTRS = ["register_cli", "register_hooks"]
-SUPPORTED_EXTENSIONS = (".py", ".zip", ".tar.gz", ".tgz")
+SUPPORTED_EXTENSIONS = (".py", ".zip", ".tar.gz", ".tgz", ".json")
+
+# JSON manifest file names that an extension may carry alongside its
+# Python sources. The contents are used as metadata: ``name``, ``version``
+# and ``description`` flow through to ``list_extensions()`` even when the
+# underlying module has the legacy EXTENSION_NAME etc. constants.
+# This is the 0.14.0 "extension interface strengthening" change — the
+# contract is now driven by a readable JSON file rather than scattered
+# attribute strings.
+_MANIFEST_CANDIDATES = ("manifest.json", "minxg.json", "extension.json")
 
 
 class ExtensionModule:
@@ -137,6 +146,32 @@ def set_extension_enabled(name: str, enabled: bool) -> None:
             if ext.name == name:
                 ext.enabled = enabled
                 return
+
+
+def _read_manifest(ext_root: Path) -> Dict[str, Any]:
+    """Look for ``manifest.json`` / ``minxg.json`` / ``extension.json``
+    inside ``ext_root`` and return its parsed contents.
+
+    The manifest is the 0.14.0 way extensions declare name/version/
+    description to MINXG: it is read ONLY for metadata, the executable
+    surface still has to be a Python module with ``handle_command``. A
+    missing or malformed manifest is *not* an error — it just returns
+    ``{}`` and lets the module-level attributes take over.
+    """
+    if not ext_root.exists() or not ext_root.is_dir():
+        return {}
+    for name in _MANIFEST_CANDIDATES:
+        candidate = ext_root / name
+        if not candidate.exists():
+            continue
+        try:
+            payload = json.loads(candidate.read_text(encoding="utf-8"))
+        except Exception as exc:
+            logger.debug("manifest %s unreadable: %s", candidate, exc)
+            return {}
+        if isinstance(payload, dict):
+            return payload
+    return {}
 
 
 def _extract_zip(zip_path: Path) -> Optional[Path]:
@@ -235,35 +270,124 @@ def _load_from_archive(archive_path: Path, source: str) -> List[ExtensionModule]
     return _validate_and_wrap(mod, source, str(archive_path))
 
 
+def _load_json_manifest_extension(json_file: Path,
+                                   source: str) -> List[ExtensionModule]:
+    """Recognise a standalone JSON file as an extension entry.
+
+    This is the 0.14.0 "drop-in manifest" path — packages that travel
+    with only a JSON file (e.g. drop-in metadata-only stubs, or
+    declarations of vendor plugins that ship elsewhere) are picked up
+    here. File name MUST end in ``.manifest.json`` / ``.minxg.json`` /
+    ``.extension.json`` to keep the heuristic narrow.
+    """
+    if json_file.suffix != ".json":
+        return []
+    stem = json_file.name.lower()
+    if not any(stem.endswith(s) for s in (
+        ".manifest.json", ".minxg.json", ".extension.json",
+    )):
+        return []
+    try:
+        payload = json.loads(json_file.read_text(encoding="utf-8"))
+    except Exception as exc:
+        logger.debug("json ext %s unreadable: %s", json_file, exc)
+        return []
+    if not isinstance(payload, dict):
+        return []
+    name = payload.get("name")
+    if not isinstance(name, str) or not name:
+        return []
+    desc = str(payload.get("description", ""))
+    version = str(payload.get("version", "0.0.0"))
+    priority = int(payload.get("priority", 50))
+
+    class _JsonOnlyShim:
+        """Minimal stand-in so ``handle`` does not blow up on no-handler extensions."""
+        def __init__(self, payload_):
+            self._payload = payload_
+        def handle_command(self, args):  # noqa: ANN001
+            sys.stderr.write(
+                f"[minxg.ext] {name} is a manifest-only entry — "
+                f"no executable handler is registered.\n"
+            )
+            return 1
+
+    shim = _JsonOnlyShim(payload)
+    enabled = bool(_read_state(name).get("enabled", False))
+    return [ExtensionModule(name, desc, shim, priority, version,
+                            source, str(json_file), enabled)]
+
+
 def _load_py_extension(py_file: Path, source: str) -> List[ExtensionModule]:
     mod = _load_module_from_file(py_file)
     if mod is None:
         return []
-    return _validate_and_wrap(mod, source, str(py_file))
+    manifest = _read_manifest(_ext_root_for(py_file))
+    return _validate_and_wrap(mod, source, str(py_file),
+                              manifest=manifest)
 
 
-def _validate_and_wrap(mod, source: str, path: str) -> List[ExtensionModule]:
+def _ext_root_for(py_file: Path) -> Path:
+    """The directory the manifest is expected to live in.
+
+    For a flat ``xyz.py`` extension, that's just the parent of the file.
+    For a packaged ``mypkg/__init__.py``, it's the package directory.
+    """
+    if py_file.name == "__init__.py":
+        return py_file.parent
+    return py_file.parent
+
+
+def _validate_and_wrap(mod, source: str, path: str,
+                       manifest: Optional[Dict[str, Any]] = None,
+                       name_override: Optional[str] = None) -> List[ExtensionModule]:
     """Wrap `mod` into an ExtensionModule if it satisfies the contract.
 
     Anti auto-detect: do NOT consult ADB_AVAILABLE / ROOT_AVAILABLE.
     Each extension is responsible for probing its own dependencies inside
     `handle_command` and reporting back honestly. The runner stays free
     of plugin-curated ladders.
+
+    Manifest precedence (0.14.0 — JSON-driven extension contract):
+      * If the extension lives next to a ``manifest.json`` whose ``name``
+        is present, it wins.
+      * The Python ``EXTENSION_NAME``/``EXTENSION_VERSION``/etc. are
+        kept as fallback names.
+
+    A ``name_override`` arg lets the caller (e.g. flat ``my_ext.py```
+    becoming manifest ``my-ext``) align the metadata name with the
+    file the user dropped in.
     """
-    name = getattr(mod, "EXTENSION_NAME", None)
+    module_name = getattr(mod, "EXTENSION_NAME", None)
+    manifest_name = (manifest or {}).get("name") if manifest else None
+    name = (
+        (name_override or "").strip()
+        or (str(manifest_name).strip() if manifest_name else "")
+        or (module_name.strip() if isinstance(module_name, str) else "")
+    )
     if not isinstance(name, str) or not name:
-        logger.debug("extension at %s missing EXTENSION_NAME; skipped", path)
+        logger.debug("extension at %s missing name (manifest + module); skipped", path)
         return []
-    desc = getattr(mod, "EXTENSION_DESCRIPTION", "")
+    desc = (
+        (manifest or {}).get("description")
+        if manifest and (manifest or {}).get("description") is not None
+        else getattr(mod, "EXTENSION_DESCRIPTION", "")
+    )
     handler = getattr(mod, "handle_command", None)
     if not callable(handler):
         logger.debug("extension %s missing handle_command; skipped", name)
         return []
     priority = int(getattr(mod, "EXTENSION_PRIORITY", 50))
-    version = str(getattr(mod, "EXTENSION_VERSION", ""))
+    version = str(
+        (manifest or {}).get("version")
+        if manifest and (manifest or {}).get("version") is not None
+        else getattr(mod, "EXTENSION_VERSION", "")
+    )
     enabled = _default_enabled(mod, name)
-    return [ExtensionModule(name, desc, mod, priority, version, source,
-                            path, enabled)]
+    return [ExtensionModule(
+        name, str(desc or ""), mod, priority, version, source,
+        path, enabled,
+    )]
 
 
 def _get_extensions_dirs() -> List[tuple]:
@@ -301,6 +425,11 @@ def discover_extensions() -> List[ExtensionModule]:
                         continue
             elif item.suffix == ".py":
                 modules = _load_py_extension(item, source)
+            elif item.suffix == ".json":
+                modules = _load_json_manifest_extension(item, source) or []
+                if not modules:
+                    # An unrelated JSON file (e.g. theme.json) — skip.
+                    continue
             elif ext_name.endswith(".zip"):
                 modules = _load_from_archive(item, f"{source}-zip")
             elif ext_name.endswith(".tar.gz") or ext_name.endswith(".tgz"):
@@ -324,6 +453,27 @@ def reload_extensions() -> List[ExtensionModule]:
     global _cached
     _cached = None
     return discover_extensions()
+
+
+def rescan_all() -> int:
+    """Alias for ``reload_extensions`` that returns a count.
+
+    Used by the experimental ``minxg ext-reload`` verb.
+    """
+    return len(reload_extensions())
+
+
+__all__ = [
+    "ExtensionModule",
+    "discover_extensions",
+    "reload_extensions",
+    "rescan_all",
+    "get_extensions",
+    "get_extension",
+    "list_extensions",
+    "set_extension_enabled",
+    "cleanup_temp_dirs",
+]
 
 
 def cleanup_temp_dirs() -> None:
