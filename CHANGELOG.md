@@ -2,6 +2,104 @@
 
 All notable changes to MINXG are documented in this file.
 
+## [0.14.0] - 2026-06-28 - Polyglot expansion + gateway hardening + think UX + extension manifest
+
+### Highlights
+- **Open Gateway fully restored.** Rewrote `gateway/server.py` wiring so
+  inference + RAG + router + runner + workspace all consume a single
+  `GatewayConfig` (loaded from `minxg._config`); removed ad-hoc env-var
+  forks. Added `gateway/channels.py` with a `ChannelManager`,
+  `MemoryChannel`, and `HTTPChannel` so the ``channels`` section in
+  ``config/gateway.yaml`` actually drives inbound surfaces (not only the
+  REST server). Reference taken from ``/storage/emulated/0/文件/mmm/gateway``
+  patterns (channel/manager), implemented fresh on top of MINXG's own
+  config/state surfaces.
+- **Chat "think" tags.** AI thinking is now wrapped in ``[thinking]...[/thinking]``
+  in terminal/chat output so users can tell reasoning from response.
+- **AI identity polish.** Removed the redundant "You:" prompt label from
+  `multiligua_cli/interactive.py` and `multiligua_cli/terminal_chat.py`;
+  the prompt now uses a neutral arrow (`▸`) matching `tui_chat.py`.
+- **Wizard/config flicker killed.** The `MinxgMenu` widget in
+  `multiligua_cli/wizard_ui.py` redraws in place with cursor-up/erase
+  sequences instead of clearing the whole screen.
+- **Centralised config bump.** VERSION lives in `minxg/_version.py` only;
+  pyproject reads it via setuptools dynamic. Bumps are one-line edits and
+  the `minxg/__init__.py` docstring now echoes the same value.
+- **Polyglot activation.** Reactivated C/C++/Go paths via real subprocess
+  bridges (`g++`/`clang++`, `go run`) that compile/run shipped source
+  assets under ``minxg/contracts/runtime/assets``; added first-class adapters
+  for WebAssembly (`.wat` + `wasmtime` / arithmetic emulator), R
+  (``.R`` bridge + `jsonlite`), Datalog (``.lp`` + `clingo` / `pyDatalog`),
+  and Julia (``.jl`` bridge + `JSON.jl`). Each adapter detects its own
+  runtime availability and degrades cleanly when missing — manifest-driven
+  discovery via `minxg polyglot-manifest`.
+- **New experimental verbs.** ``minxg contract``, ``minxg polyglot-manifest``,
+  ``minxg think`` toggle, and ``minxg ext-reload`` now work end-to-end.
+  `ext-reload` uses the new `extensions.loader.rescan_all()` helper.
+- **Self-evolved capability: MINXG Genesis Loop.** ``minxg genesis``
+  runs propose → mutate → evaluate → crystallise and writes the winning
+  candidate to ``~/.minxg/genesis/latest.py`` with a JSON report.
+
+### Refactor
+- Removed duplicate ``from __future__ import annotations`` in
+  `gateway/server.py`.
+- Normalised `minxg/contracts/runtime/_exec.py` shared helpers for
+  subprocess-based language adapters.
+
+### Updates since 0.14.0
+- **Polyglot runtime install helpers.** New module
+  `minxg/contracts/runtime/installer.py` exposes a 6-language install
+  matrix (cpp / go / wasm / r / julia / datalog) with platform-aware
+  recipes for ``termux`` / ``linux`` / ``macos`` / ``windows`` /
+  ``unknown``. The module is pure-data by design: ``detect_runtime`` /
+  ``plan_install`` / ``render_install_plan`` never launch subprocesses
+  and ``run_install(..., apply=True)`` is opt-in via ``--apply`` so the
+  user is never surprised by an unattended ``pkg install``. Re-exported
+  through ``minxg.contracts.runtime`` so existing imports stay
+  stable.
+- **Two new [EXPERIMENTAL] verbs.** ``minxg runtime-plan [<lang>]``
+  prints the install plan for one language (or every managed
+  language when ``lang`` is omitted / ``all``). ``minxg
+  runtime-install [<lang>] --apply`` runs *only* the chosen language's
+  recipe via ``sh -c <cmd>`` with a 10-minute timeout, or stays a
+  dry-run JSON view when ``--apply`` is absent. Both honour
+  ``--platform`` so users on a Linux box can preview the Termux /
+  macOS recipes and vice versa.
+- **`minxg doctor` polyglot panel.** A new ``Polyglot runtimes``
+  section reports every managed language's binary, availability, and
+  install hint next to the existing ``Tool cap`` / ``Extensions``
+  panels; it never escalates the doctor exit code past WARN when a
+  runtime is missing (the verbosity matches the existing
+  polyglot-manifest contract).
+- **New tests.** ``tests/test_polyglot_runtime_installer.py`` (34)
+  covers ``platform_id`` hermetic across all five platforms,
+  per-language detect (R/jsonlite gate, Julia version probe, datalog
+  clingo + pyDatalog fallback, wasm optional signal), install plan
+  shape, ``run_install`` dry-run vs apply via the runner seam, and
+  the doctor panel never returns FAIL. Full suite: 467 passed,
+  1 skipped.
+- **Twin emit now preserves the source function name.** The
+  ``TwinConfig.function_name`` default flipped from the
+  placeholder ``"twin_fn"`` to the empty-string sentinel
+  ``""``, which makes :func:`minxg.twin.python_to_rust` fall back
+  to ``fn.name`` on the Python side. The previous default forced
+  every caller to wrap and rename — turning the round-trip test in
+  ``tests/test_twin.py`` into a compile failure that was being
+  silently turned into a skip. After the fix, the
+  ``test_python_to_rust_emitted_function_compiles_when_rustc_present``
+  case compiles a ``fn main { fn add(...) { ... } }`` template
+  that, when ``rustc`` is on PATH, actually returns ``7`` from
+  ``add(3, 4)`` instead of skipping.
+- **Right-prefix temp dir on Android.** ``rustc -o /tmp/...``
+  silently aborted on Termux (the symlinked ``/tmp`` can't host
+  ``rustc``'s scratch subdirs); the test now writes the
+  intermediate artefact into ``tempfile.mkdtemp(prefix="minxg_twin_")``
+  so the same path used by ``minxg.contracts.runtime._exec.run``
+  is the one ``rustc`` works in.
+- **Full suite now skips 0 tests.** Before: 1 skipped (the
+  silent-failure twin case). After: 468 passed, 0 skipped, 0
+  failed.
+
 ## [0.13.2] - 2026-06-27 - Single source of truth for VERSION
 
 ### Refactor

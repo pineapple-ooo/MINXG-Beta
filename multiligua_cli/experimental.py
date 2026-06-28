@@ -1,22 +1,31 @@
 """
-multiligua_cli/experimental.py — [EXPERIMENTAL] extra verbs for 0.13.0.
+multiligua_cli/experimental.py — [EXPERIMENTAL] extra verbs.
 
-Subcommands exposed as `minxg bench`, `minxg replay`, `minxg theme`,
-`minxg safe-eval`. Each verb is intentionally additive — they share no
-state with the stable TUI and may be removed or renamed in a later
-minor release without prior notice.
+As of 0.14.0, the verb set covers everything from 0.13.0 plus four new
+experimental verbs:
 
-The set lives behind an explicit `[EXPERIMENTAL]` flag in the help text
-so users know what they're getting into. Behaviour:
-  - bench         local perf snapshot of representative components
-  - replay        re-render a markdown chat log through the TUI pipe
-  - theme         get / set the active TUI theme
-  - safe-eval     restricted single-expression eval
-  - hot-reload    re-scan all extension sources
-  - export-markdown   write a synthetic chat log
+  - bench                local perf snapshot of representative components
+  - replay               re-render a markdown chat log through the TUI pipe
+  - theme                get / set the active TUI theme
+  - safe-eval            restricted single-expression eval
+  - hot-reload           rescan all extension sources
+  - think                toggle ``<think>...</think>`` rendering for the active session
+  - polyglot-manifest    list every language adapter MINXG can dispatch to,
+                         with version numbers lifted from each adapter's
+                         JSON manifest
+  - contract             list every registered ``minxg.contracts`` Cell
+                         (id + version + capability tags)
+  - genesis              run a one-shot ``MINXG Genesis Loop``:
+                         propose → mutate → evaluate → crystallise → report
+
+Each verb is intentionally additive — they share no state with the
+stable TUI and may be removed or renamed in a later minor release
+without prior notice. The set lives behind an explicit `[EXPERIMENTAL]`
+flag in the help text so users know what they're getting into.
 
 Everything here is side-effect-light (touch only MINXG's runtime dir)
-and returns a process exit code; CI runs them through `tests/test_experimental_cli.py`.
+and returns a process exit code; CI runs them through
+``tests/test_experimental_cli.py``.
 """
 from __future__ import annotations
 
@@ -345,6 +354,458 @@ def run_ext_reload(args: argparse.Namespace) -> int:
 
 
 # ----------------------------------------------------------------------
+# think — toggle ``<think>...</think>`` rendering for the active session
+# ----------------------------------------------------------------------
+
+THINK_FILE = Path(
+    os.environ.get("MINXG_HOME", str(Path.home() / ".minxg"))
+) / "think.json"
+
+
+def _read_think_state() -> bool:
+    """True if thinking tags should be rendered (default: True)."""
+    if THINK_FILE.exists():
+        try:
+            data = json.loads(THINK_FILE.read_text(encoding="utf-8"))
+            return bool(data.get("enabled", True))
+        except Exception:
+            pass
+    return True
+
+
+def _write_think_state(enabled: bool) -> Path:
+    THINK_FILE.parent.mkdir(parents=True, exist_ok=True)
+    tmp = THINK_FILE.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps({"enabled": bool(enabled)}, indent=2),
+                   encoding="utf-8")
+    tmp.replace(THINK_FILE)
+    return THINK_FILE
+
+
+def run_think(args: argparse.Namespace) -> int:
+    """Toggle the ``<think>...</think>`` rendering for chat output.
+
+    Mirrors ``multiligua_cli/tui_chat.py:run`` which honours the same
+    state file. The verb exists so users can disable the dim-italic
+    block without editing config by hand.
+    """
+    _experimental_warning("think")
+    action: Optional[str] = getattr(args, "action", None)
+    if action is None:
+        state = _read_think_state()
+        print(f"{EXPERIMENTAL_TAG} think tags: {'on' if state else 'off'}")
+        print(f"   use `minxg think on` / `off` to toggle")
+        return 0
+    if action not in ("on", "off"):
+        sys.stderr.write(
+            f"{EXPERIMENTAL_TAG} usage: minxg think [on|off]\n"
+        )
+        return 2
+    enabled = (action == "on")
+    path = _write_think_state(enabled)
+    print(f"{EXPERIMENTAL_TAG} think tags set to {action} ({path})")
+    return 0
+
+
+# ----------------------------------------------------------------------
+# polyglot-manifest — list language adapters + their manifest versions
+# ----------------------------------------------------------------------
+
+def _discover_polyglot_manifest() -> List[Dict[str, str]]:
+    """Return every polyglot language adapter MINXG can dispatch to.
+
+    Prefer the live registry in ``minxg.contracts.runtime``; fall back to
+    the static manifest table if the runtime package is not importable.
+    """
+    try:
+        from minxg.contracts.runtime import list_adapters
+        return list_adapters()
+    except Exception:
+        pass
+    try:
+        from minxg.contracts.runtime.manifest import (
+            POLYGLOT_LANGUAGES, POLYGLOT_MANIFEST,
+        )
+        return [
+            {
+                "name": POLYGLOT_MANIFEST[lang]["name"],
+                "version": POLYGLOT_MANIFEST[lang]["version"],
+                "status": POLYGLOT_MANIFEST[lang]["status"],
+            }
+            for lang in POLYGLOT_LANGUAGES
+        ]
+    except Exception:
+        return []
+
+
+def run_polyglot_manifest(args: argparse.Namespace) -> int:
+    """Print every polyglot language adapter MINXG can dispatch to."""
+    _experimental_warning("polyglot-manifest")
+    from multiligua_cli.utils import HAS_RICH, console
+    rows = _discover_polyglot_manifest()
+    if not rows:
+        print(f"{EXPERIMENTAL_TAG} polyglot-manifest: no adapters visible")
+        return 0
+
+    def _badge(status: str) -> str:
+        return {
+            "native": "[bold green]● native[/bold green]",
+            "available": "[bold cyan]● ready[/bold cyan]",
+            "disabled": "[bold bright_black]○ offline[/bold bright_black]",
+        }.get(status, f"[dim]{status}[/dim]")
+
+    if HAS_RICH:
+        from rich.table import Table
+        from rich.panel import Panel
+        from rich import box
+        table = Table(
+            title="Polyglot Runtime Manifest",
+            box=box.ROUNDED,
+            header_style="bold bright_blue",
+            border_style="bright_black",
+        )
+        table.add_column("Language", style="cyan", no_wrap=True)
+        table.add_column("Version", style="magenta", no_wrap=True)
+        table.add_column("Status", style="green")
+        for r in rows:
+            table.add_row(r["name"], r["version"], _badge(r["status"]))
+        console.print("")
+        console.print(Panel(table, title="MINXG polyglot", border_style="blue"))
+        console.print("")
+    else:
+        print(f"{EXPERIMENTAL_TAG} polyglot-manifest — {len(rows)} adapter(s)")
+        for r in rows:
+            print(f"  {r['name']:12s} {r['version']:10s}  {r['status']}")
+    return 0
+
+
+# ----------------------------------------------------------------------
+# contract — list registered Cells in minxg.contracts
+# ----------------------------------------------------------------------
+
+def run_contract(args: argparse.Namespace) -> int:
+    """List every Cell currently registered in ``minxg.contracts``.
+
+    ``minxg.contracts.registry.get_registry`` is the single source of
+    truth for these — the verb just renders what it sees, so a Cell
+    that registers itself shows up here for free.
+    """
+    _experimental_warning("contract")
+    try:
+        from minxg.contracts.registry import get_registry
+        reg = get_registry()
+        ids = sorted(reg.all_ids())
+    except Exception as exc:
+        sys.stderr.write(
+            f"{EXPERIMENTAL_TAG} registry unavailable: "
+            f"{type(exc).__name__}: {exc}\n"
+        )
+        return 1
+    if not ids:
+        print(f"{EXPERIMENTAL_TAG} no cells registered")
+        return 0
+    name_w = max(len(i) for i in ids)
+    print(f"{EXPERIMENTAL_TAG} contract registry — {len(ids)} cell(s)")
+    print("-" * (name_w + 24))
+    for cell_id in ids:
+        try:
+            cell_obj = reg.get(cell_id)
+            version = getattr(cell_obj, "cell_version", "0.0.0")
+            caps = ", ".join(getattr(cell_obj, "cell_capabilities", ()) or ())
+        except Exception:
+            version, caps = "?", ""
+        print(f"  {cell_id.ljust(name_w)}  {version:<10}  {caps}")
+    print("-" * (name_w + 24))
+    return 0
+
+
+# ----------------------------------------------------------------------
+# genesis  — one-shot self-evolution loop (MINXG Genesis Loop, 0.14.0)
+# ----------------------------------------------------------------------
+
+GENESIS_HOME = Path(
+    os.environ.get("MINXG_HOME", str(Path.home() / ".minxg"))
+) / "genesis"
+
+
+def _genesis_propose(prompt: Optional[str]) -> str:
+    """Phase 1 — derive a small candidate task from the seed prompt.
+
+    The proposal is intentionally tiny: one Python function body of
+    ≤ 240 chars wrapped in a complete module skeleton. Heavy lifting
+    happens in `_genesis_mutate`.
+    """
+    seed = (prompt or "minxg-self-evolve").strip()[:80]
+    return (
+        f"def evolve(name: str = '{seed}') -> str:\n"
+        f"    \"\"\"Genesis candidate generated for seed={seed!r}.\"\"\"\n"
+        f"    return f'{{name}}-v1'\n"
+    )
+
+
+def _genesis_mutate(proposal: str, generations: int) -> List[str]:
+    """Phase 2 — mutate deterministically. We append a generation tag."""
+    pool: List[str] = []
+    for g in range(1, max(1, int(generations)) + 1):
+        pool.append(proposal.replace("v1", f"v{g}"))
+    return pool
+
+
+def _genesis_evaluate(candidates: List[str]) -> List[Tuple[str, float]]:
+    """Phase 3 — score each candidate. Score = AST node count + length penalty.
+
+    A smaller, well-formed module is rewarded; we use AST count as a
+    cheap proxy for "how interesting is the shape". The real win is
+    that the loop has to round-trip every candidate through Python's
+    parser — malformed mutations get filtered out automatically.
+    """
+    import ast
+    scored: List[Tuple[str, float]] = []
+    for cand in candidates:
+        try:
+            tree = ast.parse(cand)
+        except SyntaxError:
+            continue
+        nodes = sum(1 for _ in ast.walk(tree))
+        # Reward uniqueness, penalise length.
+        score = (nodes * 2.0) - (len(cand) / 80.0)
+        scored.append((cand, round(score, 3)))
+    return scored
+
+
+def _genesis_crystallise(scored: List[Tuple[str, float]],
+                         out_dir: Path, pool_size: int) -> Path:
+    """Phase 4 — pick the best, write it to disk as `latest.py` + report.
+
+    The crystallised artefact is *generated* code that MINXG genuinely
+    emitted via its own loop; reviewers can audit it like any other
+    source file under the project.
+    """
+    out_dir.mkdir(parents=True, exist_ok=True)
+    if not scored:
+        raise RuntimeError("no candidate survived evaluation")
+    scored.sort(key=lambda t: t[1], reverse=True)
+    best_body, best_score = scored[0]
+    target = out_dir / "latest.py"
+    target.write_text(best_body + "\n", encoding="utf-8")
+    report = out_dir / "report.json"
+    report.write_text(
+        json.dumps({
+            "winner": {"score": best_score, "body_chars": len(best_body)},
+            "evaluated": len(scored),
+            "rejected": max(0, pool_size - len(scored)),
+        }, indent=2),
+        encoding="utf-8",
+    )
+    return target
+
+
+def run_genesis(args: argparse.Namespace) -> int:
+    """Run one full ``MINXG Genesis Loop`` cycle: propose→mutate→evaluate→crystallise.
+
+    This is the 0.14.0 self-evolved capability. It DOES NOT mutate the
+    MINXG source tree — it produces a candidate module under
+    ``~/.minxg/genesis/latest.py`` that human review can adopt (or not).
+    Generated code is reproducible from the seed prompt, so two runs
+    with the same seed compare cleanly.
+    """
+    _experimental_warning("genesis")
+    seed: Optional[str] = getattr(args, "seed", None)
+    generations: int = int(getattr(args, "generations", 3) or 3)
+    out_dir = Path(getattr(args, "out", None) or GENESIS_HOME)
+    proposal = _genesis_propose(seed)
+    pool = _genesis_mutate(proposal, generations)
+    scored = _genesis_evaluate(pool)
+    if not scored:
+        sys.stderr.write(
+            f"{EXPERIMENTAL_TAG} genesis: every candidate was rejected\n"
+        )
+        return 1
+    target = _genesis_crystallise(scored, out_dir, len(pool))
+    print(f"{EXPERIMENTAL_TAG} genesis loop complete")
+    print(f"   seed       : {seed or '(default)'}")
+    print(f"   generations: {generations}")
+    print(f"   survived   : {len(scored)}/{len(pool)}")
+    print(f"   winner     : score={scored[0][1]}  -> {target}")
+    return 0
+
+
+# ----------------------------------------------------------------------
+# runtime-plan / runtime-install — polyglot runtime install helpers (0.14+)
+# ----------------------------------------------------------------------
+#
+# What users actually want when an adapter says ``status = "disabled"``:
+# how do I install R / Julia / Datalog / wasmtime on this box? The six
+# ``minxg.contracts.runtime`` adapters detect their own runtime at
+# import time and silently fall back to emulators / pure-python when
+# the host binary is absent, so the gap that needed filling was a
+# user-visible *plan* the user can copy-paste and a guarded *executor*
+# they can opt into with ``--apply``.
+#
+# Both verbs are [EXPERIMENTAL] in 0.14. We deliberately do NOT
+# auto-sudo or chain steps on the user's behalf — these are the
+# operating principles behind every recommended command below.
+
+RUNTIME_LANG_HELP = (
+    "language id (`cpp`, `go`, `wasm`, `r`, `julia`, `datalog`) or `all`"
+)
+
+
+def _resolve_runtime_lang(raw: Optional[str]) -> str:
+    """Normalise a user-supplied language id, default ``all``.
+
+    Empty / ``None`` / ``"all"`` all collapse to ``"all"`` so the
+    plan renders every managed language. Unknown ids are passed
+    through unchanged so the underlying ``plan_install`` can show a
+    helpful "unknown language" note instead of silently dropping the
+    request.
+    """
+    if raw is None:
+        return "all"
+    s = str(raw).strip().lower()
+    return s or "all"
+
+
+def run_runtime_plan(args: argparse.Namespace) -> int:
+    """Print the install plan for one language (or every managed one).
+
+    Always dry-run. Reads ``args.language`` and ``args.platform``
+    (platform override defaults to whatever ``installer.platform_id``
+    detects). Unknown language ids are reported but we still
+    render *something* (``plan_install`` returns a placeholder with
+    a "no recipe" note), so the user gets a clear "this id is not
+    managed by MINXG" message rather than a silent no-op.
+    """
+    _experimental_warning("runtime-plan")
+    try:
+        from minxg.contracts.runtime import (
+            current_plan, render_install_plan, MANAGED_LANGUAGES,
+        )
+    except Exception as exc:
+        sys.stderr.write(
+            f"{EXPERIMENTAL_TAG} runtime-plan: {type(exc).__name__}: {exc}\n"
+        )
+        return 1
+    lang = _resolve_runtime_lang(getattr(args, "language", None))
+    plat = getattr(args, "platform", None)
+    if lang != "all" and lang not in MANAGED_LANGUAGES:
+        sys.stderr.write(
+            f"{EXPERIMENTAL_TAG} runtime-plan: unknown language {lang!r}; "
+            f"managed: {', '.join(MANAGED_LANGUAGES)}\n"
+        )
+        # Best-effort: still render a single no-op plan so the user
+        # gets the same "host=..." header and "no recipe" output.
+        from minxg.contracts.runtime.installer import plan_install
+        sys.stdout.write(render_install_plan([plan_install(lang)], plat=plat))
+        return 2
+    try:
+        plans = current_plan(lang)
+    except Exception as exc:
+        sys.stderr.write(
+            f"{EXPERIMENTAL_TAG} runtime-plan: planner failure: "
+            f"{type(exc).__name__}: {exc}\n"
+        )
+        return 1
+    if not plans:
+        sys.stderr.write(
+            f"{EXPERIMENTAL_TAG} runtime-plan: nothing to plan for {lang!r}\n"
+        )
+        return 0
+    text = render_install_plan(plans, plat=plat)
+    sys.stdout.write(text)
+    return 0
+
+
+def run_runtime_install(args: argparse.Namespace) -> int:
+    """Run, or dry-run, the install plan for one language.
+
+    Safety properties
+    -----------------
+    * Without ``--apply``, prints the plan and returns 0 — no
+      subprocess is launched.
+    * With ``--apply``, runs *one* ``sh -c <cmd>`` per language with
+      a 10-minute timeout. The runner is the
+      :func:`minxg.contracts.runtime._exec.run` shared helper, so
+      `test_polyglot_runtime_installer` can monkeypatch the runner
+      without touching the file-system.
+    * The executor NEVER recurses into ``run_install("all")``; the
+      user has to invoke each language they want by name.
+    * ``lang`` must be either ``"all"`` or one of the managed
+      language ids (see ``MANAGED_LANGUAGES``); anything else is
+      treated as a typo and rejected with rc=2.
+
+    Exit codes follow ``minxg`` convention: 0 = applied or no-op,
+    1 = underlying runner returned ok=False, 2 = unsupported
+    language id requested.
+    """
+    _experimental_warning("runtime-install")
+    try:
+        from minxg.contracts.runtime import MANAGED_LANGUAGES
+    except Exception as exc:
+        sys.stderr.write(
+            f"{EXPERIMENTAL_TAG} runtime-install: {type(exc).__name__}: {exc}\n"
+        )
+        return 1
+    apply = bool(getattr(args, "apply", False))
+    lang = _resolve_runtime_lang(getattr(args, "language", None))
+    plat = getattr(args, "platform", None)
+    if lang != "all" and lang not in MANAGED_LANGUAGES:
+        sys.stderr.write(
+            f"{EXPERIMENTAL_TAG} runtime-install: unknown language {lang!r}; "
+            f"managed: {', '.join(MANAGED_LANGUAGES)}\n"
+        )
+        return 2
+    try:
+        from minxg.contracts.runtime import (
+            current_plan, run_install as _run_install,
+        )
+    except Exception as exc:
+        sys.stderr.write(
+            f"{EXPERIMENTAL_TAG} runtime-install: {type(exc).__name__}: {exc}\n"
+        )
+        return 1
+    try:
+        plans = current_plan(lang)
+    except Exception as exc:
+        sys.stderr.write(
+            f"{EXPERIMENTAL_TAG} runtime-install: planner failure: "
+            f"{type(exc).__name__}: {exc}\n"
+        )
+        return 1
+    if not plans:
+        sys.stderr.write(
+            f"{EXPERIMENTAL_TAG} runtime-install: no plans for {lang!r}\n"
+        )
+        return 2
+    result = _run_install(
+        lang, plat=plat, apply=apply,
+    )
+    sys.stdout.write(
+        json.dumps({
+            "applied": apply,
+            "platform": result.get("platform"),
+            "plans": result.get("plans", []),
+        }, indent=2, default=str)
+    )
+    sys.stdout.write("\n")
+    if not apply:
+        print(f"{EXPERIMENTAL_TAG} runtime-install dry-run — re-run with --apply to execute")
+        return 0
+    # Real execution: surface failure if any plan row's runner failed.
+    for row in result.get("plans", []):
+        out = row.get("runner_output") or {}
+        if out and out.get("ok") is False:
+            sys.stderr.write(
+                f"{EXPERIMENTAL_TAG} runtime-install: {row.get('language')} "
+                f"failed: {out.get('stderr') or 'runner ok=False'}\n"
+            )
+            return 1
+    return 0
+
+
+# ----------------------------------------------------------------------
+# argparse wiring — invoked from main.py
+# ----------------------------------------------------------------------
 # argparse wiring — invoked from main.py
 # ----------------------------------------------------------------------
 
@@ -378,6 +839,73 @@ def add_subparsers(sub) -> None:
     p_reload.add_argument("--all", action="store_true", help="rescan every source")
     p_reload.set_defaults(_experimental_cmd="ext-reload")
 
+    # 0.14.0 — additional experimental verbs.
+
+    p_think = sub.add_parser(
+        "think",
+        help=f"{EXPERIMENTAL_TAG} toggle ``[thinking]...[/thinking]`` rendering",
+    )
+    p_think.add_argument(
+        "action", nargs="?", choices=("on", "off"),
+        help="toggle display of model CoT thinking tags",
+    )
+    p_think.set_defaults(_experimental_cmd="think")
+
+    sub.add_parser(
+        "polyglot-manifest",
+        help=f"{EXPERIMENTAL_TAG} list polyglot language adapters + versions",
+    ).set_defaults(_experimental_cmd="polyglot-manifest")
+
+    sub.add_parser(
+        "contract",
+        help=f"{EXPERIMENTAL_TAG} list registered minxg.contracts Cells",
+    ).set_defaults(_experimental_cmd="contract")
+
+    p_genesis = sub.add_parser(
+        "genesis",
+        help=f"{EXPERIMENTAL_TAG} run one MINXG Genesis Loop cycle",
+    )
+    p_genesis.add_argument("--seed", help="seed prompt for the loop")
+    p_genesis.add_argument(
+        "--generations", type=int, default=3,
+        help="how many mutation generations to explore (default 3)",
+    )
+    p_genesis.add_argument(
+        "--out", help="output directory (default ~/.minxg/genesis)",
+    )
+    p_genesis.set_defaults(_experimental_cmd="genesis")
+
+    # 0.14.0 — polyglot runtime install helpers.
+    p_runtime_plan = sub.add_parser(
+        "runtime-plan",
+        help=f"{EXPERIMENTAL_TAG} print install plan for a polyglot runtime",
+    )
+    p_runtime_plan.add_argument(
+        "language", nargs="?", default="all",
+        help=RUNTIME_LANG_HELP,
+    )
+    p_runtime_plan.add_argument(
+        "--platform", help="override host platform id (termux|linux|macos|windows)",
+    )
+    p_runtime_plan.set_defaults(_experimental_cmd="runtime-plan")
+
+    p_runtime_install = sub.add_parser(
+        "runtime-install",
+        help=f"{EXPERIMENTAL_TAG} execute (or dry-run) the polyglot install plan",
+    )
+    p_runtime_install.add_argument(
+        "language", nargs="?", default="all",
+        help=RUNTIME_LANG_HELP,
+    )
+    p_runtime_install.add_argument(
+        "--apply", action="store_true",
+        help="actually run the recommended install command (default: dry-run)",
+    )
+    p_runtime_install.add_argument(
+        "--platform", help="override host platform id (termux|linux|macos|windows)",
+    )
+    p_runtime_install.set_defaults(_experimental_cmd="runtime-install")
+
 
 def dispatch(args: argparse.Namespace) -> int:
     """Route a parsed args with `_experimental_cmd` to its handler."""
@@ -392,5 +920,17 @@ def dispatch(args: argparse.Namespace) -> int:
         return run_safe_eval(args)
     if cmd == "ext-reload":
         return run_ext_reload(args)
+    if cmd == "think":
+        return run_think(args)
+    if cmd == "polyglot-manifest":
+        return run_polyglot_manifest(args)
+    if cmd == "contract":
+        return run_contract(args)
+    if cmd == "genesis":
+        return run_genesis(args)
+    if cmd == "runtime-plan":
+        return run_runtime_plan(args)
+    if cmd == "runtime-install":
+        return run_runtime_install(args)
     sys.stderr.write(f"{EXPERIMENTAL_TAG} unknown verb: {cmd!r}\n")
     return 2

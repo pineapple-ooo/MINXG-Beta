@@ -13,7 +13,12 @@ class UnsupportedTwinOp(RuntimeError):
 
 @dataclass
 class TwinConfig:
-    function_name: str = "twin_fn"
+    # Empty string means "preserve the Python source's function name".
+    # That's the saner default — a twin that emits an unnamed function
+    # forces every caller to wrap and rename it, which is the opposite
+    # of what ``python_to_rust`` is for. Override with a non-empty
+    # literal when you want a stable exported name.
+    function_name: str = ""
     target_language: str = "rust"
     use_i64_for_int: bool = True
     indent_size: int = 4

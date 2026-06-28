@@ -241,6 +241,58 @@ def _check_platform_cap() -> Section:
     return rows
 
 
+def _check_polyglot_runtimes() -> Section:
+    """Probe the six non-Python runtimes ``minxg.contracts.runtime`` ships.
+
+    Reports each language as ``OK`` / ``MISSING`` / ``WARN`` followed
+    by a short note. Reason for a dedicated section: the adapter layer
+    surfaces ``status`` (``available`` / ``disabled``) on each
+    language, but a doctor that doesn't list the polyglot languages
+    can't tell the user *which* runtime to install when an adapter
+    is disabled — so this section bridges that gap.
+
+    The probe is read-only; install recipes live behind
+    ``minxg runtime-plan`` / ``minxg runtime-install`` (both
+    [EXPERIMENTAL] in 0.14) so the user is never surprised by an
+    unattended ``pkg install``.
+    """
+    rows: Section = []
+    try:
+        from minxg.contracts.runtime import (
+            status_snapshot, platform_id,
+        )
+    except Exception as exc:
+        rows.append(("polyglot runtime probe", "FAIL", repr(exc)))
+        return rows
+
+    rows.append(("polyglot runtime probe", "OK", f"host={platform_id()}"))
+    try:
+        snap = status_snapshot()
+    except Exception as exc:
+        rows.append(("polyglot snapshot", "WARN", repr(exc)))
+        return rows
+
+    if not snap:
+        rows.append(("polyglot runtimes", "INFO", "no managed languages"))
+        return rows
+
+    for row in snap:
+        lang = row.get("language", "?")
+        avail = row.get("available", "no") == "yes"
+        binary = row.get("binary", "-")
+        note = row.get("note", "") or "-"
+        status = "OK" if avail else "MISSING"
+        rows.append((f"runtime {lang}", status, f"{binary} · {note}"))
+    missing = [r["language"] for r in snap if r.get("available") != "yes"]
+    if missing:
+        rows.append((
+            "runtimes missing",
+            "INFO",
+            " ".join(missing) + " — see `minxg runtime-plan`",
+        ))
+    return rows
+
+
 def _render_section(title: str, rows: Section) -> str:
     """Render one section as a fixed-column table."""
     body_lines = [_row(*r) for r in rows]
@@ -268,6 +320,7 @@ def run_doctor(args) -> int:
         ("minxg package", _check_minxg()),
         ("Config", _check_config()),
         ("Tool cap", _check_platform_cap()),
+        ("Polyglot runtimes", _check_polyglot_runtimes()),
         ("Extensions", _check_extensions()),
     ]
 

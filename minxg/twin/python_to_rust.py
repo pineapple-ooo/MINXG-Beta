@@ -52,8 +52,13 @@ def python_to_rust(source: str, config: TwinConfig = None) -> TwinResult:
     args = _rust_args(fn, config)
     body, more_warnings = _emit_body(fn.body, config)
     warnings.extend(more_warnings)
+    # When ``config.function_name`` is the empty sentinel, fall through
+    # to the function name on the source side so the twin reads as a
+    # natural rename of the original. Non-empty overrides still win —
+    # see `tests/test_twin_extra.py::test_python_to_rust_with_function_name_override`.
+    fn_name = config.function_name or fn.name
     src_lines = [
-        f"pub fn {config.function_name}({args}) -> i64 {{",
+        f"pub fn {fn_name}({args}) -> i64 {{",
         *body,
         "}",
     ]

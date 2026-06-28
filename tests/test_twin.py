@@ -1,5 +1,7 @@
 """Tests for minxg.twin Python<->Rust emitter."""
+import os
 import subprocess
+import tempfile
 import textwrap
 import pytest
 from minxg.twin import python_to_rust, rust_to_python, UnsupportedTwinOp
@@ -71,24 +73,41 @@ def test_python_to_rust_rejects_unsupported():
 
 def test_python_to_rust_emitted_function_compiles_when_rustc_present():
     rust_function = python_to_rust(SIMPLE_PY).source
-    wrapped = (
-        "fn main() { "
-        + rust_function.replace("pub fn", "fn")
-        + ' println!("{}", add(3, 4)); }'
-    )
     if not _rustc_available():
         pytest.skip("rustc not installed")
+    # Use a writable temp dir: Termux carts ``/tmp`` around as a
+    # symlink that ``rustc`` cannot create its scratch subdirs under,
+    # but ``tempfile.gettempdir()`` (the same one ``minxg.contracts.
+    # runtime._exec.run`` uses) returns the platform-correct path.
+    out_dir = tempfile.mkdtemp(prefix="minxg_twin_")
+    out_path = os.path.join(out_dir, "twin_test")
+    # The crate has to compile as a single file accepted by ``rustc
+    # -``. Replace the *leading* ``pub fn`` so the inner function
+    # becomes a free ``fn`` again, without disturbing later occurrences.
+    wrapped = (
+        "fn main() {\n"
+        + rust_function.replace("pub fn add", "fn add", 1)
+        + '\n    println!("{}", add(3, 4));\n}'
+    )
     proc = subprocess.run(
-        ["rustc", "-O", "-o", "/tmp/_twin_test", "-"],
+        ["rustc", "-O", "-o", out_path, "-"],
         input=wrapped,
         text=True,
         capture_output=True,
-        timeout=20,
+        timeout=30,
     )
     if proc.returncode != 0:
-        pytest.skip(f"rust compile failed: {proc.stderr}")
-    run = subprocess.run(["/tmp/_twin_test"], capture_output=True, text=True, timeout=5)
-    assert run.stdout.strip() == "7"
+        # Hard-fail now that the emit logic preserves the original
+        # function name: a skip here would mask a real regression.
+        pytest.fail(
+            "rustc failed to compile the emitted twin:\n"
+            f"stdout: {proc.stdout}\nstderr: {proc.stderr}"
+        )
+    run = subprocess.run([out_path], capture_output=True, text=True, timeout=5)
+    assert run.stdout.strip() == "7", (
+        f"expected '7' from add(3,4), got stdout={run.stdout!r} "
+        f"stderr={run.stderr!r}"
+    )
 
 
 def _rustc_available() -> bool:
