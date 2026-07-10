@@ -337,7 +337,7 @@ class OperatorGraph:
 class OperatorWorker(BaseWorker):
     """Operator engine: execute operators by ID or name, list operators, run pipelines."""
     worker_id = "operator"
-    version = "1.0.0"
+    version = "0.16.0"
 
     def _register_tools(self):
         self.tools["operator_list"] = type("ToolDef", (), {

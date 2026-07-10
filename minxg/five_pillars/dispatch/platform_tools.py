@@ -1,6 +1,6 @@
 """Platform-aware tools — adapt behavior based on device capabilities.
 
-v0.14.1: Only android + windows are supported platforms.
+v0.16.0: Only android + windows are supported platforms.
 All tool availability goes through the canonical platform_registry.
 """
 from minxg.base import BaseWorker, tool
@@ -20,7 +20,7 @@ from minxg.five_pillars.dispatch.platform_registry import (
 
 class PlatformWorker(BaseWorker):
     worker_id = "platform_worker"
-    version = "0.14.1"
+    version = "0.16.0"
 
     @tool
     async def platform_info(self) -> dict:
@@ -43,7 +43,7 @@ class PlatformWorker(BaseWorker):
             info["runtime"] = "Windows"
         else:
             info["runtime"] = "unsupported"
-            info["warning"] = f"Platform '{CURRENT_PLATFORM}' is not officially supported. Only android and windows are supported as of v0.14.1."
+            info["warning"] = f"Platform '{CURRENT_PLATFORM}' is not officially supported. Only android and windows are supported as of v0.16.0."
         return info
 
     @tool

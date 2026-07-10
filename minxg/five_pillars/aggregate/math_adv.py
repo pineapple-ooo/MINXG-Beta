@@ -19,7 +19,7 @@ from minxg.base import BaseWorker, tool
 
 class MathAdvWorker(BaseWorker):
     worker_id = "math_adv"
-    version = "0"
+    version = "0.16.0"
 
     # ══════════════════════════════════════════════════════════════════════════
     # BITWISE (IDs 100-149)

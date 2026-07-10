@@ -33,7 +33,7 @@ class StepReport:
     subdivisions: int
     operator_count: int
     notes: List[str] = field(default_factory=list)
-    # v0.14.1 additions
+    # v0.16.0 additions
     method: str = "euler"                # "euler" | "rk4" | "rk45"
     energy_delta: float = 0.0            # change in energy this step
     lyapunov_estimate: float = 0.0        # running Lyapunov exponent estimate
@@ -44,7 +44,7 @@ class StepReport:
 class DriverEngine:
     """Temporal Operator-Field integrator.
 
-    v0.14.1 adds:
+    v0.16.0 adds:
     - RK4 fourth-order Runge-Kutta integration
     - RK45 adaptive Runge-Kutta-Fehlberg with error control
     - Lyapunov exponent tracking for chaos detection

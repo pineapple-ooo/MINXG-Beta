@@ -20,7 +20,7 @@ EXTENSION_DESCRIPTION = (
     "Cross-platform file browser: list directories, choose files, "
     "multi-select operations"
 )
-EXTENSION_VERSION = "1.0.0"
+EXTENSION_VERSION = "0.16.0"
 EXTENSION_PRIORITY = 50
 EXTENSION_SOURCE = "builtin"
 EXTENSION_ENABLED = False  # opt-in via `minxg ext add minxg-files`

@@ -46,7 +46,7 @@ def _safe_eval(node):
 
 class MathToolsWorker(BaseWorker):
     worker_id = "math_tools"
-    version = "1.1.0"
+    version = "0.16.0"
 
     @tool(description="Safe math expression evaluation", category="calc")
     async def evaluate(self, expression: str) -> Dict:

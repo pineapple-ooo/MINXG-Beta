@@ -4,7 +4,7 @@ Go is a first-class MINXG runtime. The Python adapter ships real
 ``.go`` source files under ``minxg/contracts/runtime/assets/go`` and
 runs them with ``go run``.
 
-Bridge modes (v0.14.1):
+Bridge modes (v0.16.0):
   - eval:     safe expression evaluator (sin/cos/sqrt/log/exp/pow + arithmetic)
   - fib:      Fibonacci O(log n) via matrix exponentiation
   - prime:    Sieve of Eratosthenes prime counting
@@ -20,7 +20,7 @@ from typing import Any, Dict
 from ._exec import asset_path, payload_code, run, which
 
 ADAPTER_NAME = "go"
-ADAPTER_VERSION = "0.14.1"
+ADAPTER_VERSION = "0.16.0"
 ADAPTER_STATUS = "disabled"
 
 _GO = which("go")

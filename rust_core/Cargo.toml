@@ -1,6 +1,6 @@
 [package]
 name = "minxg_rust"
-version = "0.14.1"
+version = "0.16.0"
 edition = "2021"
 description = "MINXG Rust Core — pure-Rust mathematical operators, memory-safe FFI bridge"
 license = "MIT"

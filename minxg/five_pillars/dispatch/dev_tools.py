@@ -14,7 +14,7 @@ from minxg.base import BaseWorker, tool
 class DevToolsWorker(BaseWorker):
     """Development tools: git, docker, package managers, build systems."""
     worker_id = "dev_tools"
-    version = "1.0.0"
+    version = "0.16.0"
 
     def _register_tools(self):
         tools = [

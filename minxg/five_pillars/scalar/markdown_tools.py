@@ -3,7 +3,7 @@ from minxg.base import BaseWorker, tool
 
 class MarkdownWorker(BaseWorker):
     worker_id = "markdown_worker"
-    version = "0.0.1"
+    version = "0.16.0"
 
     @tool
     async def markdown_to_text(self, markdown: str = "") -> dict:

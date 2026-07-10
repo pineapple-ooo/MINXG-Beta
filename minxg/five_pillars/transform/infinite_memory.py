@@ -182,7 +182,7 @@ class SemanticStore:
 
 class InfiniteMemoryWorker(BaseWorker):
     worker_id = "infinite_memory"
-    version = "2.0.0"
+    version = "0.16.0"
 
     def __init__(self):
         self._lock = threading.RLock()

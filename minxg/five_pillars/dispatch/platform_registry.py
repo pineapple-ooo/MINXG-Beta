@@ -6,7 +6,7 @@ Every tool in MINXG declares which platforms it supports. This module:
   2. Filters tools available on this platform
   3. Provides platform capability queries for AI
 
-Platforms supported (v0.14.1): android, windows
+Platforms supported (v0.16.0): android, windows
 All other platforms (linux, macos, ios, web) have been retired.
 Each platform has different tool availability based on system capabilities.
 """
@@ -17,7 +17,7 @@ import os
 from typing import Dict, List, Optional, Set
 
 
-# Supported platforms — android + windows only as of v0.14.1
+# Supported platforms — android + windows only as of v0.16.0
 SUPPORTED_PLATFORMS = {"android", "windows"}
 
 
@@ -30,7 +30,7 @@ def detect_platform() -> str:
     elif system == "Windows":
         return "windows"
 
-    # Any other OS is not officially supported from v0.14.1
+    # Any other OS is not officially supported from v0.16.0
     return "unknown"
 
 

@@ -11,7 +11,7 @@ from minxg.base import BaseWorker, tool
 
 class DateTimeToolsWorker(BaseWorker):
     worker_id = "datetime_tools"
-    version = "1.0.0"
+    version = "0.16.0"
 
     def __init__(self):
         self._timers: Dict[str, float] = {}

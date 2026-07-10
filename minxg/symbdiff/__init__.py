@@ -1,6 +1,6 @@
 """minxg.symbdiff — Symbolic Differential Algebra System.
 
-The SEVENTH mathematical pillar of MINXG (v0.14.1).
+The SEVENTH mathematical pillar of MINXG (v0.16.0).
 
 This is not a CAS (computer algebra system) toy. It is a genuine
 differential algebra that operates on formal power series truncated
@@ -34,7 +34,7 @@ commute (their Lie bracket vanishes) and WHICH diverge (the bracket
 is non-zero), so it can reorder compositions for zero drift without
 subdivision.
 
-The driver engine in v0.14.1 already uses Lyapunov exponents and
+The driver engine in v0.16.0 already uses Lyapunov exponents and
 energy tracking; SymbDiff makes these EXACT by computing the
 variational equations as symbolic jets rather than finite differences.
 

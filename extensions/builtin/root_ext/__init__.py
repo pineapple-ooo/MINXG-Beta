@@ -19,7 +19,7 @@ EXTENSION_NAME = "minxg-root"
 EXTENSION_DESCRIPTION = (
     "ROOT tooling: su execution, mount, iptables, sysctl, SELinux, kernel"
 )
-EXTENSION_VERSION = "1.0.1"
+EXTENSION_VERSION = "0.16.0"
 EXTENSION_PRIORITY = 95
 EXTENSION_SOURCE = "builtin"
 EXTENSION_ENABLED = False  # opt-in via `minxg ext add minxg-root`

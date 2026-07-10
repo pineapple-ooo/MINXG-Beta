@@ -28,7 +28,7 @@ except ImportError:
 
 class EncodingToolsWorker(BaseWorker):
     worker_id = "encoding_tools"
-    version = "1.0.0"
+    version = "0.16.0"
 
     @tool(description="Base64 encode", category="encode")
     async def base64_encode(self, data: str) -> Dict:

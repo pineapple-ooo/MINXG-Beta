@@ -81,7 +81,7 @@ class PlatformIDTests(unittest.TestCase):
             self.assertEqual(platform_id(), "termux")
 
     def test_linux_when_neither_termux_nor_darwin(self):
-        """v0.14.1: Linux is no longer supported; returns 'unknown'."""
+        """v0.16.0: Linux is no longer supported; returns 'unknown'."""
         from minxg.contracts.runtime.installer import platform_id
         env = {k: v for k, v in os.environ.items() if k != "TERMUX_VERSION"}
         with mock.patch.dict(os.environ, env, clear=True), \
@@ -90,7 +90,7 @@ class PlatformIDTests(unittest.TestCase):
             self.assertEqual(platform_id(), "unknown")
 
     def test_macos(self):
-        """v0.14.1: macOS is no longer supported; returns 'unknown'."""
+        """v0.16.0: macOS is no longer supported; returns 'unknown'."""
         from minxg.contracts.runtime.installer import platform_id
         env = {k: v for k, v in os.environ.items() if k != "TERMUX_VERSION"}
         with mock.patch.dict(os.environ, env, clear=True), \

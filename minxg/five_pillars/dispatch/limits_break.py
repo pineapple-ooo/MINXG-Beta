@@ -99,7 +99,7 @@ class _Phaser:
 
 class LimitsBreakWorker(BaseWorker):
     worker_id = "limits_break"
-    version = "1.0.0"
+    version = "0.16.0"
 
     def __init__(self):
         self._breakers: Dict[str, CircuitBreaker] = {}

@@ -4,7 +4,7 @@ Datalog is a first-class MINXG runtime. The Python adapter ships real
 ``.lp`` source files under ``minxg/contracts/runtime/assets/datalog`` and
 runs them with ``clingo`` (preferred) or ``pyDatalog`` (fallback).
 
-Bridge modes (v0.14.1):
+Bridge modes (v0.16.0):
   - graph:     transitive closure, reachability, cycle detection, degrees
   - schedule:  resource-constrained scheduling
   - typecheck: Hindley-Milner style type inference
@@ -20,7 +20,7 @@ from typing import Any, Dict
 from ._exec import asset_path, payload_code, run, sandbox_path, which
 
 ADAPTER_NAME = "datalog"
-ADAPTER_VERSION = "0.14.1"
+ADAPTER_VERSION = "0.16.0"
 ADAPTER_STATUS = "disabled"
 
 _CLINGO = which("clingo")

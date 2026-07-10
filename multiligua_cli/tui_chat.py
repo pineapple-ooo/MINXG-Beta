@@ -296,7 +296,7 @@ def _render_event_to_text(event: dict, body: Text) -> None:
     if kind == "text":
         body.append(event.get("content", ""))
     elif kind == "thinking":
-        # 0.14.0 — wrap the model's CoT in ``[thinking]...[/thinking]`` so the
+        # 0.16.0 — wrap the model's CoT in ``[thinking]...[/thinking]`` so the
         # user can distinguish reasoning from the final answer at a glance
         # even when the output is exported to markdown or replayed through
         # the experimental ``minxg replay`` verb later.

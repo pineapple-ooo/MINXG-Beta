@@ -32,7 +32,7 @@ except ImportError:
 
 class NetworkWorker(BaseWorker):
     worker_id = "network"
-    version = "1.1.0"
+    version = "0.16.0"
 
     @tool(description="HTTP request (Go-native or aiohttp/urllib fallback)",
           category="http")

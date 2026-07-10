@@ -5,7 +5,7 @@ Wasm is a first-class MINXG runtime. The Python adapter ships real
 runs them with ``wasmtime``. A tiny arithmetic emulator is kept as a
 fallback only when no native runtime is installed.
 
-Bridge modes (v0.14.1 — via wasmtime invoke):
+Bridge modes (v0.16.0 — via wasmtime invoke):
   - add/sub/mul/div/mod   — i32 arithmetic
   - fadd/fsub/fmul/fdiv   — f64 IEEE-754 arithmetic
   - fib                   — Fibonacci via fast doubling O(log n)
@@ -27,7 +27,7 @@ from typing import Any, Dict
 from ._exec import asset_path, payload_code, run, sandbox_path, which
 
 ADAPTER_NAME = "wasm"
-ADAPTER_VERSION = "0.14.1"
+ADAPTER_VERSION = "0.16.0"
 ADAPTER_STATUS = "disabled"
 
 _WASMTIME = which("wasmtime")

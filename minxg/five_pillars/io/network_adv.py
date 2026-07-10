@@ -22,7 +22,7 @@ from minxg.base import BaseWorker, tool
 class NetworkAdvWorker(BaseWorker):
     """Advanced network operations: ping, dns, http, ssl, websocket, port scan, whois, speed test."""
     worker_id = "network_adv"
-    version = "1.0.0"
+    version = "0.16.0"
 
     def _register_tools(self):
         tools = [

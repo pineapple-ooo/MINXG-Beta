@@ -64,7 +64,7 @@ def _ssot_imported() -> str:
 
 
 def test_ssot_import_matches_literal():
-    """The literal ``VERSION = "X.Y.Z"`` and the runtime import must agree.
+    """The literal ``VERSION = "0.16.0"`` and the runtime import must agree.
 
     Otherwise ``pyproject.toml`` (which reads ``minxg._version.VERSION``
     via setuptools dynamic) would build a wheel with the wrong number.

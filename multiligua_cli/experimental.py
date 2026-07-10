@@ -1,7 +1,7 @@
 """
 multiligua_cli/experimental.py — [EXPERIMENTAL] extra verbs.
 
-As of 0.14.0, the verb set covers everything from 0.13.0 plus four new
+As of 0.16.0, the verb set covers everything from 0.13.0 plus four new
 experimental verbs:
 
   - bench                local perf snapshot of representative components
@@ -520,7 +520,7 @@ def run_contract(args: argparse.Namespace) -> int:
 
 
 # ----------------------------------------------------------------------
-# genesis  — one-shot self-evolution loop (MINXG Genesis Loop, 0.14.0)
+# genesis  — one-shot self-evolution loop (MINXG Genesis Loop, 0.16.0)
 # ----------------------------------------------------------------------
 
 GENESIS_HOME = Path(
@@ -603,7 +603,7 @@ def _genesis_crystallise(scored: List[Tuple[str, float]],
 def run_genesis(args: argparse.Namespace) -> int:
     """Run one full ``MINXG Genesis Loop`` cycle: propose→mutate→evaluate→crystallise.
 
-    This is the 0.14.0 self-evolved capability. It DOES NOT mutate the
+    This is the 0.16.0 self-evolved capability. It DOES NOT mutate the
     MINXG source tree — it produces a candidate module under
     ``~/.minxg/genesis/latest.py`` that human review can adopt (or not).
     Generated code is reproducible from the seed prompt, so two runs
@@ -839,7 +839,7 @@ def add_subparsers(sub) -> None:
     p_reload.add_argument("--all", action="store_true", help="rescan every source")
     p_reload.set_defaults(_experimental_cmd="ext-reload")
 
-    # 0.14.0 — additional experimental verbs.
+    # 0.16.0 — additional experimental verbs.
 
     p_think = sub.add_parser(
         "think",
@@ -875,7 +875,7 @@ def add_subparsers(sub) -> None:
     )
     p_genesis.set_defaults(_experimental_cmd="genesis")
 
-    # 0.14.0 — polyglot runtime install helpers.
+    # 0.16.0 — polyglot runtime install helpers.
     p_runtime_plan = sub.add_parser(
         "runtime-plan",
         help=f"{EXPERIMENTAL_TAG} print install plan for a polyglot runtime",
@@ -906,7 +906,7 @@ def add_subparsers(sub) -> None:
     )
     p_runtime_install.set_defaults(_experimental_cmd="runtime-install")
 
-    # 0.14.1 — `minxg sg` — call the polyglot worker tools from the CLI.
+    # 0.16.0 — `minxg sg` — call the polyglot worker tools from the CLI.
     # The polyglot adapters have always had invoke() entries; this verb
     # makes them reachable for users without going through the AI layer.
     p_sg = sub.add_parser(

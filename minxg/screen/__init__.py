@@ -54,4 +54,4 @@ __version__ = "1.0.0"
 # Screen module is auto-discovered via minxg/base.py WorkerRegistry and
 # the five_pillars/dispatch/screen_tools.py ScreenWorker — no manual
 # registration needed. The old register_screen_commands hook was removed
-# in platform_registry v0.14.1 platform consolidation.
+# in platform_registry v0.16.0 platform consolidation.

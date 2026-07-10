@@ -5,7 +5,7 @@ source as a string; it ships a real ``bridge.jl`` under
 ``minxg/contracts/runtime/assets/julia`` and invokes that file with a JSON
 payload on stdin. Julia code lives in ``.jl`` files, where it belongs.
 
-Bridge modes (v0.14.1):
+Bridge modes (v0.16.0):
   - eval:     safe expression evaluator
   - fib:      Fibonacci (BigInt iterative)
   - prime:    Sieve of Eratosthenes
@@ -25,7 +25,7 @@ from typing import Any, Dict
 from ._exec import asset_path, payload_code, run, which
 
 ADAPTER_NAME = "julia"
-ADAPTER_VERSION = "0.14.1"
+ADAPTER_VERSION = "0.16.0"
 ADAPTER_STATUS = "disabled"
 
 _JULIA = which("julia")

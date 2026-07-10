@@ -1,4 +1,4 @@
-"""minxg.contracts.runtime — multi-language adapter surface (0.14.0).
+"""minxg.contracts.runtime — multi-language adapter surface (0.16.0).
 
 Why this package exists
 -----------------------
@@ -7,7 +7,7 @@ across ``minxg.polyglot`` (Python only) and ad-hoc ``subprocess.run``
 calls into C / Go binaries. There was no consistent way to ask "what
 languages are wired up, and at what version?" without grepping.
 
-This package is the 0.14.0 answer. Every language MINXG can dispatch to
+This package is the 0.16.0 answer. Every language MINXG can dispatch to
 is an *adapter* under this package:
 
   - minxg.contracts.runtime.python     the Python ecosystem (default)

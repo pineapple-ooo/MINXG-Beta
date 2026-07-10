@@ -2,13 +2,13 @@
 
 Why this module exists
 ----------------------
-As of 0.14.1, MINXG can dispatch to six non-Python runtimes (C / C++,
+As of 0.16.0, MINXG can dispatch to six non-Python runtimes (C / C++,
 Go, WebAssembly, R, Julia, Datalog). Each one is gated on a host-side
 binary or package being present: ``g++/clang``, ``go``, ``wasmtime``,
 ``Rscript`` (+ ``jsonlite``), ``julia`` (+ ``JSON.jl``), ``clingo`` /
 pyDatalog.
 
-Only Android (Termux) and Windows are officially supported as of v0.14.1.
+Only Android (Termux) and Windows are officially supported as of v0.16.0.
 Linux, macOS, iOS, and web platforms have been retired.
 
 Detect is cheap (which() / a tiny ``-e`` probe). *Installing* a runtime
@@ -82,7 +82,7 @@ MANAGED_LANGUAGES: Tuple[str, ...] = (
 def platform_id() -> str:
     """Return one of ``termux`` / ``windows`` / ``unknown``.
 
-    As of v0.14.1 only Android (Termux) and Windows are supported.
+    As of v0.16.0 only Android (Termux) and Windows are supported.
     ``Linux`` and ``Darwin`` now map to ``unknown`` since those
     platforms have been retired from official support.
     """
@@ -170,7 +170,7 @@ def detect_runtime(language: str) -> RuntimeStatus:
         ok = bool(binary)
         note = "Rscript on PATH"
         pkg_ok = False
-        version = ""
+        version = "0.16.0"
         if ok:
             res = _exec.run(
                 [str(binary), "-e", 'cat(R.version$version.string, "\n")'],
@@ -204,7 +204,7 @@ def detect_runtime(language: str) -> RuntimeStatus:
         binary = shutil.which("julia") or ""
         ok = bool(binary)
         note = "julia on PATH"
-        version = ""
+        version = "0.16.0"
         if ok:
             res = _exec.run(
                 [str(binary), "-e", 'print(VERSION)'],

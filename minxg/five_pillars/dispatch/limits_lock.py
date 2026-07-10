@@ -70,7 +70,7 @@ class _Barrier:
 
 class LimitsLockWorker(BaseWorker):
     worker_id = "limits_lock"
-    version = "1.0.0"
+    version = "0.16.0"
 
     def __init__(self):
         self._locks: Dict[str, asyncio.Lock] = {}

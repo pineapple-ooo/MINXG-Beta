@@ -30,7 +30,7 @@ _ADAPTER = _sys.modules.get("minxg.contracts.runtime.wasm")
 
 class WasmWorker(BaseWorker):
     worker_id = "wasm_compute"
-    version = "0.14.1"
+    version = "0.16.0"
 
     @tool(description="i32 arithmetic in WebAssembly (add/sub/mul/div_s/rem_s).",
           category="compute")

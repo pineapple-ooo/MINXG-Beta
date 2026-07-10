@@ -20,7 +20,7 @@ EXTENSION_DESCRIPTION = (
     "ADB tooling: manage connected Android devices "
     "(devices/shell/install/logcat/screenshot)"
 )
-EXTENSION_VERSION = "1.0.1"
+EXTENSION_VERSION = "0.16.0"
 EXTENSION_PRIORITY = 90
 EXTENSION_SOURCE = "builtin"
 EXTENSION_ENABLED = False  # opt-in via `minxg ext add minxg-adb`

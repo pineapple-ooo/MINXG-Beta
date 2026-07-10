@@ -57,7 +57,7 @@ SUPPORTED_EXTENSIONS = (".py", ".zip", ".tar.gz", ".tgz", ".json")
 # Python sources. The contents are used as metadata: ``name``, ``version``
 # and ``description`` flow through to ``list_extensions()`` even when the
 # underlying module has the legacy EXTENSION_NAME etc. constants.
-# This is the 0.14.0 "extension interface strengthening" change — the
+# This is the 0.16.0 "extension interface strengthening" change — the
 # contract is now driven by a readable JSON file rather than scattered
 # attribute strings.
 _MANIFEST_CANDIDATES = ("manifest.json", "minxg.json", "extension.json")
@@ -152,7 +152,7 @@ def _read_manifest(ext_root: Path) -> Dict[str, Any]:
     """Look for ``manifest.json`` / ``minxg.json`` / ``extension.json``
     inside ``ext_root`` and return its parsed contents.
 
-    The manifest is the 0.14.0 way extensions declare name/version/
+    The manifest is the 0.16.0 way extensions declare name/version/
     description to MINXG: it is read ONLY for metadata, the executable
     surface still has to be a Python module with ``handle_command``. A
     missing or malformed manifest is *not* an error — it just returns
@@ -274,7 +274,7 @@ def _load_json_manifest_extension(json_file: Path,
                                    source: str) -> List[ExtensionModule]:
     """Recognise a standalone JSON file as an extension entry.
 
-    This is the 0.14.0 "drop-in manifest" path — packages that travel
+    This is the 0.16.0 "drop-in manifest" path — packages that travel
     with only a JSON file (e.g. drop-in metadata-only stubs, or
     declarations of vendor plugins that ship elsewhere) are picked up
     here. File name MUST end in ``.manifest.json`` / ``.minxg.json`` /
@@ -348,7 +348,7 @@ def _validate_and_wrap(mod, source: str, path: str,
     `handle_command` and reporting back honestly. The runner stays free
     of plugin-curated ladders.
 
-    Manifest precedence (0.14.0 — JSON-driven extension contract):
+    Manifest precedence (0.16.0 — JSON-driven extension contract):
       * If the extension lives next to a ``manifest.json`` whose ``name``
         is present, it wins.
       * The Python ``EXTENSION_NAME``/``EXTENSION_VERSION``/etc. are

@@ -51,7 +51,7 @@ class TestGatewayServerInstantiation:
         gw = GatewayServer(config={})
         assert gw.host == "0.0.0.0"
         assert gw.port == 18080
-        assert gw.version == "1.0.0"
+        assert gw.version == "0.16.0"
 
     def test_gateway_server_with_custom_config(self):
         gw = GatewayServer(config={
@@ -68,7 +68,7 @@ class TestGatewayServerInstantiation:
         gw = GatewayServer(config={})
         assert gw.host == "0.0.0.0"
         assert gw.port == 18080
-        assert gw.version == "1.0.0"
+        assert gw.version == "0.16.0"
 
         # initialize() is async; mock heavy deps so it completes quickly
         with mock.patch("gateway.router.WorkerRouter") as MockRouter:

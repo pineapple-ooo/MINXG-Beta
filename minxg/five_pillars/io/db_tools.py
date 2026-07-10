@@ -9,7 +9,7 @@ from minxg.base import BaseWorker, tool
 
 class DbToolsWorker(BaseWorker):
     worker_id = "db_tools"
-    version = "1.0.0"
+    version = "0.16.0"
 
     @tool(description="Open SQLite database and return info", category="sqlite")
     async def sqlite_info(self, path: str) -> Dict:

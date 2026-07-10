@@ -9,7 +9,7 @@ from minxg.base import BaseWorker, tool
 
 class AiToolsWorker(BaseWorker):
     worker_id = "ai_tools"
-    version = "1.0.0"
+    version = "0.16.0"
 
     @tool(description="Estimate token count", category="text")
     async def estimate_tokens(self, text: str, method: str = "char_div_4") -> Dict:

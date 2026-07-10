@@ -1,6 +1,6 @@
 """minxg.contracts.runtime.manifest — single source of truth for adapters.
 
-This is the JSON-equivalent table that the 0.14.0 polyglot feature
+This is the JSON-equivalent table that the 0.16.0 polyglot feature
 defers to. Every language adapter MINXG can dispatch to has one entry
 here. The runtime discovery walks this table once and loads each
 adapter module.
@@ -28,43 +28,43 @@ POLYGLOT_LANGUAGES: List[str] = [
 POLYGLOT_MANIFEST: Dict[str, Dict[str, str]] = {
     "python": {
         "name": "python",
-        "version": "0.14.0",
+        "version": "0.16.0",
         "status": "native",
         "module": "minxg.contracts.runtime.python",
     },
     "cpp": {
         "name": "cpp",
-        "version": "0.14.0",
+        "version": "0.16.0",
         "status": "compiled-stub",
         "module": "minxg.contracts.runtime.cpp",
     },
     "go": {
         "name": "go",
-        "version": "0.14.0",
+        "version": "0.16.0",
         "status": "compiled-stub",
         "module": "minxg.contracts.runtime.go",
     },
     "wasm": {
         "name": "wasm",
-        "version": "0.14.0",
+        "version": "0.16.0",
         "status": "stub",
         "module": "minxg.contracts.runtime.wasm",
     },
     "r": {
         "name": "r",
-        "version": "0.14.0",
+        "version": "0.16.0",
         "status": "stub",
         "module": "minxg.contracts.runtime.r",
     },
     "datalog": {
         "name": "datalog",
-        "version": "0.14.0",
+        "version": "0.16.0",
         "status": "stub",
         "module": "minxg.contracts.runtime.datalog",
     },
     "julia": {
         "name": "julia",
-        "version": "0.14.0",
+        "version": "0.16.0",
         "status": "stub",
         "module": "minxg.contracts.runtime.julia",
     },

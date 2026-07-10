@@ -3,7 +3,7 @@ from minxg.base import BaseWorker, tool
 
 class I18nWorker(BaseWorker):
     worker_id = "i18n_worker"
-    version = "0.0.1"
+    version = "0.16.0"
 
     @tool
     async def detect_language(self, text: str = "") -> dict:

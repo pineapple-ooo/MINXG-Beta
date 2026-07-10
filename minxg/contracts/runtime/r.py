@@ -5,7 +5,7 @@ a string; it ships a real ``bridge.R`` under
 ``minxg/contracts/runtime/assets/r`` and invokes that file with a JSON payload
 on stdin. R code lives in ``.R`` files, where it belongs.
 
-Bridge modes (v0.14.1):
+Bridge modes (v0.16.0):
   - eval:     safe R expression evaluator
   - fib:      Fibonacci (iterative, no recursion)
   - prime:    Sieve of Eratosthenes prime counting
@@ -25,7 +25,7 @@ from typing import Any, Dict
 from ._exec import asset_path, payload_code, run, which
 
 ADAPTER_NAME = "r"
-ADAPTER_VERSION = "0.14.1"
+ADAPTER_VERSION = "0.16.0"
 ADAPTER_STATUS = "disabled"
 
 _RSCRIPT = which("Rscript")

@@ -1,10 +1,10 @@
-"""minxg — Seven-Pillar Operator Architecture v0.14.1
+"""minxg — Seven-Pillar Operator Architecture v0.16.0
 
 A modular worker platform organized along seven mathematical/functional
 operator dimensions. Each pillar is independently importable so that
 editing one module never forces a project-wide rebuild.
 
-The seven mathematical pillars (v0.14.1):
+The seven mathematical pillars (v0.16.0):
   1. GA       — Geometric Algebra (multivector calculus)
   2. Cat      — Category Theory (functors, monads, morphisms)
   3. InfoGeo  — Information Geometry (Fisher metric, natural gradient)
@@ -101,12 +101,12 @@ __all__ = [
     "EncodingToolsWorker", "CryptoToolsWorker", "DataToolsWorker",
     "TemplateToolsWorker", "I18nWorker",
     "MlToolsWorker", "BenchmarkToolsWorker",
-    # Polyglot workers — Julia / R / Datalog / Wasm (v0.14.1)
+    # Polyglot workers — Julia / R / Datalog / Wasm (v0.16.0)
     "JuliaWorker", "RWorker", "DatalogWorker", "WasmWorker",
     "OperatorWorker",
     "CURRENT_PLATFORM", "detect_platform", "get_available_tools",
     "get_tools_by_category", "get_system_capabilities",
-    # Standalone subsystems (v0.13.0 — promoted to top-level)
+    # Standalone subsystems (v0.16.0 — promoted to top-level)
     "cap", "contracts", "driver", "lossless",
     "twin", "lens", "self_evolution", "polyglot", "symbdiff", "screen",
 ]

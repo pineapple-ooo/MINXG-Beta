@@ -5,7 +5,7 @@ C and C++ are first-class MINXG runtimes. The Python adapter ships real
 ``minxg/contracts/runtime/assets/{c,cpp}`` and runs them by compiling with
 ``gcc`` / ``g++`` or ``clang`` / ``clang++``.
 
-Bridge modes (v0.14.1):
+Bridge modes (v0.16.0):
   - eval:     safe expression evaluator (sin/cos/sqrt/log/exp/pow + arithmetic)
   - fib:      Fibonacci O(log n) via matrix exponentiation
   - prime:    Sieve of Eratosthenes prime counting
@@ -23,7 +23,7 @@ from typing import Any, Dict
 from ._exec import asset_path, payload_code, run, sandbox_path, which
 
 ADAPTER_NAME = "cpp"
-ADAPTER_VERSION = "0.14.1"
+ADAPTER_VERSION = "0.16.0"
 ADAPTER_STATUS = "disabled"
 
 _CC = which("gcc") or which("clang")

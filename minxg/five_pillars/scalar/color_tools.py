@@ -3,7 +3,7 @@ from minxg.base import BaseWorker, tool
 
 class ColorWorker(BaseWorker):
     worker_id = "color_worker"
-    version = "0.0.1"
+    version = "0.16.0"
 
     @tool
     async def hex_to_rgb(self, hex_color: str = "#ffffff") -> dict:

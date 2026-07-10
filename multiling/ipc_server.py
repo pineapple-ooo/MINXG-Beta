@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(levelname)-7s | %(name)-18s | %(message)s')
 logger = logging.getLogger("ipc_server")
 
-IPC_VERSION = "1.0.0"
+IPC_VERSION = "0.16.0"
 MAX_CONNECTIONS = 1000
 CONNECTION_TIMEOUT = 300.0
 READ_BUFFER_SIZE = 65536

@@ -2,14 +2,14 @@
 
 All notable changes to MINXG are documented in this file.
 
-## [0.15.0] - 2026-07-10
+## [0.16.0] - 2026-07-10
 
 ### Fixed
 - SyntaxError in : repaired stray  triple-double-quote injection on  return chain (line 311) that caused  on every import of 
 - Typo in : corrected  →  assertion
 
 ### Changed
-- Version bump: 0.14.1 → 0.15.0
+- Version bump: 0.14.1 → 0.16.0
 
 ## [0.14.1] - 2026-07-02 - Seven-Pillar Architecture + Engine RK4/RK45 + SymbDiff + i18n×12 + Platform Consolidation
 

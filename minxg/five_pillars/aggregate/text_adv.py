@@ -19,7 +19,7 @@ from minxg.base import BaseWorker, tool
 
 class TextAdvWorker(BaseWorker):
     worker_id = "text_adv"
-    version = "0"
+    version = "0.16.0"
 
     # ══════════════════════════════════════════════════════════════════════════
     # REGEX OPERATIONS (IDs 5000-5099)

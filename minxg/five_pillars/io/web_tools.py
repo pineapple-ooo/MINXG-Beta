@@ -22,7 +22,7 @@ except Exception:
 
 class WebToolsWorker(BaseWorker):
     worker_id = "web_tools"
-    version = "1.1.0"
+    version = "0.16.0"
 
     @tool(description="Parse URL into components", category="url")
     async def url_parse(self, url: str) -> Dict:

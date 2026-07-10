@@ -7,7 +7,7 @@ from minxg.base import BaseWorker, tool
 
 class ProcessToolsWorker(BaseWorker):
     worker_id = "process_tools"
-    version = "1.0.0"
+    version = "0.16.0"
 
     @tool(description="Generate process search command", category="ps")
     async def find_process(self, name: str) -> Dict:

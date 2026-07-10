@@ -6,7 +6,7 @@ fall back to it when its own runtime is unavailable.
 from __future__ import annotations
 
 ADAPTER_NAME = "python"
-ADAPTER_VERSION = "0.14.0"
+ADAPTER_VERSION = "0.16.0"
 ADAPTER_STATUS = "native"
 
 

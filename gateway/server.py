@@ -61,7 +61,7 @@ class GatewayServer:
     OpenAI-compatible Gateway server.
     Each session maintains a StructuredWorkspace for infinite context.
 
-    New in v0.14.0: the constructor takes either a ``GatewayConfig`` or a
+    New in v0.16.0: the constructor takes either a ``GatewayConfig`` or a
     raw dict (auto-coerced). Every internal component is wired from the
     same config object — there is no longer any place where the gateway
     silently falls back to env-vars or kubectl-style hot-patches mid-request.
@@ -75,7 +75,7 @@ class GatewayServer:
 
         self.host: str = gw_cfg.host
         self.port: int = gw_cfg.port
-        self.version = "1.0.0"
+        self.version = "0.16.0"
 
         self.ai_provider: str = ai_cfg.provider
         self.ai_model: str = ai_cfg.model
