@@ -4,6 +4,74 @@ Everything you need to read, modify, extend, and ship MINXG.
 
 ---
 
+## 0. v0.14.1 release notes (2026-07-02) - Seven-Pillar Architecture
+
+Version: 0.14.1
+
+### What changed
+
+This is a feature-rich patch release that adds the seventh mathematical
+pillar, upgrades the driver engine to three integration methods, expands
+i18n to 12 languages, industrializes all polyglot bridges, and
+consolidates platform support.
+
+**Cross-cutting variables to keep in sync:**
+- `minxg/_version.py:VERSION` — **single source of truth**
+- `pyproject.toml` reads the version via setuptools dynamic
+- `minxg/__init__.__version__` imports from `_version`
+- `CHANGELOG.md` top section
+- `README.md` version banner
+
+If any drift, `minxg doctor` and `tests/test_version_lock.py` will fire.
+
+### New: SymbDiff (seventh pillar)
+
+```
+minxg/symbdiff/
+├── __init__.py          # Jet, DiffPoly, VectorField, lie_bracket, find_integrating_factor
+├── operators_symbdiff.py # JetOperator, LieBracketOperator, DiffIdealOperator, IntFactorOperator
+└── README.md            # Design doc + usage examples
+```
+
+Core type `Jet(order, value, derivs)` — truncated Taylor series with
+automatic Leibniz/Faà di Bruno derivative propagation through +, -, *,
+/, ^, sin, cos, ln, exp. Not a CAS toy; a real differential algebra.
+
+Operator bindings allow the driver engine to compute Lie brackets
+between operator fields and reorder compositions for zero drift.
+
+### New: Driver Engine 2.0
+
+Three selectable integration methods:
+```python
+from minxg.driver.engine import DriverEngine
+e1 = DriverEngine(method="euler")   # legacy explicit Euler
+e2 = DriverEngine(method="rk4")     # 4th-order Runge-Kutta
+e3 = DriverEngine(method="rk45", rtol=1e-6, atol=1e-9)  # adaptive RK45
+```
+
+New `StepReport` fields: `method`, `energy_delta`, `lyapunov_estimate`,
+`is_chaotic`, `singularity_detected`. New `EnginePhase.SINGULARITY`.
+
+### New: i18n × 12
+
+Languages: en, zh, ja, ko, fr, de, es, pt-BR, ru, ar, hi, th.
+Each in `multiligua_cli/i18n_data/{code}.json`. Use `T(key)` or
+`T(key, lang="zh")`.
+
+### Platform consolidation
+
+Only Android (Termux) + Windows. `platform_id()` returns
+`"termux"` / `"windows"` / `"unknown"` only.
+
+### Polyglot bridges
+
+All six bridges (C, C++, Go, R, Julia, WASM, Datalog) rewritten
+from trivial a+b to genuine mathematical operations with JSON payload:
+eval, fib, prime, lin, matmul, ode, eigen, stats modes.
+
+---
+
 ## 0. v0.13.0 release notes (2026-06-25) - Surface sweep + experimental verbs
 
 A focused cleanup that:

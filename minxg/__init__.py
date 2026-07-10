@@ -1,8 +1,19 @@
-"""minxg — Five-Pillar Operator Architecture v0.14.0
+"""minxg — Seven-Pillar Operator Architecture v0.14.1
 
-A modular worker platform organized along five mathematical/functional
+A modular worker platform organized along seven mathematical/functional
 operator dimensions. Each pillar is independently importable so that
 editing one module never forces a project-wide rebuild.
+
+The seven mathematical pillars (v0.14.1):
+  1. GA       — Geometric Algebra (multivector calculus)
+  2. Cat      — Category Theory (functors, monads, morphisms)
+  3. InfoGeo  — Information Geometry (Fisher metric, natural gradient)
+  4. Topo     — Topology (homology, cohomology, spectral sequences)
+  5. Chaos    — Chaos Theory (Lyapunov, bifurcation, fractals)
+  6. Fiber    — Fiber Bundles (connections, curvature, parallel transport)
+  7. SymbDiff — Symbolic Differential Algebra (jets, Lie brackets, diff ideals)
+
+Platforms supported: Android (Termux) + Windows only.
 """
 from .base import BaseWorker, ToolDef, WorkerRegistry
 from . import _config as _cfg_mod
@@ -65,6 +76,9 @@ from .five_pillars.aggregate.template_tools import TemplateToolsWorker
 from .five_pillars.aggregate.i18n_tools import I18nWorker
 from .five_pillars.aggregate.ml_tools import MlToolsWorker
 from .five_pillars.aggregate.benchmark_tools import BenchmarkToolsWorker
+from .five_pillars.polyglot import (
+    JuliaWorker, RWorker, DatalogWorker, WasmWorker,
+)
 
 from .operators import OperatorWorker
 
@@ -87,12 +101,14 @@ __all__ = [
     "EncodingToolsWorker", "CryptoToolsWorker", "DataToolsWorker",
     "TemplateToolsWorker", "I18nWorker",
     "MlToolsWorker", "BenchmarkToolsWorker",
+    # Polyglot workers — Julia / R / Datalog / Wasm (v0.14.1)
+    "JuliaWorker", "RWorker", "DatalogWorker", "WasmWorker",
     "OperatorWorker",
     "CURRENT_PLATFORM", "detect_platform", "get_available_tools",
     "get_tools_by_category", "get_system_capabilities",
     # Standalone subsystems (v0.13.0 — promoted to top-level)
     "cap", "contracts", "driver", "lossless",
-    "twin", "lens", "self_evolution", "polyglot",
+    "twin", "lens", "self_evolution", "polyglot", "symbdiff", "screen",
 ]
 
 # Single source of truth: see minxg/_version.py
@@ -142,6 +158,11 @@ try:
 except ImportError:
     _polyglot = None
 
+try:
+    from . import symbdiff as _symbdiff
+except ImportError:
+    _symbdiff = None
+
 # Promote standalone subsystems to top-level so callers can do
 # `import minxg; minxg.twin` the same way they do `minxg.ga`.
 if _cap is not None:
@@ -160,8 +181,18 @@ if _self_evolution is not None:
     self_evolution = _self_evolution
 if _polyglot is not None:
     polyglot = _polyglot
+if _symbdiff is not None:
+    symbdiff = _symbdiff
 
-del _cap, _contracts, _driver, _lossless, _twin, _lens, _self_evolution, _polyglot
+try:
+    from . import screen as _screen
+except ImportError:
+    _screen = None
+
+if _screen is not None:
+    screen = _screen
+
+del _cap, _contracts, _driver, _lossless, _twin, _lens, _self_evolution, _polyglot, _symbdiff, _screen
 
 try:
     from . import ga
@@ -205,9 +236,17 @@ try:
 except ImportError:
     FIBER_OPERATORS = 0
 
+try:
+    from . import symbdiff
+    from .symbdiff import operators_symbdiff as _sd_ops
+    SYMDIFF_OPERATORS = 4  # Jet, LieBracket, DiffIdeal, IntFactor
+except ImportError:
+    SYMDIFF_OPERATORS = 0
+
 TOTAL_MATHEMATICAL_OPERATORS = (
     GA_OPERATORS + CAT_OPERATORS + IG_OPERATORS
     + TOPO_OPERATORS + CHAOS_OPERATORS + FIBER_OPERATORS
+    + SYMDIFF_OPERATORS
 )
 
 POLYGLOT_LANGUAGES = ("python", "rust", "javascript", "go", "shell")
@@ -216,5 +255,6 @@ LOSSLESS_VERSION = 1
 TWIN_ERROR = "UnsupportedTwinOp"
 SELF_EVOLUTION_PHASES = ("born", "mutable", "live", "quiet", "gone")
 LENS_LANGUAGES = ("en", "zh", "zh-TW", "ja", "ko")
-DRIVER_PHASES = ("ready", "stepping", "paused", "halted", "faulted")
+DRIVER_PHASES = ("ready", "stepping", "paused", "halted", "faulted", "singularity")
+DRIVER_METHODS = ("euler", "rk4", "rk45")
 DRIVER_DEFAULT_MAX_SUBDIVISIONS = 6

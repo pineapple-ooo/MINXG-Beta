@@ -906,6 +906,31 @@ def add_subparsers(sub) -> None:
     )
     p_runtime_install.set_defaults(_experimental_cmd="runtime-install")
 
+    # 0.14.1 — `minxg sg` — call the polyglot worker tools from the CLI.
+    # The polyglot adapters have always had invoke() entries; this verb
+    # makes them reachable for users without going through the AI layer.
+    p_sg = sub.add_parser(
+        "sg",
+        help=(
+            f"{EXPERIMENTAL_TAG} dispatch a polyglot worker tool by name. "
+            "Use ``minxg polyglot-manifest`` (and ``minxg tools``) to find "
+            "the registered worker tool names per language."
+        ),
+    )
+    p_sg.add_argument(
+        "tool",
+        help=(
+            "Fully qualified tool name, e.g. ``julia_math.julia_fib`` or "
+            "``r_stats.r_summary``. Abbreviated prefixes like ``julia_`` "
+            "match the first available tool on any JuliaWorker."
+        ),
+    )
+    p_sg.add_argument(
+        "--json", action="store_true",
+        help="read tool arguments as a single JSON object on stdin.",
+    )
+    p_sg.set_defaults(_experimental_cmd="sg")
+
 
 def dispatch(args: argparse.Namespace) -> int:
     """Route a parsed args with `_experimental_cmd` to its handler."""
@@ -932,5 +957,123 @@ def dispatch(args: argparse.Namespace) -> int:
         return run_runtime_plan(args)
     if cmd == "runtime-install":
         return run_runtime_install(args)
+    if cmd == "sg":
+        return run_sg(args)
     sys.stderr.write(f"{EXPERIMENTAL_TAG} unknown verb: {cmd!r}\n")
     return 2
+
+
+# sg — single-shot dispatch into a polyglot worker tool.
+# -----------------------------------------------------------------------
+
+def run_sg(args: argparse.Namespace) -> int:
+    """Call a polyglot worker tool by fully-qualified name.
+
+    Format: ``minxg sg <worker_id>.<tool_name> [--json] [<args...>]``
+
+    * Without ``--json``: positional args after the tool name are coerced
+      to keyword arguments via str.split("=") syntax
+      (``tool=arg tool=arg``) or treated as a single string passed as
+      ``code`` for ``*_eval`` tools. JSON mode is the explicit, recommended
+      path because parameter types are preserved.
+    * With ``--json``: read the JSON object from stdin instead.
+
+    Exit codes:
+        0 — tool returned ``status: ok`` (or a non-error variant)
+        1 — tool returned ``status: disabled`` (runtime missing)
+        2 — tool name not found / bad arguments
+        3 — internal dispatcher error
+    """
+    _experimental_warning("sg")
+    from minxg.base import WorkerRegistry
+
+    spec: str = getattr(args, "tool", "")
+    if not spec or "." not in spec:
+        sys.stderr.write(
+            f"{EXPERIMENTAL_TAG} sg syntax: ``<worker_id>.<tool_name>`` "
+            "(e.g. ``r_stats.r_summary``, ``wasm_compute.wasm_fib``)\n"
+        )
+        return 2
+
+    worker_id, _, tool_name = spec.partition(".")
+    # Build or reuse a registry. Workers self-register on import, so
+    # importing the polyglot sub-package is enough.
+    try:
+        from minxg.five_pillars.polyglot import JuliaWorker, RWorker, DatalogWorker, WasmWorker
+        registry = WorkerRegistry()
+        registry.register(JuliaWorker())
+        registry.register(RWorker())
+        registry.register(DatalogWorker())
+        registry.register(WasmWorker())
+    except Exception as e:
+        sys.stderr.write(f"{EXPERIMENTAL_TAG} sg: registry build failed: {e}\n")
+        return 3
+
+    worker = registry.get(worker_id)
+    if worker is None:
+        sys.stderr.write(
+            f"{EXPERIMENTAL_TAG} sg: unknown worker ``{worker_id}``\n"
+        )
+        return 2
+    if tool_name not in worker.tools:
+        sys.stderr.write(
+            f"{EXPERIMENTAL_TAG} sg: worker ``{worker_id}`` has no tool "
+            f"``{tool_name}``. Available: {sorted(worker.tools)}\n"
+        )
+        return 2
+
+    # Collect args.
+    try:
+        if getattr(args, "json", False):
+            import json as _json
+            raw = sys.stdin.read()
+            params = _json.loads(raw) if raw.strip() else {}
+        else:
+            params = _sg_parse_positional(sys.argv[1:])
+    except Exception as e:
+        sys.stderr.write(f"{EXPERIMENTAL_TAG} sg: arg parse failed: {e}\n")
+        return 2
+
+    import asyncio
+    try:
+        result = asyncio.run(worker.call(tool_name, params))
+    except Exception as e:
+        sys.stderr.write(f"{EXPERIMENTAL_TAG} sg: tool raised: {e}\n")
+        return 3
+
+    import json as _json2
+    print(_json2.dumps(result, ensure_ascii=False, indent=2, default=str))
+    status = result.get("status")
+    if status in ("ok", "subset_violation"):
+        return 0
+    if status == "disabled":
+        return 1
+    if status == "error":
+        return 2
+    return 0
+
+
+def _sg_parse_positional(argv: List[str]) -> Dict[str, Any]:
+    """Parse leftover ``--key=value`` / ``key=value`` / positional ``k k`` pairs.
+
+    Bare positional args (no ``=``) are merged into ``code`` so that
+    ``minxg sg r_stats.r_eval -- -- '$x + 1'`` ends up with
+    ``{"code": "$x + 1"}`` after stripping the leading separator.
+    """
+    params: Dict[str, Any] = {}
+    i = 0
+    while i < len(argv):
+        tok = argv[i]
+        if tok.startswith("--") and "=" in tok:
+            key, _, val = tok[2:].partition("=")
+            params[key] = val
+        elif "=" in tok and not tok.startswith("-"):
+            key, _, val = tok.partition("=")
+            params[key] = val
+        else:
+            params.setdefault("code", "")
+            if params["code"]:
+                params["code"] += " "
+            params["code"] += tok
+        i += 1
+    return params

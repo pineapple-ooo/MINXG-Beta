@@ -81,20 +81,22 @@ class PlatformIDTests(unittest.TestCase):
             self.assertEqual(platform_id(), "termux")
 
     def test_linux_when_neither_termux_nor_darwin(self):
+        """v0.14.1: Linux is no longer supported; returns 'unknown'."""
         from minxg.contracts.runtime.installer import platform_id
         env = {k: v for k, v in os.environ.items() if k != "TERMUX_VERSION"}
         with mock.patch.dict(os.environ, env, clear=True), \
              mock.patch("os.path.isdir", return_value=False), \
              mock.patch("platform.system", return_value="Linux"):
-            self.assertEqual(platform_id(), "linux")
+            self.assertEqual(platform_id(), "unknown")
 
     def test_macos(self):
+        """v0.14.1: macOS is no longer supported; returns 'unknown'."""
         from minxg.contracts.runtime.installer import platform_id
         env = {k: v for k, v in os.environ.items() if k != "TERMUX_VERSION"}
         with mock.patch.dict(os.environ, env, clear=True), \
              mock.patch("os.path.isdir", return_value=False), \
              mock.patch("platform.system", return_value="Darwin"):
-            self.assertEqual(platform_id(), "macos")
+            self.assertEqual(platform_id(), "unknown")
 
     def test_windows_msys(self):
         from minxg.contracts.runtime.installer import platform_id
@@ -230,7 +232,7 @@ class PlanInstallTests(unittest.TestCase):
     """Every managed language has a plan on every supported platform."""
 
     LANGS = ("cpp", "go", "wasm", "r", "julia", "datalog")
-    PLATS = ("termux", "linux", "macos", "windows", "unknown")
+    PLATS = ("termux", "windows", "unknown")
 
     def test_managed_languages_have_a_plan(self):
         from minxg.contracts.runtime.installer import (
@@ -268,12 +270,11 @@ class PlanInstallTests(unittest.TestCase):
         self.assertIn("clang", cmd)
         self.assertTrue(note)  # Termux gets a helpful note
 
-    def test_linux_for_r_mentions_jsonlite(self):
+    def test_termux_for_r_is_pkg_install(self):
         from minxg.contracts.runtime.installer import plan_install
         plan = plan_install("r")
-        cmd, _ = plan.command_for("linux")
-        self.assertIn("r-base", cmd)
-        self.assertIn("jsonlite", cmd)
+        cmd, _ = plan.command_for("termux")
+        self.assertIn("pkg install", cmd)
 
     def test_render_includes_status_per_language(self):
         from minxg.contracts.runtime.installer import (
@@ -342,11 +343,12 @@ class RunInstallTests(unittest.TestCase):
             seen.append(cmd)
             return {"ok": True, "stdout": "installed\n", "stderr": ""}
 
-        result = run_install(
-            "r", plat="linux", apply=True, runner=fake_runner,
-        )
+        with mock.patch("shutil.which", return_value=None):
+            result = run_install(
+                "r", plat="termux", apply=True, runner=fake_runner,
+            )
         self.assertEqual(len(seen), 1)
-        self.assertIn("r-base", seen[0])
+        self.assertIn("pkg install", seen[0])
         rows = result["plans"]
         self.assertEqual(rows[0]["language"], "r")
         self.assertTrue(rows[0]["applied"])
@@ -358,9 +360,10 @@ class RunInstallTests(unittest.TestCase):
         def bad_runner(cmd):
             return {"ok": False, "stdout": "", "stderr": "permission denied"}
 
-        result = run_install(
-            "julia", plat="linux", apply=True, runner=bad_runner,
-        )
+        with mock.patch("shutil.which", return_value=None):
+            result = run_install(
+                "julia", plat="termux", apply=True, runner=bad_runner,
+            )
         self.assertFalse(result["plans"][0]["runner_output"]["ok"])
         self.assertEqual(
             result["plans"][0]["runner_output"]["stderr"], "permission denied",

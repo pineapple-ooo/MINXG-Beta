@@ -535,6 +535,64 @@ Examples:
     except ImportError:  # pragma: no cover
         pass
 
+    # SPA — minxg screen <verb>
+    p_screen = sub.add_parser(
+        "screen",
+        help="SPA screen controller (capture, describe, tap, swipe, type, key, act, daemon).",
+    )
+    p_screen.add_argument(
+        "--source", choices=("auto", "adb", "termux", "camera", "mock"),
+        default="auto",
+        help="Preferred capture backend (default: auto = first available).",
+    )
+    p_screen.add_argument(
+        "--dry-run", action="store_true",
+        help="Walk the SPA pipeline without performing live ADB writes.",
+    )
+    p_screen_sub = p_screen.add_subparsers(
+        dest="screen_action", metavar="<verb>",
+    )
+    p_screen_sub.add_parser(
+        "capture", help="Capture a screenshot to ~/.minxg/screen/raw/",
+    )
+    p_screen_sub.add_parser(
+        "describe", help="Render the screen description + element count",
+    )
+    p_screen_sub.add_parser(
+        "state", help="Dump the structured element/diff snapshot",
+    )
+    p_screen_sub.add_parser(
+        "daemon", help="Start the persistent screen-watcher daemon",
+    )
+    p_inspect = p_screen_sub.add_parser(
+        "inspect", help="Resolve one element by text/label",
+    )
+    p_inspect.add_argument("target", help="Element label to resolve")
+    p_tap = p_screen_sub.add_parser("tap", help="Tap by label or x y")
+    p_tap.add_argument("target",
+                       help='Label like "Submit", or "x y" integer pair')
+    p_tap.add_argument("--verify", action="store_true",
+                       help="Re-capture + re-understand after the tap")
+    p_swipe = p_screen_sub.add_parser("swipe",
+                                      help="Swipe up/down/left/right")
+    p_swipe.add_argument("direction",
+                         choices=("up", "down", "left", "right"))
+    p_swipe.add_argument("--percent", type=int, default=50)
+    p_type = p_screen_sub.add_parser(
+        "type", help="Type text into current focus",
+    )
+    p_type.add_argument("text")
+    p_type.add_argument("--label", default="",
+                        help="Tap this field first to focus it")
+    p_keycmd = p_screen_sub.add_parser(
+        "key", help="Send a keyevent (BACK/HOME/ENTER/...)",
+    )
+    p_keycmd.add_argument("keycode")
+    p_act = p_screen_sub.add_parser(
+        "act", help="High-level natural-language action",
+    )
+    p_act.add_argument("instruction", help='e.g. "tap Confirm", "swipe up"')
+
     p_ext = sub.add_parser("ext", help="Manage user-installed extensions")
     ext_sub = p_ext.add_subparsers(dest="ext_action", metavar="<action>")
     ext_sub.add_parser("list", help="List installed extensions")
@@ -622,6 +680,10 @@ Examples:
     if cmd == "doctor":
         from multiligua_cli.doctor import run_doctor
         return run_doctor(args)
+
+    if cmd == "screen":
+        from multiligua_cli.screen_cli import dispatch_screen as _screen_dispatch
+        return _screen_dispatch(args)
 
     # Experimental verbs (0.13.0) — handled by multiligua_cli.experimental.
     if getattr(args, "_experimental_cmd", None):

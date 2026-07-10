@@ -2,6 +2,67 @@
 
 All notable changes to MINXG are documented in this file.
 
+## [0.15.0] - 2026-07-10
+
+### Fixed
+- SyntaxError in : repaired stray  triple-double-quote injection on  return chain (line 311) that caused  on every import of 
+- Typo in : corrected  →  assertion
+
+### Changed
+- Version bump: 0.14.1 → 0.15.0
+
+## [0.14.1] - 2026-07-02 - Seven-Pillar Architecture + Engine RK4/RK45 + SymbDiff + i18n×12 + Platform Consolidation
+
+### Highlights
+- **Seventh Mathematical Pillar: SymbDiff.** Brand-new `minxg/symbdiff/` module
+  implementing a real **symbolic differential algebra system** — not a CAS toy,
+  but a genuine jet-based automatic differentiation engine with:
+  - `Jet(N, value, derivs)` — truncated power series supporting +, -, *, /, ^,
+    sin, cos, ln, exp with automatic Leibniz/Faà di Bruno derivative propagation
+  - `DiffPoly` — differential polynomials with total derivative computation
+  - `VectorField` + `lie_bracket()` — Lie bracket [X,Y] computation for operator
+    commutativity detection in the driver engine
+  - `find_integrating_factor()` — automatic discovery of integrating factors
+    for exact ODEs (μ(x), μ(y), power-law patterns)
+  - Four Operator bindings: `JetOperator`, `LieBracketOperator`,
+    `DiffIdealOperator`, `IntFactorOperator`
+- **Driver Engine 2.0.** Complete rewrite of `minxg/driver/engine.py`:
+  - **RK4** — classical 4th-order Runge-Kutta integration
+  - **RK45** — adaptive Runge-Kutta-Fehlberg with embedded error control (rtol/atol)
+  - **Chaos detection** — real-time Lyapunov exponent tracking; flags chaotic dynamics
+    when λ > 0.5
+  - **Energy conservation** — monitors Hamiltonian-like energy per step; reports delta
+  - **Singularity awareness** — detects NaN/Inf/extreme blowup; new `SINGULARITY` phase
+  - Selectable method: `DriverEngine(method="euler"|"rk4"|"rk45")`
+- **i18n expansion to 12 languages.** `multiligua_cli/i18n.py` now loads from
+  external JSON files in `i18n_data/`: en, zh, ja, ko, fr, de, es, pt-BR, ru,
+  ar, hi, th. All 40+ translation keys covered per language.
+- **Polyglot bridges industrialized.** All 6 runtime bridges (C, C++, Go, R, Julia,
+  WASM, Datalog) rewritten from trivial a+b to genuine mathematical bridges with
+  eval/fib/prime/lin/matmul/ode/eigen/stats modes and JSON payload protocol.
+- **Platform consolidation.** Only Android (Termux) and Windows remain supported.
+  Linux, macOS, iOS, and web platforms retired from:
+  - `platform_registry.py` — tool registry now android + windows only
+  - `installer.py` — install plans for termux + windows only
+  - `platform_tools.py` — fixed `src.platform_adapters` import bug
+  - `DRIVER_PHASES` now includes `"singularity"`
+- **Bug fixes:**
+  - `platform_tools.py` imported non-existent `src.platform_adapters` → replaced with
+    canonical imports from `minxg.five_pillars.dispatch.platform_registry`
+  - `installer.py` platform_id() now returns only termux/windows/unknown
+  - All platform references to "linux" / "macos" removed from install commands
+
+### Architecture
+- `minxg/__init__.py` now declares **Seven-Pillar Architecture** in docstring
+- New constants: `SYMDIFF_OPERATORS`, `DRIVER_METHODS = ("euler", "rk4", "rk45")`
+- `TOTAL_MATHEMATICAL_OPERATORS` now includes `SYMDIFF_OPERATORS`
+- `DRIVER_PHASES` tuple extended with `"singularity"`
+- `symbdiff` promoted to top-level: `import minxg; minxg.symbdiff`
+
+### Removed
+- Linux, macOS, iOS platform support (only Android + Windows remain)
+- All `linux`/`macos` keys from installer command dictionaries
+
 ## [0.14.0] - 2026-06-28 - Polyglot expansion + gateway hardening + think UX + extension manifest
 
 ### Highlights

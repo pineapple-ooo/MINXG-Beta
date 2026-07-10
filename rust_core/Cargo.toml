@@ -1,0 +1,19 @@
+[package]
+name = "minxg_rust"
+version = "0.14.1"
+edition = "2021"
+description = "MINXG Rust Core — pure-Rust mathematical operators, memory-safe FFI bridge"
+license = "MIT"
+
+[lib]
+name = "minxg_rust"
+crate-type = ["cdylib", "rlib"]
+
+# NO third-party deps. All math is hand-rolled from std.
+[dependencies]
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+panic = "abort"           # no unwinding through FFI

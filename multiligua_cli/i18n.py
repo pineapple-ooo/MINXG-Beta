@@ -1,13 +1,12 @@
 """
-MINXG i18n — English-only internationalization module.
+MINXG i18n — multilingual internationalization module (12 languages).
 
-All text is English. The module exists for structural compatibility
-with the i18n_data/*.json system (future languages can be added here).
+Languages shipped: en, zh, ja, ko, fr, de, es, pt-BR, ru, ar, hi, th.
+Each lives in i18n_data/{code}.json as a flat dict of translation keys.
 
 Built-in defaults: a small _DEFAULTS dict ships the most-used keys
-inline so a missing i18n_data/{lang}.json file does not turn the
-CLI into raw-key soup (e.g. `cmd_minxg` instead of "Start TUI chat").
-When i18n_data/en.json is added later, JSON entries override _DEFAULTS.
+inline so a missing JSON file does not turn the CLI into raw-key soup.
+When i18n_data/{lang}.json is present, its entries override _DEFAULTS.
 
 Public surface:
 - LANGUAGES, LANG_NAMES, LANG_CODES
@@ -23,12 +22,23 @@ from pathlib import Path
 from typing import Dict
 
 
-LANGUAGES = {
-    "en": {"name": "English", "native": "English"},
+LANGUAGES: Dict[str, Dict[str, str]] = {
+    "en":    {"name": "English",                "native": "English"},
+    "zh":    {"name": "Chinese",                "native": "中文"},
+    "ja":    {"name": "Japanese",               "native": "日本語"},
+    "ko":    {"name": "Korean",                  "native": "한국어"},
+    "fr":    {"name": "French",                  "native": "Français"},
+    "de":    {"name": "German",                  "native": "Deutsch"},
+    "es":    {"name": "Spanish",                 "native": "Español"},
+    "pt-BR": {"name": "Portuguese (Brazil)",     "native": "Português (Brasil)"},
+    "ru":    {"name": "Russian",                 "native": "Русский"},
+    "ar":    {"name": "Arabic",                  "native": "العربية"},
+    "hi":    {"name": "Hindi",                   "native": "हिन्दी"},
+    "th":    {"name": "Thai",                    "native": "ไทย"},
 }
 
-LANG_NAMES = ["English"]
-LANG_CODES = ["en"]
+LANG_NAMES = [v["native"] for v in LANGUAGES.values()]
+LANG_CODES = list(LANGUAGES.keys())
 
 
 _current_lang = "en"
@@ -128,7 +138,7 @@ def _load_json(lang_code: str) -> Dict[str, str]:
 
 
 def set_lang(code: str) -> None:
-    """Switch current language."""
+    """Switch current language. Unknown codes are silently ignored."""
     global _current_lang
     if code in LANGUAGES:
         _current_lang = code
@@ -204,7 +214,6 @@ def init_i18n() -> None:
     global _current_lang
     _current_lang = _load_config_lang()
     _load_json(_current_lang)
-
 
 
 _current_lang = _load_config_lang()

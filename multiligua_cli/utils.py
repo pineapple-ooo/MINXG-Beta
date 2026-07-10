@@ -109,10 +109,21 @@ def load_config() -> Dict[str, Any]:
 
 
 def ensure_config(func):
-    """Decorator: if config.yaml is missing, run setup wizard first."""
+    """Decorator: if config.yaml is missing, run setup wizard first.
+
+    Uses lazy attribute lookup via ``sys.modules`` so tests can ``mock.patch``
+    ``config_exists`` on the source module (``multiligua_cli.utils``) and have
+    the patched value observed inside the decorator's closure.
+    """
+    import sys as _sys  # late-bound ref for closures
 
     def wrapper(*args, **kwargs):
-        if not config_exists():
+        # Late-resolve through sys.modules so monkeypatching the source
+        # module's attribute takes effect here (closure-binding otherwise
+        # captures the original function ref).
+        utils_mod = _sys.modules.get("multiligua_cli.utils")
+        cfg_exists = getattr(utils_mod, "config_exists", None)
+        if cfg_exists is None or not cfg_exists():
             if HAS_RICH:
                 console.print(
                     Panel.fit(

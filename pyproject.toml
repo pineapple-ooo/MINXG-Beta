@@ -123,6 +123,7 @@ gateway = ["assets/**/*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-m 'not integration'"
+asyncio_mode = "auto"
 
 [tool.ruff]
 preview = true

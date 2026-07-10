@@ -102,7 +102,8 @@ class TestGatewayServerInstantiation:
         assert gw.dispatcher is mock_disp
 
     def test_runner_run_gateway_is_async(self):
-        assert asyncio.iscoroutinefunction(runner.run_gateway)
+        import inspect
+        assert inspect.iscoroutinefunction(runner.run_gateway)
 
     def test_workspace_slot_instantiation(self):
         slot = workspace.WorkspaceSlot("test", max_chars=100)

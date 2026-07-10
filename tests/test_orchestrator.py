@@ -24,7 +24,8 @@ class TestModuleImports:
         assert callable(start_api_server)
 
     def test_start_api_server_is_async(self):
-        assert asyncio.iscoroutinefunction(start_api_server)
+        import inspect
+        assert inspect.iscoroutinefunction(start_api_server)
 
     def test_orchestrator_has_expected_attrs(self, monkeypatch):
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)

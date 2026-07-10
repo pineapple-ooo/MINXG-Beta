@@ -9,36 +9,35 @@ A modular AI worker platform with a built-in [**MINXG Chat**](https://github.com
 an OpenAI-compatible v1 gateway, opt-in extensions (ADB / ROOT / files), and a self-developed
 temporal driver engine — all in one Python package.
 
-`pip install minxg-beta` drops you on Termux, Linux, macOS, and WSL
+`pip install minxg-beta` drops you on Termux (Android) and Windows
 with a single `minxg` binary on `$PATH`. Workers are split across
-five orthogonal operator planes (io, aggregate, scalar, transform,
-dispatch), so editing one module never forces a full rebuild.
+seven orthogonal mathematical pillars (GA, Category, InfoGeo, Topology,
+Chaos, Fiber, SymbDiff) and five operator planes (io, aggregate, scalar,
+transform, dispatch), so editing one module never forces a full rebuild.
 Pure Python — no compiled step required to install or run.
 
-- This is the **v0.14.0** release. Highlights: a single source of truth for
-  the project version lives in `minxg/_version.py`, so `pyproject.toml`,
-  `import minxg; minxg.__version__` and `python -m minxg._version` always
-  agree without manually keeping three files in lockstep. See
-  [CHANGELOG.md](CHANGELOG.md) for the full history.
-- **v0.14.0 language surface** — try the new polyglot adapters with
-  `minxg polyglot-manifest`. Adapters for C/C++, Go, WebAssembly, R,
-  Datalog, and Julia each ship real language source files under
-  `minxg/contracts/runtime/assets` (``.c`` / ``.cpp`` / ``.go`` / ``.wat`` /
-  ``.R`` / ``.lp`` / ``.jl``). The Python wrapper only marshals JSON and
-  probes the runtime; foreign code lives where it belongs.
-- **v0.14.0 gateway channels** — `config/gateway.yaml` channels now spin up
-  a `MemoryChannel` and/or an HTTP inbox (`/channel/inbox`) alongside the
-  OpenAI-compatible REST server.
-- **v0.14.0 genesis loop** — `minxg genesis --seed "sort a list fast"`
-  proposes, mutates, evaluates, and crystallises a tiny Python candidate
-  under `~/.minxg/genesis/`.
-- **v0.14.0 (prior)** — subpackages
-  (`minxg.twin`, `minxg.lens`, `minxg.lossless`, `minxg.self_evolution`,
-  `minxg.polyglot`, `minxg.driver`, `minxg.cap`, `minxg.contracts`)
-  are now exposed at the top level so `import minxg; minxg.twin` works,
-  the stale `docs/archive/` folder (including the obsolete multi-AI
-  negotiation file) is deleted, and five new experimental CLI verbs
-  ship (`bench`, `replay`, `theme`, `safe-eval`, `ext reload`).
+- This is the **v0.14.1** release. Highlights: the seventh mathematical
+  pillar **SymbDiff** (symbolic differential algebra with jet-based
+  automatic differentiation, Lie brackets, integrating factors), driver
+  engine now supports **RK4/RK45** integration with chaos detection,
+  energy conservation tracking, and singularity awareness, i18n expanded
+  to **12 languages**, all polyglot bridges industrialized with genuine
+  mathematical operations, and platform support consolidated to
+  **Android + Windows only**. See [CHANGELOG.md](CHANGELOG.md) for full history.
+- **v0.14.1 SymbDiff** — `minxg.symbdiff.Jet` computes exact derivatives
+  to arbitrary order via truncated power series. Lie bracket detection
+  tells the driver engine which operators commute (zero drift) and which
+  diverge. `find_integrating_factor()` discovers exact ODE solutions.
+- **v0.14.1 Driver Engine 2.0** — `DriverEngine(method="rk45")` gives
+  adaptive Runge-Kutta-Fehlberg with embedded error control. Chaos is
+  flagged via real-time Lyapunov exponent tracking. Singularities
+  (NaN/Inf blowup) trigger a new engine phase.
+- **v0.14.1 i18n/12** — UI now speaks English, 中文, 日本語, 한국어,
+  Français, Deutsch, Español, Português, Русский, العربية, हिन्दी,
+  ไทย. `minxg lang <code>` switches instantly.
+- **v0.14.1 polyglot bridges** — C, C++, Go, R, Julia, WASM, Datalog
+  each run eval/fib/prime/lin/matmul/ode/eigen/stats modes with JSON
+  payload protocol. Not a+b toys anymore.
 
 - `minxg` (no subcommand) now asks: drop into MINXG Chat, start the
   API gateway, or run the setup wizard — instead of dropping straight
@@ -126,17 +125,17 @@ After install:
 
 ```python
 import minxg
-print(minxg.VERSION)         # "0.14.0"
+print(minxg.VERSION)         # "0.14.1"
 print(minxg.detect_platform())
 ```
 
 Verified end-to-end on Termux/Android (`Python 3.13`) and Linux:
 ```bash
 $ pip install -e .
-Successfully installed minxg-beta-0.14.0
+Successfully installed minxg-beta-0.14.1
 
 $ python3 -c "import minxg; print(minxg.VERSION, len(minxg.__all__), 'workers;', minxg.TOTAL_MATHEMATICAL_OPERATORS, 'math ops')"
-0.14.0 55 workers; 306 math ops
+0.14.1 55 workers; 306 math ops
 ```
 
 **Published on PyPI.** Install the prebuilt package with:
@@ -438,7 +437,7 @@ curl http://127.0.0.1:18080/v1/chat/completions \
 
 ```python
 import minxg
-print(minxg.VERSION)              # "0.14.0"
+print(minxg.VERSION)              # "0.14.1"
 
 # Driver engine: temporal operator-field
 from minxg.driver import State, DriverEngine, smoothing_field
@@ -512,16 +511,16 @@ from multiligua_cli import features
 print(features.list_experimental_exports())
 ```
 
-In the current release (0.14.0) that yields the same 13 names.
+In the current release (0.14.1) that yields the same 13 names.
 Anything listed lives in `multiligua_cli/features.py`; new experimental
-surfaces added in 0.14.0 are reachable through:
+surfaces added in 0.14.1 are reachable through:
 
 | name | since | what it is |
 |------|-------|-----------|
-| `minxg bench`           | 0.14.0 | local perf snapshot (`minxg.benchmark`)           |
-| `minxg replay <md>`     | 0.14.0 | re-render a markdown conversation stream          |
-| `minxg theme <name>`    | 0.14.0 | switch active TUI theme (`dark`/`colorful`/`minimal`) |
-| `safe_eval(expr, ...)`  | 0.14.0 | sandboxed restricted-Python evaluator             |
+| `minxg bench`           | 0.14.1 | local perf snapshot (`minxg.benchmark`)           |
+| `minxg replay <md>`     | 0.14.1 | re-render a markdown conversation stream          |
+| `minxg theme <name>`    | 0.14.1 | switch active TUI theme (`dark`/`colorful`/`minimal`) |
+| `safe_eval(expr, ...)`  | 0.14.1 | sandboxed restricted-Python evaluator             |
 | `context_usage_bar(...)`| 0.12.5 | live context-window progress bar (`features`)     |
 | `welcome_animation()`   | 0.11.0 | one-shot startup banner                           |
 

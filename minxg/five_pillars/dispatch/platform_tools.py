@@ -1,116 +1,110 @@
-"""Platform-aware tools — adapt behavior based on device capabilities."""
+"""Platform-aware tools — adapt behavior based on device capabilities.
+
+v0.14.1: Only android + windows are supported platforms.
+All tool availability goes through the canonical platform_registry.
+"""
 from minxg.base import BaseWorker, tool
+from minxg.five_pillars.dispatch.platform_registry import (
+    CURRENT_PLATFORM,
+    SUPPORTED_PLATFORMS,
+    is_android,
+    is_windows,
+    is_root_available,
+    is_adb_available,
+    get_available_tools,
+    get_tool_count,
+    get_system_capabilities,
+    is_tool_available,
+)
+
 
 class PlatformWorker(BaseWorker):
     worker_id = "platform_worker"
-    version = "0.0.1"
+    version = "0.14.1"
 
     @tool
     async def platform_info(self) -> dict:
         """Get detailed platform information (OS, CPU, RAM, GPU, etc.)."""
         import platform, os
-        return {
+        info = {
             "os": platform.system(),
             "os_version": platform.version(),
             "arch": platform.machine(),
             "python": platform.python_version(),
             "cpu_count": os.cpu_count(),
             "hostname": platform.node(),
+            "supported_platforms": sorted(SUPPORTED_PLATFORMS),
         }
+        if is_android():
+            info["runtime"] = "Termux"
+            info["root_available"] = is_root_available()
+            info["adb_available"] = is_adb_available()
+        elif is_windows():
+            info["runtime"] = "Windows"
+        else:
+            info["runtime"] = "unsupported"
+            info["warning"] = f"Platform '{CURRENT_PLATFORM}' is not officially supported. Only android and windows are supported as of v0.14.1."
+        return info
 
     @tool
     async def platform_capabilities(self) -> dict:
         """Get what this device can and cannot do."""
-        try:
-            import sys; sys.path.insert(0, '.')
-            from src.platform_adapters import adapter
-            return adapter.json_profile()
-        except:
-            return {"error": "Platform adapter not available"}
+        return get_system_capabilities()
 
     @tool
     async def tool_availability(self, tool_name: str = "") -> dict:
         """Check if a tool is available on this platform. Empty = list all."""
-        try:
-            import sys; sys.path.insert(0, '.')
-            from src.platform_adapters import adapter
-            if tool_name:
-                ok, reason = adapter.check_tool_by_id(tool_name)
-                return {"tool": tool_name, "available": ok, "reason": reason}
-            return {"available_count": adapter.available_tool_count, "total": adapter.total_tools_defined}
-        except:
-            return {"error": "Platform adapter not available"}
+        if tool_name:
+            available = is_tool_available(tool_name)
+            return {
+                "tool": tool_name,
+                "available": available,
+                "platform": CURRENT_PLATFORM,
+            }
+        return {
+            "available_count": get_tool_count(),
+            "total": len(get_available_tools()),
+            "platform": CURRENT_PLATFORM,
+        }
 
     @tool
     async def device_class(self) -> dict:
-        """Get device classification (high/mid/low/minimal)."""
+        """Get device classification based on current platform capabilities."""
+        import os
+        cpu = os.cpu_count() or 1
         try:
-            import sys; sys.path.insert(0, '.')
-            from src.platform_adapters import adapter
-            return {"device_class": adapter.device_class.value, "tier": adapter.tier.value, "mode": adapter.mode.value}
-        except:
-            return {"device_class": "unknown"}
+            import subprocess
+            mem_out = subprocess.run(["cat", "/proc/meminfo"], capture_output=True, text=True, timeout=2)
+            mem_line = [l for l in mem_out.stdout.splitlines() if l.startswith("MemTotal")]
+            mem_kb = int(mem_line[0].split()[1]) if mem_line else 0
+            mem_gb = mem_kb / 1048576.0
+        except Exception:
+            mem_gb = 0
 
-    @tool
-    async def ram_usage(self) -> dict:
-        """Get current RAM usage."""
-        try:
-            import sys; sys.path.insert(0, '.')
-            from src.platform_adapters import adapter
-            return {"total_mb": adapter.ram_total_mb, "free_mb": adapter.ram_free_mb, "used_pct": round((1 - adapter.ram_free_mb/max(adapter.ram_total_mb,1))*100)}
-        except:
-            try:
-                import psutil
-                m = psutil.virtual_memory()
-                return {"total_mb": m.total//(1024*1024), "free_mb": m.available//(1024*1024), "used_pct": m.percent}
-            except:
-                return {"error": "Cannot read memory"}
+        if is_android():
+            if cpu >= 8 and mem_gb >= 6:
+                cls = "high"
+            elif cpu >= 4 and mem_gb >= 3:
+                cls = "mid"
+            elif cpu >= 2 and mem_gb >= 1:
+                cls = "low"
+            else:
+                cls = "minimal"
+        elif is_windows():
+            if cpu >= 8 and mem_gb >= 16:
+                cls = "high"
+            elif cpu >= 4 and mem_gb >= 8:
+                cls = "mid"
+            elif cpu >= 2:
+                cls = "low"
+            else:
+                cls = "minimal"
+        else:
+            cls = "unknown"
 
-    @tool
-    async def disk_usage(self) -> dict:
-        """Get disk usage."""
-        import shutil
-        usage = shutil.disk_usage("/")
-        return {"total_gb": round(usage.total/(1024**3),2), "free_gb": round(usage.free/(1024**3),2), "used_pct": round((1-usage.free/usage.total)*100)}
-
-    @tool
-    async def battery_status(self) -> dict:
-        """Get battery status (mobile only)."""
-        try:
-            from pathlib import Path
-            bats = list(Path("/sys/class/power_supply").glob("BAT*"))
-            if bats:
-                cap = int((bats[0]/"capacity").read_text().strip())
-                status = (bats[0]/"status").read_text().strip()
-                return {"percent": cap, "charging": status=="Charging", "present": True}
-            return {"present": False}
-        except:
-            return {"present": False}
-
-    @tool
-    async def is_online(self) -> dict:
-        """Check if device has internet connectivity."""
-        import socket
-        try:
-            socket.create_connection(("8.8.8.8", 53), timeout=3)
-            return {"online": True}
-        except:
-            return {"online": False}
-
-    @tool
-    async def optimization_hints(self) -> dict:
-        """Get platform-specific optimization hints."""
-        try:
-            import sys; sys.path.insert(0, '.')
-            from src.platform_adapters import adapter
-            return {
-                "parallel": adapter.should_parallelize(),
-                "gpu": adapter.should_use_gpu(),
-                "cache": adapter.should_cache(),
-                "compress": adapter.should_compress(),
-                "prefetch": adapter.should_prefetch(),
-                "lazy_import": adapter.should_lazy_import(),
-                "mmap": adapter.should_use_mmap(),
-            }
-        except:
-            return {"hints": "default"}
+        return {
+            "device_class": cls,
+            "cpu_count": cpu,
+            "memory_gb": round(mem_gb, 1),
+            "platform": CURRENT_PLATFORM,
+        }

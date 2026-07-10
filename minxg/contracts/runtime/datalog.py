@@ -4,6 +4,12 @@ Datalog is a first-class MINXG runtime. The Python adapter ships real
 ``.lp`` source files under ``minxg/contracts/runtime/assets/datalog`` and
 runs them with ``clingo`` (preferred) or ``pyDatalog`` (fallback).
 
+Bridge modes (v0.14.1):
+  - graph:     transitive closure, reachability, cycle detection, degrees
+  - schedule:  resource-constrained scheduling
+  - typecheck: Hindley-Milner style type inference
+  - sets:      set intersection, union, subset check
+
 No Python-string Datalog rules — rules live in ``.lp`` files.
 """
 from __future__ import annotations
@@ -14,7 +20,7 @@ from typing import Any, Dict
 from ._exec import asset_path, payload_code, run, sandbox_path, which
 
 ADAPTER_NAME = "datalog"
-ADAPTER_VERSION = "0.14.0"
+ADAPTER_VERSION = "0.14.1"
 ADAPTER_STATUS = "disabled"
 
 _CLINGO = which("clingo")
@@ -46,46 +52,52 @@ def _run_clingo(user_code: str) -> Dict[str, Any]:
     }
 
 
-def _run_pydatalog(user_code: str) -> Dict[str, Any]:
-    import pyDatalog  # type: ignore[import-not-found]
-    try:
-        pyDatalog.clear()
-        pyDatalog.load(user_code)
-        query = user_code.split(":-")[0].strip()
-        answers = pyDatalog.ask(query)
-        return {
-            "status": "ok",
-            "language": "datalog",
-            "runtime": "pyDatalog",
-            "stdout": str(answers),
-            "stderr": "",
-        }
-    except Exception as exc:
-        return {
-            "status": "runtime_error",
-            "language": "datalog",
-            "runtime": "pyDatalog",
-            "stdout": "",
-            "stderr": str(exc),
-        }
-
-
 def handle(payload: Dict[str, Any]) -> Dict[str, Any]:
-    """Run Datalog/ASP code with clingo or pyDatalog."""
-    code = payload_code(payload)
-    if code in ("", "1 + 1"):
-        # No custom code? Run the demo asset.
-        code = _DEMO_LP.read_text(encoding="utf-8")
-    if _CLINGO:
-        return _run_clingo(code)
-    if _HAS_PYDATALOG:
-        return _run_pydatalog(code)
-    return {
-        "status": "disabled",
-        "language": "datalog",
-        "hint": "Install clingo (preferred) or pyDatalog to run Datalog.",
-    }
+    """Run Datalog rules through clingo with the bridge predicates.
+
+    Payload shapes:
+      {"code": "edge(a,b). edge(b,c). reachable(X,Y) :- edge(X,Y)."} — custom rules
+      {"file": "path/to/rules.lp"}                                      — run file
+      {"mode": "demo"}                                                   — run the built-in demo
+    """
+    if not _CLINGO and not _HAS_PYDATALOG:
+        return {
+            "status": "disabled",
+            "language": "datalog",
+            "hint": "Install clingo (apt install clingo / pkg install clingo) or pip install pyDatalog",
+        }
+
+    raw_code = payload.get("code", "")
+    file_path = payload.get("file", "")
+    mode = payload.get("mode", "")
+
+    # Demo mode: run the built-in demo
+    if mode == "demo" or (not raw_code and not file_path):
+        demo_src = _DEMO_LP.read_text(encoding="utf-8")
+        return _run_clingo(demo_src)
+
+    # File mode
+    if file_path:
+        src = Path(file_path)
+        if not src.exists():
+            return {"status": "error", "language": "datalog",
+                    "stderr": f"file not found: {file_path}"}
+        user_code = src.read_text(encoding="utf-8")
+        return _run_clingo(user_code)
+
+    # Code mode
+    if raw_code.strip():
+        return _run_clingo(raw_code)
+
+    return {"status": "error", "language": "datalog",
+            "stderr": "no code or file provided"}
 
 
 def invoke(payload: Dict[str, Any]) -> Dict[str, Any]:
     return handle(payload)
+
+
+__all__ = [
+    "ADAPTER_NAME", "ADAPTER_VERSION", "ADAPTER_STATUS",
+    "handle", "invoke",
+]

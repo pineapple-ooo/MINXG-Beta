@@ -2,11 +2,14 @@
 
 Why this module exists
 ----------------------
-As of 0.14.0, MINXG can dispatch to six non-Python runtimes (C / C++,
+As of 0.14.1, MINXG can dispatch to six non-Python runtimes (C / C++,
 Go, WebAssembly, R, Julia, Datalog). Each one is gated on a host-side
 binary or package being present: ``g++/clang``, ``go``, ``wasmtime``,
 ``Rscript`` (+ ``jsonlite``), ``julia`` (+ ``JSON.jl``), ``clingo`` /
 pyDatalog.
+
+Only Android (Termux) and Windows are officially supported as of v0.14.1.
+Linux, macOS, iOS, and web platforms have been retired.
 
 Detect is cheap (which() / a tiny ``-e`` probe). *Installing* a runtime
 is not — it pulls hundreds of MB, may need sudo, and can desync with the
@@ -17,10 +20,10 @@ more:
    side-effects (used by ``minxg doctor`` and the ``runtime-plan``
    experimental verb).
 2. ``plan_install(language)`` — return a :class:`InstallPlan` with one
-   *shell command per supported platform* (``termux`` / ``linux`` /
-   ``macos`` / ``windows`` / ``unknown``). Plans are pure data; we
-   don't shell out, we don't assume the host has sudo, and we never
-   run anything without the user explicitly opting in.
+   *shell command per supported platform* (``termux`` / ``windows`` /
+   ``unknown``). Plans are pure data; we don't shell out, we don't
+   assume the host has sudo, and we never run anything without the user
+   explicitly opting in.
 
 This is the entire contract. ``minxg runtime-plan`` prints the plan;
 ``minxg runtime-install --apply <language>`` executes one runner of it
@@ -77,26 +80,20 @@ MANAGED_LANGUAGES: Tuple[str, ...] = (
 
 
 def platform_id() -> str:
-    """Return one of ``termux`` / ``linux`` / ``macos`` / ``windows`` / ``unknown``.
+    """Return one of ``termux`` / ``windows`` / ``unknown``.
 
-    Detection rules are intentionally conservative: only flip to
-    ``termux`` when the ``TERMUX_VERSION`` env var is set **or** the
-    Termux app-private root exists. ``Darwin`` becomes ``macos``,
-    ``Linux`` stays ``linux``, ``MINGW/MSYS/CYGWIN`` map to ``windows``.
-    Anything else falls through to ``unknown`` so the user knows we
-    can't recommend a specific package manager.
+    As of v0.14.1 only Android (Termux) and Windows are supported.
+    ``Linux`` and ``Darwin`` now map to ``unknown`` since those
+    platforms have been retired from official support.
     """
     if os.environ.get("TERMUX_VERSION") or os.path.isdir(
         "/data/data/com.termux"
     ):
         return "termux"
     system = _platform.system()
-    if system == "Linux":
-        return "linux"
-    if system == "Darwin":
-        return "macos"
     if system.startswith(("MINGW", "MSYS", "CYGWIN")) or system == "Windows":
         return "windows"
+    # Linux, macOS, iOS, and others are no longer supported
     return "unknown"
 
 
@@ -335,21 +332,16 @@ def plan_install(language: str) -> InstallPlan:
     if lang == "cpp":
         plan.commands.update({
             "termux": "pkg install -y clang",
-            "linux": "sudo apt-get update && sudo apt-get install -y g++",
-            "macos": "brew install gcc",
             "windows": "winget install -G msys2 ...",
             "unknown": "",
         })
         plan.notes.update({
             "termux": "Termux ships clang as the default C/C++ compiler.",
-            "linux": "Fallback (no sudo): install via your distro's user-mode toolchain.",
             "windows": "winget install -e --id MSYS2.MSYS2 then use the g++ bundled there.",
         })
     elif lang == "go":
         plan.commands.update({
             "termux": "pkg install -y golang",
-            "linux": "sudo apt-get install -y golang",
-            "macos": "brew install go",
             "windows": "winget install -e --id GoLang.Go",
             "unknown": "",
         })
@@ -357,65 +349,49 @@ def plan_install(language: str) -> InstallPlan:
             "termux": "pkg sometimes lags one minor version behind go.dev; if you need HEAD, use the upstream tarball.",
         })
     elif lang == "wasm":
-        # wasm is "optional" — the runtime adapter already ships a
-        # pure-python emulator fallback. The cmd list still reflects
-        # real install paths so users who *do* want it can act.
         plan.commands.update({
             "termux": "pkg install -y wasmtime  # may not be packaged; see notes",
-            "linux": "curl -fsSL https://wasmtime.dev/install.sh | bash",
-            "macos": "brew install wasmtime",
             "windows": "winget install -e --id BytecodeAlliance.Wasmtime",
             "unknown": "",
         })
         plan.notes.update({
             "termux": "Termux does not always ship wasmtime; install via the upstream install.sh if 'pkg install wasmtime' returns no package.",
-            "linux": "The official install.sh adds wasmtime to ~/.cargo/bin; PATH it from your shell rc.",
         })
     elif lang == "r":
         plan.commands.update({
             "termux": "pkg install -y r",
-            "linux": "sudo apt-get install -y r-base  # then: sudo R -e 'install.packages(\"jsonlite\")'",
-            "macos": "brew install r && R -e 'install.packages(\"jsonlite\")'",
-            "windows": "winget install -e --id RProject.R  # then: R -e 'install.packages(\"jsonlite\")'",
+            "windows": "winget install -e --id RProject.R  # then: R -e 'install.packages(\\\"jsonlite\\\")'",
             "unknown": "",
         })
         plan.notes.update({
             "termux": "Termux packages the base CRAN build; no extra repos needed.",
-            "linux": "If `r-base` is unavailable, add CRAN's apt repo first (https://cran.r-project.org/).",
-            "macos": "Homebrew's r is a keg-only formula; symlink manually if you need Rscript on PATH.",
             "windows": "Winget installs the r-base build; add Rscript to PATH or run from the installer shell.",
         })
     elif lang == "julia":
         plan.commands.update({
             "termux": "pkg install -y julia  # may not be packaged; see notes",
-            "linux": "curl -fsSL https://install.julialang.org | sh",
-            "macos": "brew install julia && julia -e 'using Pkg; Pkg.add(\"JSON\")'",
             "windows": "winget install -e --id JuliaLang.Julia",
             "unknown": "",
         })
         plan.notes.update({
             "termux": "If `pkg install julia` 404s, fall back to the upstream installer script (tarball extract).",
-            "linux": "The install.julialang.org script targets ~/.julia; append ~/.juliaup/bin to PATH.",
-            "windows": "After winget install, install the JSON.jl package once: julia -e 'using Pkg; Pkg.add(\"JSON\")'",
+            "windows": "After winget install, install the JSON.jl package once: julia -e 'using Pkg; Pkg.add(\\\"JSON\\\")'",
         })
     elif lang == "datalog":
         plan.commands.update({
             "termux": "pkg install -y clingo  # may not be packaged; see notes",
-            "linux": "sudo apt-get install -y clingo",
-            "macos": "brew install clingo",
             "windows": "choco install clingo  # winget has no clingo package as of last check",
             "unknown": "",
         })
         plan.notes.update({
             "termux": "If `pkg install clingo` 404s, fall back to pyDatalog: pip install pyDatalog.",
-            "linux": "Some distros ship clingo under slightly different names (potassco-clingo); adjust.",
             "windows": "Chocolatey recommended; otherwise build clingo from source via CMake.",
         })
     else:
         plan.notes["unknown"] = (
             f"unknown language {lang!r}; managed: {', '.join(MANAGED_LANGUAGES)}"
         )
-        plan.commands.update({p: "" for p in ("termux", "linux", "macos", "windows", "unknown")})
+        plan.commands.update({p: "" for p in ("termux", "windows", "unknown")})
     return plan
 
 

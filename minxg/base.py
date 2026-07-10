@@ -3,6 +3,7 @@ minxg/base.py - Worker base class, tool decorator, registry.
 """
 from __future__ import annotations
 import asyncio
+import inspect
 import logging
 import time
 import traceback
@@ -88,7 +89,7 @@ class BaseWorker:
         t0 = time.time()
         tool.call_count += 1
         try:
-            if asyncio.iscoroutinefunction(tool.fn):
+            if inspect.iscoroutinefunction(tool.fn):
                 result = await tool.fn(**(params or {}))
             else:
                 result = tool.fn(**(params or {}))
@@ -221,6 +222,6 @@ class WorkerRegistry:
     def health(self) -> Dict:
         return {
             "status": "ok",
-            "version": VERSION if (VERSION := __import__("py_workers").VERSION) else "?",
+            "version": VERSION if (VERSION := __import__("minxg").VERSION) else "?",
             "registered_workers": list(self.workers.keys()),
         }

@@ -214,7 +214,10 @@ class TestGatewayStart:
     def test_start_background_nohup_when_not_systemd(self, tmp_path):
         """When /proc/1/comm != systemd, falls back to nohup start."""
         cfg = _make_isolated_config(tmp_path)
-        try:
+        # ensure_config (in multiligua_cli.utils) checks `config_exists` via
+        # late-bound sys.modules lookup, so patching the source module works.
+        from multiligua_cli import utils as utils_mod
+        with mock.patch.object(utils_mod, "config_exists", return_value=True):
             with mock.patch.object(gw_mod, "print_banner"):
                 with mock.patch.object(gw_mod, "print_info"):
                     with mock.patch.object(gw_mod, "print_success"):
@@ -229,8 +232,6 @@ class TestGatewayStart:
                                         )
             assert rc == 0
             popen_mock.assert_called_once()
-        finally:
-            pass
 
     def test_port_override_accepted_by_argparse(self):
         """Argparse accepts --port for the gateway subparser."""

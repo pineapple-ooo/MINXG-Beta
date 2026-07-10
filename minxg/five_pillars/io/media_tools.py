@@ -61,7 +61,8 @@ class MediaToolsWorker(BaseWorker):
         g = math.gcd(width, height)
         ratio_str = f"{width // g}:{height // g}"
         decimal = round(width / height, 4) if height else 0
-        label = common.get(round(decimal, 3), f"{ratio_str}")
+        labels = {1.333: "4:3", 1.778: "16:9", 1.6: "16:10", 1.0: "1:1"}
+        label = labels.get(round(decimal, 3), ratio_str)
         return {"ratio": ratio_str, "decimal": decimal, "label": label}
 
     @tool(description="MIME type detection", category="detect")

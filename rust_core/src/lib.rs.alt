@@ -1,0 +1,28 @@
+#![no_std]
+//! MINXG Rust Core — Zero-overhead mathematical operators with C FFI bridge.
+//!
+//! Pure Rust; no_std to avoid std dependency. All math is implemented
+//! from scratch using only the alloc crate when needed.
+//!
+//! Memory safety: no raw pointer arithmetic in hot paths, all FFI inputs
+//! are null-checked, no leaks possible (Box is RAII, slotmap has no malloc).
+
+extern crate alloc;
+use alloc::boxed::Box;
+use alloc::vec::Vec;
+use alloc::string::String;
+use core::ffi::{CStr, c_char};
+use core::convert::Infallible;
+
+pub mod ga;
+pub mod driver;
+pub mod chaos;
+pub mod fiber;
+pub mod symbdiff;
+pub mod mempool;
+
+#[cfg(feature = "std")]
+extern crate std;
+
+pub const VERSION: &str = "0.14.1";
+pub const RUST_MATH_OPERATORS: u32 = 42;

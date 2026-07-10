@@ -1,12 +1,13 @@
 """
-minxg/platform_registry.py — Platform-aware tool registry v1.0.0
+minxg/platform_registry.py — Platform-aware tool registry v2.0.0
 
 Every tool in MINXG declares which platforms it supports. This module:
   1. Auto-detects the current platform
   2. Filters tools available on this platform
   3. Provides platform capability queries for AI
 
-Platforms supported: linux, macos, windows, android, ios, web
+Platforms supported (v0.14.1): android, windows
+All other platforms (linux, macos, ios, web) have been retired.
 Each platform has different tool availability based on system capabilities.
 """
 from __future__ import annotations
@@ -16,35 +17,30 @@ import os
 from typing import Dict, List, Optional, Set
 
 
-
-
+# Supported platforms — android + windows only as of v0.14.1
+SUPPORTED_PLATFORMS = {"android", "windows"}
 
 
 def detect_platform() -> str:
-    """Detect the current platform. Returns one of: linux, macos, windows, android, ios, web."""
+    """Detect the current platform. Returns one of: android, windows, unknown."""
     system = _platform.system()
 
     if system == "Android":
         return "android"
-    elif system == "Linux":
-        return "linux"
-    elif system == "Darwin":
-        return "macos"
     elif system == "Windows":
         return "windows"
-    elif system == "iOS":
-        return "ios"
 
-    
-    if hasattr(sys, "platform") and "emscripten" in sys.platform:
-        return "web"
-
-    return system.lower()
+    # Any other OS is not officially supported from v0.14.1
+    return "unknown"
 
 
 def is_android() -> bool:
     """Check if running on Android (Termux or similar)."""
     return _platform.system() == "Android"
+
+def is_windows() -> bool:
+    """Check if running on Windows."""
+    return _platform.system() == "Windows"
 
 
 def is_root_available() -> bool:
@@ -70,93 +66,80 @@ def is_adb_available() -> bool:
 CURRENT_PLATFORM = detect_platform()
 
 
-
-
-
-
-
-
 TOOL_PLATFORM_MATRIX: Dict[str, Dict] = {
     
-    "file_read":       {"platforms": ["linux", "macos", "windows", "android", "ios", "web"], "category": "file", "requires_root": False},
-    "file_write":      {"platforms": ["linux", "macos", "windows", "android", "ios", "web"], "category": "file", "requires_root": False},
-    "file_search":     {"platforms": ["linux", "macos", "windows", "android", "ios", "web"], "category": "file", "requires_root": False},
-    "file_hash":       {"platforms": ["linux", "macos", "windows", "android", "ios", "web"], "category": "file", "requires_root": False},
-    "file_walk":       {"platforms": ["linux", "macos", "windows", "android", "ios"], "category": "file", "requires_root": False},
-    "file_watch":      {"platforms": ["linux", "macos", "windows"], "category": "file", "requires_root": False},
-    "file_chmod":      {"platforms": ["linux", "macos", "android"], "category": "file", "requires_root": False},
-    "file_chown":      {"platforms": ["linux", "macos", "android"], "category": "file", "requires_root": True},
-    "file_stat":       {"platforms": ["linux", "macos", "windows", "android", "ios"], "category": "file", "requires_root": False},
-    "file_diff":       {"platforms": ["linux", "macos", "windows", "android", "ios"], "category": "file", "requires_root": False},
-    "file_merge":      {"platforms": ["linux", "macos", "windows", "android", "ios"], "category": "file", "requires_root": False},
+    "file_read":       {"platforms": ["android", "windows"], "category": "file", "requires_root": False},
+    "file_write":      {"platforms": ["android", "windows"], "category": "file", "requires_root": False},
+    "file_search":     {"platforms": ["android", "windows"], "category": "file", "requires_root": False},
+    "file_hash":       {"platforms": ["android", "windows"], "category": "file", "requires_root": False},
+    "file_walk":       {"platforms": ["android", "windows"], "category": "file", "requires_root": False},
+    "file_watch":      {"platforms": ["android", "windows"], "category": "file", "requires_root": False},
+    "file_chmod":      {"platforms": ["android"], "category": "file", "requires_root": False},
+    "file_chown":      {"platforms": ["android"], "category": "file", "requires_root": True},
+    "file_stat":       {"platforms": ["android", "windows"], "category": "file", "requires_root": False},
+    "file_diff":       {"platforms": ["android", "windows"], "category": "file", "requires_root": False},
+    "file_merge":      {"platforms": ["android", "windows"], "category": "file", "requires_root": False},
 
     
-    "process_list":    {"platforms": ["linux", "macos", "android"], "category": "process", "requires_root": False},
-    "process_kill":    {"platforms": ["linux", "macos", "android"], "category": "process", "requires_root": False},
-    "process_info":    {"platforms": ["linux", "macos", "android"], "category": "process", "requires_root": False},
-    "process_nice":    {"platforms": ["linux", "macos"], "category": "process", "requires_root": False},
-    "process_cgroup":  {"platforms": ["linux", "android"], "category": "process", "requires_root": True},
-    "process_spawn":   {"platforms": ["linux", "macos", "windows", "android"], "category": "process", "requires_root": False},
+    "process_list":    {"platforms": ["android"], "category": "process", "requires_root": False},
+    "process_kill":    {"platforms": ["android"], "category": "process", "requires_root": False},
+    "process_info":    {"platforms": ["android"], "category": "process", "requires_root": False},
+    "process_cgroup":  {"platforms": ["android"], "category": "process", "requires_root": True},
+    "process_spawn":   {"platforms": ["android", "windows"], "category": "process", "requires_root": False},
 
     
-    "net_ping":        {"platforms": ["linux", "macos", "windows", "android"], "category": "network", "requires_root": False},
-    "net_dns":         {"platforms": ["linux", "macos", "windows", "android", "ios", "web"], "category": "network", "requires_root": False},
-    "net_http_get":    {"platforms": ["linux", "macos", "windows", "android", "ios", "web"], "category": "network", "requires_root": False},
-    "net_http_post":   {"platforms": ["linux", "macos", "windows", "android", "ios", "web"], "category": "network", "requires_root": False},
-    "net_traceroute":  {"platforms": ["linux", "macos", "android"], "category": "network", "requires_root": True},
-    "net_ssl_check":   {"platforms": ["linux", "macos", "windows", "android", "ios", "web"], "category": "network", "requires_root": False},
-    "net_port_scan":   {"platforms": ["linux", "macos", "android"], "category": "network", "requires_root": False},
-    "net_websocket":   {"platforms": ["linux", "macos", "windows", "android", "web"], "category": "network", "requires_root": False},
-    "net_download":    {"platforms": ["linux", "macos", "windows", "android", "ios", "web"], "category": "network", "requires_root": False},
-    "net_speed_test":  {"platforms": ["linux", "macos", "windows", "android"], "category": "network", "requires_root": False},
+    "net_ping":        {"platforms": ["android", "windows"], "category": "network", "requires_root": False},
+    "net_dns":         {"platforms": ["android", "windows"], "category": "network", "requires_root": False},
+    "net_http_get":    {"platforms": ["android", "windows"], "category": "network", "requires_root": False},
+    "net_http_post":   {"platforms": ["android", "windows"], "category": "network", "requires_root": False},
+    "net_ssl_check":   {"platforms": ["android", "windows"], "category": "network", "requires_root": False},
+    "net_websocket":   {"platforms": ["android", "windows"], "category": "network", "requires_root": False},
+    "net_download":    {"platforms": ["android", "windows"], "category": "network", "requires_root": False},
+    "net_speed_test":  {"platforms": ["android", "windows"], "category": "network", "requires_root": False},
 
     
-    "sys_cpu":         {"platforms": ["linux", "macos", "windows", "android"], "category": "system", "requires_root": False},
-    "sys_memory":      {"platforms": ["linux", "macos", "windows", "android"], "category": "system", "requires_root": False},
-    "sys_disk":        {"platforms": ["linux", "macos", "windows", "android"], "category": "system", "requires_root": False},
-    "sys_sensors":     {"platforms": ["linux", "android"], "category": "system", "requires_root": False},
-    "sys_battery":     {"platforms": ["linux", "android", "ios"], "category": "system", "requires_root": False},
-    "sys_uptime":      {"platforms": ["linux", "macos", "windows", "android"], "category": "system", "requires_root": False},
-    "sys_env":         {"platforms": ["linux", "macos", "windows", "android", "ios", "web"], "category": "system", "requires_root": False},
-    "sys_dmesg":       {"platforms": ["linux", "android"], "category": "system", "requires_root": False},
-    "sys_reboot":      {"platforms": ["linux", "android"], "category": "system", "requires_root": True},
+    "sys_cpu":         {"platforms": ["android", "windows"], "category": "system", "requires_root": False},
+    "sys_memory":      {"platforms": ["android", "windows"], "category": "system", "requires_root": False},
+    "sys_disk":        {"platforms": ["android", "windows"], "category": "system", "requires_root": False},
+    "sys_sensors":     {"platforms": ["android"], "category": "system", "requires_root": False},
+    "sys_battery":     {"platforms": ["android"], "category": "system", "requires_root": False},
+    "sys_uptime":      {"platforms": ["android", "windows"], "category": "system", "requires_root": False},
+    "sys_env":         {"platforms": ["android", "windows"], "category": "system", "requires_root": False},
+    "sys_dmesg":       {"platforms": ["android"], "category": "system", "requires_root": False},
 
     
-    "encode_base64":   {"platforms": ["linux", "macos", "windows", "android", "ios", "web"], "category": "encoding", "requires_root": False},
-    "encode_url":      {"platforms": ["linux", "macos", "windows", "android", "ios", "web"], "category": "encoding", "requires_root": False},
-    "encode_html":     {"platforms": ["linux", "macos", "windows", "android", "ios", "web"], "category": "encoding", "requires_root": False},
-    "hash_md5":        {"platforms": ["linux", "macos", "windows", "android", "ios", "web"], "category": "crypto", "requires_root": False},
-    "hash_sha256":     {"platforms": ["linux", "macos", "windows", "android", "ios", "web"], "category": "crypto", "requires_root": False},
-    "encrypt_aes":     {"platforms": ["linux", "macos", "windows", "android", "ios"], "category": "crypto", "requires_root": False},
-    "compress_gzip":   {"platforms": ["linux", "macos", "windows", "android", "ios", "web"], "category": "compress", "requires_root": False},
-    "compress_zstd":   {"platforms": ["linux", "macos", "windows", "android", "ios"], "category": "compress", "requires_root": False},
-    "compress_lz4":    {"platforms": ["linux", "macos", "windows", "android"], "category": "compress", "requires_root": False},
+    "encode_base64":   {"platforms": ["android", "windows"], "category": "encoding", "requires_root": False},
+    "encode_url":      {"platforms": ["android", "windows"], "category": "encoding", "requires_root": False},
+    "encode_html":     {"platforms": ["android", "windows"], "category": "encoding", "requires_root": False},
+    "hash_md5":        {"platforms": ["android", "windows"], "category": "crypto", "requires_root": False},
+    "hash_sha256":     {"platforms": ["android", "windows"], "category": "crypto", "requires_root": False},
+    "encrypt_aes":     {"platforms": ["android", "windows"], "category": "crypto", "requires_root": False},
+    "compress_gzip":   {"platforms": ["android", "windows"], "category": "compress", "requires_root": False},
+    "compress_zstd":   {"platforms": ["android", "windows"], "category": "compress", "requires_root": False},
+    "compress_lz4":    {"platforms": ["android", "windows"], "category": "compress", "requires_root": False},
 
     
-    "archive_list":    {"platforms": ["linux", "macos", "windows", "android", "ios"], "category": "archive", "requires_root": False},
-    "archive_extract": {"platforms": ["linux", "macos", "windows", "android", "ios"], "category": "archive", "requires_root": False},
-    "archive_create":  {"platforms": ["linux", "macos", "windows", "android", "ios"], "category": "archive", "requires_root": False},
-    "archive_detect":  {"platforms": ["linux", "macos", "windows", "android", "ios"], "category": "archive", "requires_root": False},
-    "zip_list":        {"platforms": ["linux", "macos", "windows", "android", "ios"], "category": "archive", "requires_root": False},
-    "zip_extract":     {"platforms": ["linux", "macos", "windows", "android", "ios"], "category": "archive", "requires_root": False},
-    "zip_create":      {"platforms": ["linux", "macos", "windows", "android", "ios"], "category": "archive", "requires_root": False},
-    "tar_list":        {"platforms": ["linux", "macos", "android"], "category": "archive", "requires_root": False},
-    "tar_extract":     {"platforms": ["linux", "macos", "android"], "category": "archive", "requires_root": False},
+    "archive_list":    {"platforms": ["android", "windows"], "category": "archive", "requires_root": False},
+    "archive_extract": {"platforms": ["android", "windows"], "category": "archive", "requires_root": False},
+    "archive_create":  {"platforms": ["android", "windows"], "category": "archive", "requires_root": False},
+    "archive_detect":  {"platforms": ["android", "windows"], "category": "archive", "requires_root": False},
+    "zip_list":        {"platforms": ["android", "windows"], "category": "archive", "requires_root": False},
+    "zip_extract":     {"platforms": ["android", "windows"], "category": "archive", "requires_root": False},
+    "zip_create":      {"platforms": ["android", "windows"], "category": "archive", "requires_root": False},
 
     
-    "image_info":      {"platforms": ["linux", "macos", "windows", "android"], "category": "media", "requires_root": False},
-    "image_resize":    {"platforms": ["linux", "macos", "windows", "android"], "category": "media", "requires_root": False},
-    "image_convert":   {"platforms": ["linux", "macos", "windows", "android"], "category": "media", "requires_root": False},
-    "audio_info":      {"platforms": ["linux", "macos", "windows", "android"], "category": "media", "requires_root": False},
-    "audio_convert":   {"platforms": ["linux", "macos", "windows", "android"], "category": "media", "requires_root": False},
-    "video_info":      {"platforms": ["linux", "macos", "windows", "android"], "category": "media", "requires_root": False},
-    "video_thumb":     {"platforms": ["linux", "macos", "windows", "android"], "category": "media", "requires_root": False},
+    "image_info":      {"platforms": ["android", "windows"], "category": "media", "requires_root": False},
+    "image_resize":    {"platforms": ["android", "windows"], "category": "media", "requires_root": False},
+    "image_convert":   {"platforms": ["android", "windows"], "category": "media", "requires_root": False},
+    "audio_info":      {"platforms": ["android", "windows"], "category": "media", "requires_root": False},
+    "audio_convert":   {"platforms": ["android", "windows"], "category": "media", "requires_root": False},
+    "video_info":      {"platforms": ["android", "windows"], "category": "media", "requires_root": False},
+    "video_thumb":     {"platforms": ["android", "windows"], "category": "media", "requires_root": False},
 
     
-    "git_status":      {"platforms": ["linux", "macos", "windows", "android"], "category": "dev", "requires_root": False},
-    "git_log":         {"platforms": ["linux", "macos", "windows", "android"], "category": "dev", "requires_root": False},
-    "git_diff":        {"platforms": ["linux", "macos", "windows", "android"], "category": "dev", "requires_root": False},
-    "docker_ps":       {"platforms": ["linux", "macos", "windows"], "category": "dev", "requires_root": False},
+    "git_status":      {"platforms": ["android", "windows"], "category": "dev", "requires_root": False},
+    "git_log":         {"platforms": ["android", "windows"], "category": "dev", "requires_root": False},
+    "git_diff":        {"platforms": ["android", "windows"], "category": "dev", "requires_root": False},
 
     
     "adb_devices":     {"platforms": ["android"], "category": "adb", "requires_root": False},
@@ -185,29 +168,16 @@ TOOL_PLATFORM_MATRIX: Dict[str, Dict] = {
     "root_restore":    {"platforms": ["android"], "category": "root", "requires_root": True},
 
     
-    "cloud_aws_list":  {"platforms": ["linux", "macos", "windows"], "category": "cloud", "requires_root": False},
-    "cloud_gcp_list":  {"platforms": ["linux", "macos", "windows"], "category": "cloud", "requires_root": False},
-    "cloud_do_list":   {"platforms": ["linux", "macos", "windows"], "category": "cloud", "requires_root": False},
-    "cloud_cf_list":   {"platforms": ["linux", "macos", "windows"], "category": "cloud", "requires_root": False},
-
-    
-    "db_sqlite_query": {"platforms": ["linux", "macos", "windows", "android"], "category": "db", "requires_root": False},
-    "db_sqlite_schema":{"platforms": ["linux", "macos", "windows", "android"], "category": "db", "requires_root": False},
+    "db_sqlite_query": {"platforms": ["android", "windows"], "category": "db", "requires_root": False},
+    "db_sqlite_schema":{"platforms": ["android", "windows"], "category": "db", "requires_root": False},
 }
-
-
-
 
 
 TOOL_CATEGORIES = [
     "file", "process", "network", "system", "encoding", "crypto", "compress",
-    "archive", "media", "dev", "adb", "root", "cloud", "db", "math",
+    "archive", "media", "dev", "adb", "root", "db", "math",
     "text", "datetime", "ml", "security", "benchmark",
 ]
-
-
-
-
 
 
 def get_available_tools(platform: Optional[str] = None) -> Dict[str, Dict]:
@@ -254,6 +224,7 @@ def get_system_capabilities() -> Dict:
         "platform_name": _platform.platform(),
         "python_version": sys.version,
         "is_android": is_android(),
+        "is_windows": is_windows(),
         "root_available": is_root_available(),
         "adb_available": is_adb_available(),
         "total_tools_defined": len(TOOL_PLATFORM_MATRIX),
@@ -261,4 +232,5 @@ def get_system_capabilities() -> Dict:
         "categories_available": len(set(
             v["category"] for v in get_available_tools(plat).values()
         )),
+        "supported_platforms": sorted(SUPPORTED_PLATFORMS),
     }
