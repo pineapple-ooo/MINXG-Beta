@@ -66,6 +66,7 @@ def _adb_required_or_error() -> Optional[Dict[str, Any]]:
 
 
 class ScreenWorker(BaseWorker):
+    facade_alias = "screen"
     """AI-accessible screen perception and action worker.
 
     worker_id : "screen"

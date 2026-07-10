@@ -58,13 +58,14 @@ def _su(cmd: str, timeout: int = 30) -> Dict[str, Any]:
 
 
 class RootWorker(BaseWorker):
+    facade_alias = "platform_worker"
     """
     Android ROOT command tools. Requires su (superuser) access.
     Use with caution — these operations can modify system-level settings.
     All operations are logged for audit purposes.
     """
     worker_id = "root"
-    version = "0.16.0"
+    version = "0.17.0"
 
     def _register_tools(self):
         tools = [

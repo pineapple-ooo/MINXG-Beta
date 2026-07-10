@@ -39,7 +39,7 @@ class CellMeta(type):
         if "cell_capabilities" not in namespace:
             cls.cell_capabilities = tuple(sorted(cap_set))
         if "cell_version" not in namespace:
-            cls.cell_version = "0.16.0"
+            cls.cell_version = "0.17.0"
         if "cell_id" not in namespace:
             cls.cell_id = ""
         return cls

@@ -6,8 +6,9 @@ from minxg.base import BaseWorker, tool
 
 
 class ProcessToolsWorker(BaseWorker):
+    facade_alias = "sh_exec"
     worker_id = "process_tools"
-    version = "0.16.0"
+    version = "0.17.0"
 
     @tool(description="Generate process search command", category="ps")
     async def find_process(self, name: str) -> Dict:

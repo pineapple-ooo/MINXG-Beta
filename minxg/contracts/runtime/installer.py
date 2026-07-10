@@ -170,7 +170,7 @@ def detect_runtime(language: str) -> RuntimeStatus:
         ok = bool(binary)
         note = "Rscript on PATH"
         pkg_ok = False
-        version = "0.16.0"
+        version = "0.17.0"
         if ok:
             res = _exec.run(
                 [str(binary), "-e", 'cat(R.version$version.string, "\n")'],
@@ -204,7 +204,7 @@ def detect_runtime(language: str) -> RuntimeStatus:
         binary = shutil.which("julia") or ""
         ok = bool(binary)
         note = "julia on PATH"
-        version = "0.16.0"
+        version = "0.17.0"
         if ok:
             res = _exec.run(
                 [str(binary), "-e", 'print(VERSION)'],

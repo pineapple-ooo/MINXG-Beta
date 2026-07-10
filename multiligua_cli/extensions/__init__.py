@@ -20,7 +20,7 @@ class ExtensionInfo:
         self.path = path
         self.ext_type = ext_type  
         self.description = ""
-        self.version = "0.16.0"
+        self.version = "0.17.0"
         self.author = ""
         self.emoji = "📦"
         self.enabled = True

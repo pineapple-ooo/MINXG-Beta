@@ -122,6 +122,7 @@ def register(api):
         from py_workers.base import BaseWorker, tool
 
         class _ZipScannerWorker(BaseWorker):
+    facade_alias = "archive"
             worker_id = "zip_scanner"
             version = __version__
 

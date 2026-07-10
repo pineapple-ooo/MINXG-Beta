@@ -6,8 +6,7 @@ Everything you need to read, modify, extend, and ship MINXG.
 
 ## 0. v0.14.1 release notes (2026-07-02) - Seven-Pillar Architecture
 
-Version: 0.16.0
-
+Version: 0.17.0
 ### What changed
 
 This is a feature-rich patch release that adds the seventh mathematical
@@ -130,8 +129,7 @@ filled in when 0.14.0 ships; the ``Version:`` line below is what
 - `README.md` ¶ "v0.X.Y release" highlight.
 - `CHANGELOG.md` top section.
 
-Version: 0.16.0
-
+Version: 0.17.0
 If any of these drift, `minxg doctor` and the `tests/test_version_lock.py`
 test will fire. Now `413 + 1 skipped` v0.12.5 baseline expands to
 `>= 470` in this release.

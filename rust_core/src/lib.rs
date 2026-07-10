@@ -7,7 +7,7 @@
 //! 4. **Zero-cost abstractions** — Rust's type system enforces invariants at compile time.
 //! 5. **Pass-by-reference** — large matrices/slices borrow via FFI, never copied.
 //!
-//! Operators implemented (v0.16.0):
+//! Operators implemented (v0.17.0):
 //! - GA geometric product, outer/inner/fat-dot, rotor application
 //! - Driver engine: RK4/RK45 integration, Lyapunov exponent tracking
 //! - Chaos: logistic map, Lorenz attractor, IFS fractal
@@ -23,9 +23,10 @@ pub mod symbdiff; // Symbolic differential algebra (Jets, Lie brackets)
 pub mod ffi; // extern "C" exports + Python-friendly wrappers
 pub mod mempool; // Arena-backed slotmap (zero-leak shared memory)
 pub mod math_ops; // High-performance vector/matrix operations
+pub mod str_ops; // String hash / normalize / parallel map-reduce
 
 /// Version synced with minxg._version
-pub const VERSION: &str = "0.16.0";
+pub const VERSION: &str = "0.17.0";
 
 /// Number of mathematical operators in the Rust core
 pub const RUST_MATH_OPERATORS: u32 = 42;

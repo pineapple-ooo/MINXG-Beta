@@ -34,7 +34,7 @@ from minxg.contracts.lifecycle import LifecyclePhase
 class _TrivialCell:
     """Minimal Cell-like object that acts as an identity operator."""
     cell_id = "trivial.identity"
-    cell_version = "0.16.0"
+    cell_version = "0.17.0"
     cell_capabilities = ("transform",)
 
     def apply(self, state: State) -> State:

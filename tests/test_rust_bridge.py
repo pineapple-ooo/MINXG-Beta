@@ -48,7 +48,7 @@ def _rust_available_or_skip():
 class TestRustBridge:
     def test_version_string(self):
         v = _lib.version()
-        assert v == "0.16.0"
+        assert v == "0.17.0"
 
     def test_math_operator_count(self):
         assert _lib.math_operator_count() == 42
@@ -80,7 +80,7 @@ class TestRustSingletonLifecycle:
         rl = bridge.RustLib.get()
         v1 = rl.version()
         v2 = rl.version()
-        assert v1 == v2 == "0.16.0"
+        assert v1 == v2 == "0.17.0"
 
 
 def test_is_rust_available():

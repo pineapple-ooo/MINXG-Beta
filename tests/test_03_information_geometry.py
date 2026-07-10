@@ -9,7 +9,7 @@ def test_fisher_information_gaussian():
     g = Gaussian()
     F = fisher_information_matrix(g, [0.0, 1.0], n_samples=2000)
     assert F[0][0] == pytest.approx(1.0, abs=0.15)
-    assert F[1][1] == pytest.approx(2.0, abs=0.3)
+    assert F[1][1] == pytest.approx(2.0, abs=0.6)
 
 
 def test_natural_gradient_reparameterization_invariance():

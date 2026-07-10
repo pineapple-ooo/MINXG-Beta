@@ -185,6 +185,40 @@ class RustLib:
         L.mempool_stats.argtypes = [c_void_p, POINTER(c_uint64)]
         L.mempool_stats.restype = c_int32
 
+        # math_ops (v0.16.5)
+        L.vec_mean.argtypes = [POINTER(c_double), c_uint32]
+        L.vec_mean.restype = c_double
+        L.vec_std.argtypes = [POINTER(c_double), c_uint32]
+        L.vec_std.restype = c_double
+        L.vec_minmax.argtypes = [POINTER(c_double), c_uint32, POINTER(c_double), POINTER(c_double)]
+        L.vec_minmax.restype = c_int32
+        L.vec_correlation.argtypes = [POINTER(c_double), POINTER(c_double), c_uint32]
+        L.vec_correlation.restype = c_double
+        L.mat_mul.argtypes = [
+            POINTER(c_double), c_uint32, c_uint32,
+            POINTER(c_double), c_uint32, c_uint32,
+            POINTER(c_double),
+        ]
+        L.mat_mul.restype = c_int32
+
+        # str_ops (v0.16.5)
+        L.str_hash64.argtypes = [POINTER(c_uint8), c_uint32]
+        L.str_hash64.restype = c_uint64
+        L.str_count.argtypes = [POINTER(c_uint8), c_uint32, c_uint8]
+        L.str_count.restype = c_uint32
+        L.str_lower_ascii.argtypes = [POINTER(c_uint8), c_uint32]
+        L.str_lower_ascii.restype = c_int32
+        L.str_utf8_validate.argtypes = [POINTER(c_uint8), c_uint32]
+        L.str_utf8_validate.restype = c_int32
+        L.vec_sum_sq.argtypes = [POINTER(c_double), c_uint32]
+        L.vec_sum_sq.restype = c_double
+        L.vec_dot.argtypes = [POINTER(c_double), POINTER(c_double), c_uint32]
+        L.vec_dot.restype = c_double
+        L.vec_normalize.argtypes = [POINTER(c_double), c_uint32]
+        L.vec_normalize.restype = c_int32
+        L.vec_fused_sqadd_sum.argtypes = [POINTER(c_double), c_uint32]
+        L.vec_fused_sqadd_sum.restype = c_double
+
     # ─── High-level Python wrappers ───────────────────────────────────────
 
     def version(self) -> str:
@@ -254,3 +288,94 @@ def is_rust_available() -> bool:
         return True
     except OSError:
         return False
+
+
+# ─── v0.16.5 — math_ops / str_ops high-level Python wrappers ───────────────
+
+
+def vec_mean(values) -> float:
+    """Mean of an iterable of floats (Rust-backed)."""
+    rl = RustLib.get()
+    buf = (c_double * len(values))(*values)
+    rc = rl.lib.vec_mean(buf, len(values))
+    if rc < 0:
+        raise ValueError("vec_mean: empty input")
+    return rc
+
+
+def vec_std(values) -> float:
+    rl = RustLib.get()
+    buf = (c_double * len(values))(*values)
+    rc = rl.lib.vec_std(buf, len(values))
+    return rc
+
+
+def vec_minmax(values) -> tuple:
+    rl = RustLib.get()
+    buf = (c_double * len(values))(*values)
+    mn = c_double(0.0)
+    mx = c_double(0.0)
+    if rl.lib.vec_minmax(buf, len(values), byref(mn), byref(mx)) != 0:
+        raise ValueError("vec_minmax failed")
+    return (mn.value, mx.value)
+
+
+def vec_correlation(a, b) -> float:
+    if len(a) != len(b):
+        raise ValueError("vec_correlation: length mismatch")
+    rl = RustLib.get()
+    va = (c_double * len(a))(*a)
+    vb = (c_double * len(b))(*b)
+    return rl.lib.vec_correlation(va, vb, len(a))
+
+
+def mat_mul(a, ar, ac, b, br, bc):
+    if ac != br:
+        raise ValueError("mat_mul: dim mismatch")
+    rl = RustLib.get()
+    sz = ar * bc
+    buf_a = (c_double * len(a))(*a)
+    buf_b = (c_double * len(b))(*b)
+    buf_o = (c_double * sz)()
+    rc = rl.lib.mat_mul(buf_a, ar, ac, buf_b, br, bc, buf_o)
+    if rc != 0:
+        raise ValueError(f"mat_mul error: {rc}")
+    return list(buf_o)
+
+
+def str_hash64(s: bytes) -> int:
+    rl = RustLib.get()
+    if not s:
+        return 0
+    buf = (c_uint8 * len(s))(*s)
+    return rl.lib.str_hash64(buf, len(s))
+
+
+def str_count_byte(s: bytes, want: int) -> int:
+    rl = RustLib.get()
+    buf = (c_uint8 * len(s))(*s)
+    return rl.lib.str_count(buf, len(s), want)
+
+
+def str_lower_ascii_inplace(buf) -> int:
+    """Lowercase ASCII bytes in the bytearray passed in (Rust-backed).
+
+    Returns 0 on success, -1 on bad input.
+    """
+    rl = RustLib.get()
+    ba = bytearray(buf)
+    raw = (c_uint8 * len(ba))(*ba)
+    rc = rl.lib.str_lower_ascii(raw, len(ba))
+    for i, v in enumerate(raw):
+        ba[i] = v
+    buf[:] = ba
+    return rc
+
+
+def vec_dot(a, b) -> float:
+    if len(a) != len(b):
+        raise ValueError("vec_dot: length mismatch")
+    rl = RustLib.get()
+    va = (c_double * len(a))(*a)
+    vb = (c_double * len(b))(*b)
+    return rl.lib.vec_dot(va, vb, len(a))

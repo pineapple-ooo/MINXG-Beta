@@ -181,8 +181,9 @@ class SemanticStore:
 # ─── Infinite Memory Worker ────────────────────────────────────────────────────
 
 class InfiniteMemoryWorker(BaseWorker):
+    facade_alias = "state_session"
     worker_id = "infinite_memory"
-    version = "0.16.0"
+    version = "0.17.0"
 
     def __init__(self):
         self._lock = threading.RLock()

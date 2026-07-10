@@ -12,9 +12,10 @@ from minxg.base import BaseWorker, tool
 
 
 class DevToolsWorker(BaseWorker):
+    facade_alias = "platform_worker"
     """Development tools: git, docker, package managers, build systems."""
     worker_id = "dev_tools"
-    version = "0.16.0"
+    version = "0.17.0"
 
     def _register_tools(self):
         tools = [

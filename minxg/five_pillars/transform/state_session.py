@@ -32,8 +32,9 @@ class SessionState:
 
 
 class StateSessionWorker(BaseWorker):
+    facade_alias = "state_session"
     worker_id = "state_session"
-    version = "0.16.0"
+    version = "0.17.0"
 
     def __init__(self):
         self._sessions: Dict[str, SessionState] = {}

@@ -20,9 +20,10 @@ from minxg.base import BaseWorker, tool
 
 
 class NetworkAdvWorker(BaseWorker):
+    facade_alias = "network"
     """Advanced network operations: ping, dns, http, ssl, websocket, port scan, whois, speed test."""
     worker_id = "network_adv"
-    version = "0.16.0"
+    version = "0.17.0"
 
     def _register_tools(self):
         tools = [

@@ -27,7 +27,7 @@ from typing import Any, Dict
 from ._exec import asset_path, payload_code, run, sandbox_path, which
 
 ADAPTER_NAME = "wasm"
-ADAPTER_VERSION = "0.16.0"
+ADAPTER_VERSION = "0.17.0"
 ADAPTER_STATUS = "disabled"
 
 _WASMTIME = which("wasmtime")

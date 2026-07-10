@@ -10,8 +10,9 @@ from minxg.base import BaseWorker, tool
 
 
 class FsCopyWorker(BaseWorker):
+    facade_alias = "fs_io"
     worker_id = "fs_copy"
-    version = "0.16.0"
+    version = "0.17.0"
 
     @tool(description="Copy file/directory (preserve=true keeps metadata)", category="write")
     async def copy_file(self, source: str, dest: str, preserve_metadata: bool = True) -> Dict:

@@ -69,8 +69,9 @@ class _Barrier:
 
 
 class LimitsLockWorker(BaseWorker):
+    facade_alias = "limits_break"
     worker_id = "limits_lock"
-    version = "0.16.0"
+    version = "0.17.0"
 
     def __init__(self):
         self._locks: Dict[str, asyncio.Lock] = {}

@@ -407,7 +407,7 @@ class TextKitWorker(BaseWorker):
     """One worker, many ops."""
 
     worker_id = "text_kit"
-    version = "0.16.0"
+    version = "0.17.0"
 
     @tool(
         description=(

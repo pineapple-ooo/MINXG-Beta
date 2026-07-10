@@ -11,8 +11,9 @@ from minxg.base import BaseWorker, tool
 
 
 class SecurityToolsWorker(BaseWorker):
+    facade_alias = "security_tools"
     worker_id = "security_tools"
-    version = "0.16.0"
+    version = "0.17.0"
 
     @tool(description="Check password strength (0-4)", category="password")
     async def password_strength(self, password: str) -> Dict:

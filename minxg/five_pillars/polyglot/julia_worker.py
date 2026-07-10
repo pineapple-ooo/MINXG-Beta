@@ -34,7 +34,7 @@ def _adapters():
 
 class JuliaWorker(BaseWorker):
     worker_id = "julia_math"
-    version = "0.16.0"
+    version = "0.17.0"
 
     # ── Tool surface ────────────────────────────────────────────────
     @tool(description="Evaluate a Julia expression via the bridge.",

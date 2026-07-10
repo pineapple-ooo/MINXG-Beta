@@ -2,8 +2,9 @@
 from minxg.base import BaseWorker, tool
 
 class NotifyWorker(BaseWorker):
+    facade_alias = "notify_worker"
     worker_id = "notify_worker"
-    version = "0.16.0"
+    version = "0.17.0"
 
     @tool
     async def notify_terminal(self, message: str = "", title: str = "MINXG") -> dict:

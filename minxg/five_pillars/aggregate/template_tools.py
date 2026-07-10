@@ -6,8 +6,9 @@ from minxg.base import BaseWorker, tool
 
 
 class TemplateToolsWorker(BaseWorker):
+    facade_alias = "data_tools"
     worker_id = "template_tools"
-    version = "0.16.0"
+    version = "0.17.0"
 
     @tool(description="Replace {{var}} placeholders", category="render")
     async def render_placeholders(self, template: str, variables: dict) -> Dict:
@@ -122,7 +123,7 @@ class TemplateToolsWorker(BaseWorker):
         elif format == "yaml":
             content = f"name: my_project\nversion: 1.0.0\ndebug: false\nserver:\n  host: 0.0.0.0\n  port: 8080\nfeatures:\n  - logging\n  - caching\n  - metrics"
         elif format == "toml":
-            content = '[project]\nname = "my_project"\nversion = "0.16.0"\ndebug = false\n\n[server]\nhost = "0.0.0.0"\nport = 8080\n\nfeatures = ["logging", "caching", "metrics"]'
+            content = '[project]\nname = "my_project"\nversion = "0.17.0"\ndebug = false\n\n[server]\nhost = "0.0.0.0"\nport = 8080\n\nfeatures = ["logging", "caching", "metrics"]'
         else:
             content = _json.dumps(data, indent=2)
         return {"content": content, "format": format}

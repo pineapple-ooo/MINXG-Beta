@@ -7,8 +7,9 @@ from minxg.base import BaseWorker, tool
 
 
 class MlToolsWorker(BaseWorker):
+    facade_alias = "ml_tools"
     worker_id = "ml_tools"
-    version = "0.16.0"
+    version = "0.17.0"
 
     @tool(description="Min-Max normalize array", category="preprocess")
     async def normalize(self, values: list, range_min: float = 0, range_max: float = 1) -> Dict:

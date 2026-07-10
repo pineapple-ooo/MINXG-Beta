@@ -29,8 +29,9 @@ except ImportError:
 
 
 class CryptoToolsWorker(BaseWorker):
+    facade_alias = "crypto_tools"
     worker_id = "crypto_tools"
-    version = "0.16.0"
+    version = "0.17.0"
 
     @tool(description="MD5 hash", category="hash")
     async def md5(self, text: str) -> Dict:

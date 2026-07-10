@@ -33,8 +33,9 @@ except (ImportError, OSError):
 
 
 class TextToolsWorker(BaseWorker):
+    facade_alias = "text_kit"
     worker_id = "text_tools"
-    version = "0.16.0"
+    version = "0.17.0"
 
     @tool(description="Split text into words using optimized tokenizer", category="analyze")
     async def tokenize(self, text: str) -> Dict:

@@ -11,7 +11,7 @@ from .cell import CellMeta
 
 class GreetingCell(metaclass=CellMeta):
     cell_id = "demo.greeting"
-    cell_version = "0.16.0"
+    cell_version = "0.17.0"
 
     def greet(self, name: str = "world") -> Dict[str, Any]:
         return {"greeting": f"hello, {name}"}

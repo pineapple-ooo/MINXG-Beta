@@ -75,7 +75,7 @@ class GatewayServer:
 
         self.host: str = gw_cfg.host
         self.port: int = gw_cfg.port
-        self.version = "0.16.0"
+        self.version = "0.17.0"
 
         self.ai_provider: str = ai_cfg.provider
         self.ai_model: str = ai_cfg.model

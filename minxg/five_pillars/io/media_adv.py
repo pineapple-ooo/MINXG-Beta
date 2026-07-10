@@ -15,9 +15,10 @@ from minxg.base import BaseWorker, tool
 
 
 class MediaAdvWorker(BaseWorker):
+    facade_alias = "media_tools"
     """Advanced media tools: image, audio, video processing."""
     worker_id = "media_adv"
-    version = "0.16.0"
+    version = "0.17.0"
 
     def _register_tools(self):
         tools = [

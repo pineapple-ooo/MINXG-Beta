@@ -63,8 +63,9 @@ def not_(cond: Callable) -> Callable[[Dict], bool]:
 
 
 class RulesWorker(BaseWorker):
+    facade_alias = "rules"
     worker_id = "rules"
-    version = "0.16.0"
+    version = "0.17.0"
 
     def __init__(self):
         self._rules: Dict[str, Dict] = {}     

@@ -125,17 +125,17 @@ After install:
 
 ```python
 import minxg
-print(minxg.VERSION)         # "0.14.1"
+print(minxg.VERSION) # "0.17.0"
 print(minxg.detect_platform())
 ```
 
 Verified end-to-end on Termux/Android (`Python 3.13`) and Linux:
 ```bash
 $ pip install -e .
-Successfully installed minxg-beta-0.16.0
+Successfully installed minxg-beta-0.17.0
 
 $ python3 -c "import minxg; print(minxg.VERSION, len(minxg.__all__), 'workers;', minxg.TOTAL_MATHEMATICAL_OPERATORS, 'math ops')"
-0.16.0 55 workers; 306 math ops
+0.16.5 55 workers; 306 math ops
 ```
 
 **Published on PyPI.** Install the prebuilt package with:
@@ -437,7 +437,7 @@ curl http://127.0.0.1:18080/v1/chat/completions \
 
 ```python
 import minxg
-print(minxg.VERSION)              # "0.14.1"
+print(minxg.VERSION) # "0.17.0"
 
 # Driver engine: temporal operator-field
 from minxg.driver import State, DriverEngine, smoothing_field

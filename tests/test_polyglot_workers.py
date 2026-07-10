@@ -25,10 +25,10 @@ from minxg.five_pillars.polyglot import (
 
 
 WORKERS = [
-    (JuliaWorker, "julia_math", "0.16.0"),
-    (RWorker, "r_stats", "0.16.0"),
-    (DatalogWorker, "datalog_logic", "0.16.0"),
-    (WasmWorker, "wasm_compute", "0.16.0"),
+    (JuliaWorker, "julia_math", "0.17.0"),
+    (RWorker, "r_stats", "0.17.0"),
+    (DatalogWorker, "datalog_logic", "0.17.0"),
+    (WasmWorker, "wasm_compute", "0.17.0"),
 ]
 
 

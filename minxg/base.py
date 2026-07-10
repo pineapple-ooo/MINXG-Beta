@@ -45,6 +45,11 @@ class BaseWorker:
     """Base class for all py_workers. Provides tool registration, stats, health checks."""
     worker_id: str = "base"
     version: str = "1.0.0"
+    # Backward-compat facade marker — if set, this worker's tool list is
+    # suppressed from the canonical list and calls are routed through the
+    # named facade. This trims 639→~200 tools by collapsing legacy narrow
+    # workers into `text_kit` / `apk_forge` / `concurrent_runner` etc.
+    facade_alias: Optional[str] = None
 
     def __init__(self):
         self.tools: Dict[str, ToolDef] = {}
@@ -130,6 +135,12 @@ class BaseWorker:
         }
 
     def list_tools(self) -> List[Dict[str, Any]]:
+        # Workers marked ``facade_alias`` are backward-compat legacy — their
+        # tool list is suppressed at the bootstrap layer so the AI sees the
+        # consolidated facade surface instead of the 639-tool bloat. Calls
+        # still work for code that imports them directly.
+        if getattr(self, "facade_alias", None):
+            return []
         return [
             {"name": t.name, "description": t.description,
              "params": t.params, "category": t.category}

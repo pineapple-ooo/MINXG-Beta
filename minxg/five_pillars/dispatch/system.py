@@ -19,8 +19,9 @@ from minxg.base import BaseWorker, tool
 
 
 class SystemWorker(BaseWorker):
+    facade_alias = "system"
     worker_id = "system"
-    version = "0.16.0"
+    version = "0.17.0"
 
     @tool(description="Execute shell command, return stdout/stderr/exit_code", category="exec")
     async def execute_command(self, command: str, timeout: int = 60) -> Dict:

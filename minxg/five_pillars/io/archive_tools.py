@@ -66,12 +66,13 @@ def _safe_extract_path(base_dir: str, member_path: str) -> str:
 
 
 class ArchiveWorker(BaseWorker):
+    facade_alias = "fs_io"
     """
     Archive operations: ZIP, TAR, GZ, BZ2, XZ detection and extraction.
     Supports auto-detection, recursive extraction, and password-protected archives.
     """
     worker_id = "archive"
-    version = "0.16.0"
+    version = "0.17.0"
 
     @tool(description="List contents of an archive (ZIP, TAR, etc.) without extracting")
     def archive_list(self, path: str) -> Dict[str, Any]:

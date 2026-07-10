@@ -19,8 +19,9 @@ from minxg.five_pillars.dispatch.platform_registry import (
 
 
 class PlatformWorker(BaseWorker):
+    facade_alias = "platform_worker"
     worker_id = "platform_worker"
-    version = "0.16.0"
+    version = "0.17.0"
 
     @tool
     async def platform_info(self) -> dict:

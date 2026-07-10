@@ -10,8 +10,9 @@ from minxg.base import BaseWorker, tool
 
 
 class DateTimeToolsWorker(BaseWorker):
+    facade_alias = "datetime_tools"
     worker_id = "datetime_tools"
-    version = "0.16.0"
+    version = "0.17.0"
 
     def __init__(self):
         self._timers: Dict[str, float] = {}

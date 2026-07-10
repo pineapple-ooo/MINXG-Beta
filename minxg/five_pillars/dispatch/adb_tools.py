@@ -42,12 +42,13 @@ def _adb(cmd: List[str], timeout: int = 30, check: bool = False) -> Dict[str, An
 
 
 class AdbWorker(BaseWorker):
+    facade_alias = "platform_worker"
     """
     Android Debug Bridge tools. Full device management via ADB.
     Auto-disabled on non-Android platforms.
     """
     worker_id = "adb"
-    version = "0.16.0"
+    version = "0.17.0"
 
     def _register_tools(self):
         tools = [
