@@ -23,7 +23,7 @@ from typing import Any, Dict
 from ._exec import asset_path, payload_code, run, sandbox_path, which
 
 ADAPTER_NAME = "cpp"
-ADAPTER_VERSION = "0.17.0"
+ADAPTER_VERSION = "0.17.1"
 ADAPTER_STATUS = "disabled"
 
 _CC = which("gcc") or which("clang")

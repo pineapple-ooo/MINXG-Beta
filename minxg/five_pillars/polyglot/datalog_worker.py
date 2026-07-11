@@ -31,7 +31,7 @@ _ADAPTER = _sys.modules.get("minxg.contracts.runtime.datalog")
 
 class DatalogWorker(BaseWorker):
     worker_id = "datalog_logic"
-    version = "0.17.0"
+    version = "0.17.1"
 
     @tool(description="Run arbitrary Datalog / ASP rules and return solver output.",
           category="logic")

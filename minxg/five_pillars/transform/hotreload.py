@@ -15,7 +15,7 @@ from minxg.base import BaseWorker, tool
 class HotReloadWorker(BaseWorker):
     facade_alias = "persistence"
     worker_id = "hotreload"
-    version = "0.17.0"
+    version = "0.17.1"
 
     def __init__(self):
         self._watches: Dict[str, Dict] = {}    

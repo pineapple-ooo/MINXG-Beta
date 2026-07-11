@@ -67,7 +67,7 @@ class StateMachine:
 class StateMachineWorker(BaseWorker):
     facade_alias = "state_machine"
     worker_id = "state_machine"
-    version = "0.17.0"
+    version = "0.17.1"
 
     def __init__(self):
         self._semantic: Dict[str, Dict] = {}

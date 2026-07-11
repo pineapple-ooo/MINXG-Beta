@@ -19,7 +19,7 @@ from minxg.base import BaseWorker, tool
 class FsSearchWorker(BaseWorker):
     facade_alias = "fs_io"
     worker_id = "fs_search"
-    version = "0.17.0"
+    version = "0.17.1"
 
     @tool(description="Glob file search (supports **)", category="search")
     async def glob_search(self, pattern: str = "**/*.py", path: str = ".") -> Dict:

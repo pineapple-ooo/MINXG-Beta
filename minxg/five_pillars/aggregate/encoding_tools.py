@@ -29,7 +29,7 @@ except ImportError:
 class EncodingToolsWorker(BaseWorker):
     facade_alias = "crypto_tools"
     worker_id = "encoding_tools"
-    version = "0.17.0"
+    version = "0.17.1"
 
     @tool(description="Base64 encode", category="encode")
     async def base64_encode(self, data: str) -> Dict:

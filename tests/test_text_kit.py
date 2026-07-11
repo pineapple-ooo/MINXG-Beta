@@ -40,7 +40,7 @@ def test_text_kit_registers_exactly_two_tools():
 def test_text_kit_worker_id_and_version():
     worker = TextKitWorker()
     assert worker.worker_id == "text_kit"
-    assert worker.version == "0.17.0"
+    assert worker.version == "0.17.1"
 
 
 def test_text_kit_both_tools_have_valid_metadata():

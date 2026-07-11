@@ -27,7 +27,7 @@ except ImportError:
 class DataToolsWorker(BaseWorker):
     facade_alias = "data_tools"
     worker_id = "data_tools"
-    version = "0.17.0"
+    version = "0.17.1"
 
     @tool(description="Validate JSON string and show error location", category="json")
     async def json_validate(self, text: str) -> Dict:

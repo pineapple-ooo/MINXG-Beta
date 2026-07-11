@@ -31,7 +31,7 @@ class Event:
 class EventsWorker(BaseWorker):
     facade_alias = "events"
     worker_id = "events"
-    version = "0.17.0"
+    version = "0.17.1"
 
     def __init__(self):
         self._handlers: Dict[str, List[Dict]] = defaultdict(list)  

@@ -4,7 +4,7 @@ from minxg.base import BaseWorker, tool
 class MarkdownWorker(BaseWorker):
     facade_alias = "markdown_worker"
     worker_id = "markdown_worker"
-    version = "0.17.0"
+    version = "0.17.1"
 
     @tool
     async def markdown_to_text(self, markdown: str = "") -> dict:

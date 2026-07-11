@@ -111,7 +111,7 @@ class ApkForgeWorker(BaseWorker):
     """
 
     worker_id = "apk_forge"
-    version = "0.17.0"
+    version = "0.17.1"
     _category = "deploy"
 
     @tool(
@@ -571,8 +571,12 @@ class ApkForgeWorker(BaseWorker):
             dark = tuple(max(0, c - 40) for c in rgb)
             bg_bytes = _color_gradient_to_top(sz, sz, rgb, dark)
         elif bg_mode == "trans":
-            bg_bytes = _color_solid(sz, sz, (0, 0, 0)).replace(
-                bytes((0, 0, 0, 255)), bytes((0, 0, 0, 0)))
+            # fully transparent layer; cheap uniform fill
+            zero = bytearray(w * h * 4 for w in [sz])  # placeholder
+            zero = bytearray(sz * sz * 4)
+            for i in range(0, len(zero), 4):
+                zero[i:i + 4] = bytes((0, 0, 0, 0))
+            bg_bytes = bytes(zero)
         else:
             bg_bytes = _color_solid(sz, sz, rgb)
 

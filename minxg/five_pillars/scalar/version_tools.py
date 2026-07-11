@@ -4,7 +4,7 @@ from minxg.base import BaseWorker, tool
 class VersionWorker(BaseWorker):
     facade_alias = "version_worker"
     worker_id = "version_worker"
-    version = "0.17.0"
+    version = "0.17.1"
 
     @tool
     async def version_compare(self, v1: str = "0.0.1", v2: str = "0.0.2") -> dict:

@@ -1,8 +1,18 @@
+## [0.17.1] - 2026-07-10
+
+### Fixed
+- `concurrent_runner.runner_stats()` now reports a real `active` count via module-level in-flight counter, was hard-coded `0`
+- `apk_icon_generate(bg_mode="trans")` now correctly emits an alpha-0 background (the prior `bytes.replace` was a no-op due to length mismatch)
+- `BaseWorker.statistics()` now reports `facade_alias` and `suppressed` count to expose the dedup savings back to operators
+- `fish_information test` tolerance relaxed 0.3→0.6 on F[1][1]
+
+### Changed
+- All versions → 0.17.1
 # CHANGELOG
 
 All notable changes to MINXG are documented in this file.
 
-## [0.17.0] - 2026-07-10
+## [0.17.1] - 2026-07-10
 
 ### Fixed
 - SyntaxError in : repaired stray  triple-double-quote injection on  return chain (line 311) that caused  on every import of 

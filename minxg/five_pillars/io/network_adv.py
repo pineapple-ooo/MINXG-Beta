@@ -23,7 +23,7 @@ class NetworkAdvWorker(BaseWorker):
     facade_alias = "network"
     """Advanced network operations: ping, dns, http, ssl, websocket, port scan, whois, speed test."""
     worker_id = "network_adv"
-    version = "0.17.0"
+    version = "0.17.1"
 
     def _register_tools(self):
         tools = [

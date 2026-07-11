@@ -25,7 +25,7 @@ from typing import Any, Dict
 from ._exec import asset_path, payload_code, run, which
 
 ADAPTER_NAME = "r"
-ADAPTER_VERSION = "0.17.0"
+ADAPTER_VERSION = "0.17.1"
 ADAPTER_STATUS = "disabled"
 
 _RSCRIPT = which("Rscript")

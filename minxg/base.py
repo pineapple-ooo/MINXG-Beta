@@ -50,6 +50,9 @@ class BaseWorker:
     # named facade. This trims 639→~200 tools by collapsing legacy narrow
     # workers into `text_kit` / `apk_forge` / `concurrent_runner` etc.
     facade_alias: Optional[str] = None
+    # Diagnostic counter — tools that would have been listed but were
+    # suppressed by ``facade_alias``. Surfaced via statistics().
+    _suppressed_tool_count: int = 0
 
     def __init__(self):
         self.tools: Dict[str, ToolDef] = {}
@@ -122,7 +125,7 @@ class BaseWorker:
         pass
 
     def statistics(self) -> Dict[str, Any]:
-        return {
+        stats = {
             "worker_id": self.worker_id,
             "version": self.version,
             "uptime_sec": round(time.time() - self._start_time, 2),
@@ -132,7 +135,10 @@ class BaseWorker:
                     "avg_ms": round(t.avg_time() * 1000, 2)}
                 for n, t in self.tools.items()
             },
+            "suppressed": self._suppressed_tool_count,
+            "facade_alias": getattr(self, "facade_alias", None),
         }
+        return stats
 
     def list_tools(self) -> List[Dict[str, Any]]:
         # Workers marked ``facade_alias`` are backward-compat legacy — their
@@ -140,6 +146,9 @@ class BaseWorker:
         # consolidated facade surface instead of the 639-tool bloat. Calls
         # still work for code that imports them directly.
         if getattr(self, "facade_alias", None):
+            # Track how many tools would have been shown — helps operational
+            # users see the savings; reset on each call so it does not double.
+            self._suppressed_tool_count = len(self.tools)
             return []
         return [
             {"name": t.name, "description": t.description,

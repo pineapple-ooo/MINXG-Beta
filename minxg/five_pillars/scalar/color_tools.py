@@ -4,7 +4,7 @@ from minxg.base import BaseWorker, tool
 class ColorWorker(BaseWorker):
     facade_alias = "color_worker"
     worker_id = "color_worker"
-    version = "0.17.0"
+    version = "0.17.1"
 
     @tool
     async def hex_to_rgb(self, hex_color: str = "#ffffff") -> dict:

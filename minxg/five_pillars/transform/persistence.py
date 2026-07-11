@@ -16,7 +16,7 @@ from minxg.base import BaseWorker, tool
 class PersistenceWorker(BaseWorker):
     facade_alias = "persistence"
     worker_id = "persistence"
-    version = "0.17.0"
+    version = "0.17.1"
 
     def __init__(self, db_path: str = None):
         """

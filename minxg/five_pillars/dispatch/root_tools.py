@@ -65,7 +65,7 @@ class RootWorker(BaseWorker):
     All operations are logged for audit purposes.
     """
     worker_id = "root"
-    version = "0.17.0"
+    version = "0.17.1"
 
     def _register_tools(self):
         tools = [

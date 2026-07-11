@@ -48,7 +48,7 @@ class AdbWorker(BaseWorker):
     Auto-disabled on non-Android platforms.
     """
     worker_id = "adb"
-    version = "0.17.0"
+    version = "0.17.1"
 
     def _register_tools(self):
         tools = [

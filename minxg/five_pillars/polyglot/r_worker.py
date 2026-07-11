@@ -25,7 +25,7 @@ _ADAPTER = _sys.modules.get("minxg.contracts.runtime.r")
 
 class RWorker(BaseWorker):
     worker_id = "r_stats"
-    version = "0.17.0"
+    version = "0.17.1"
 
     @tool(description="Full statistical summary (mean/sd/quartiles/skew/kurt).",
           category="stats")

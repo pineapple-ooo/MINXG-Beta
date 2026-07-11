@@ -19,7 +19,7 @@ def test_worker_subclass_baseworker():
 def test_worker_attributes():
     w = ApkForgeWorker()
     assert w.worker_id == "apk_forge"
-    assert w.version == "0.17.0"
+    assert w.version == "0.17.1"
 
 
 def test_worker_has_14_tools():

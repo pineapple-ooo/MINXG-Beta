@@ -18,7 +18,7 @@ class MediaAdvWorker(BaseWorker):
     facade_alias = "media_tools"
     """Advanced media tools: image, audio, video processing."""
     worker_id = "media_adv"
-    version = "0.17.0"
+    version = "0.17.1"
 
     def _register_tools(self):
         tools = [

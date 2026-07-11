@@ -26,7 +26,7 @@ pub mod math_ops; // High-performance vector/matrix operations
 pub mod str_ops; // String hash / normalize / parallel map-reduce
 
 /// Version synced with minxg._version
-pub const VERSION: &str = "0.17.0";
+pub const VERSION: &str = "0.17.1";
 
 /// Number of mathematical operators in the Rust core
 pub const RUST_MATH_OPERATORS: u32 = 42;

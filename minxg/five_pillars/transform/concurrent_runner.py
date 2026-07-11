@@ -33,6 +33,7 @@ class _Runner:
 
     _pool: Optional[ThreadPoolExecutor] = None
     _max_workers: int = 8
+    _in_flight: int = 0  # tracked under submit/map calls
 
     @classmethod
     def pool(cls) -> ThreadPoolExecutor:
@@ -58,7 +59,7 @@ class ConcurrentRunner(BaseWorker):
     """
 
     worker_id = "concurrent_runner"
-    version = "0.17.0"
+    version = "0.17.1"
     _category = "scheduler"
 
     @staticmethod
@@ -68,7 +69,7 @@ class ConcurrentRunner(BaseWorker):
             "max_workers": pool._max_workers
             if hasattr(pool, "_max_workers")
             else _Runner._max_workers,
-            "active": 0,  # python 3.13+ has _work_queue length; omitted for compat
+            "active": _Runner._in_flight,
         }
 
     @tool(
@@ -157,10 +158,13 @@ class ConcurrentRunner(BaseWorker):
 def _safe(fn: Callable[..., Any], **kw: Any) -> Dict[str, Any]:
     if fn is None:
         return {"status": "error", "error": "callable None"}
+    _Runner._in_flight += 1
     try:
         return {"status": "ok", "result": fn(**kw)}
     except Exception as e:
         return {"status": "error", "error": repr(e)}
+    finally:
+        _Runner._in_flight -= 1
 
 
 def _cpu_factorial(n: int) -> int:

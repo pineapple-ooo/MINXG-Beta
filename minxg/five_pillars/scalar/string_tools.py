@@ -24,7 +24,7 @@ except (ImportError, OSError):
 class StringWorker(BaseWorker):
     facade_alias = "text_kit"
     worker_id = "string_worker"
-    version = "0.17.0"
+    version = "0.17.1"
 
     @tool
     async def slugify(self, text: str = "") -> dict:

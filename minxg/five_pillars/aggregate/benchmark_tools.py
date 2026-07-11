@@ -10,7 +10,7 @@ from minxg.base import BaseWorker, tool
 class BenchmarkToolsWorker(BaseWorker):
     facade_alias = "data_tools"
     worker_id = "benchmark_tools"
-    version = "0.17.0"
+    version = "0.17.1"
 
     @tool(description="Measure code execution time", category="measure")
     async def estimate_latency(self, operation: str, data_size: int = 1000) -> Dict:

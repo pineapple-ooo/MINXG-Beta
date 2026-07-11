@@ -76,7 +76,7 @@ def test_twin_engine_accepts_worse_when_candidate_worse():
 
 class _DummyCell(metaclass=CellMeta):
     cell_id = "self_evolution.dummy"
-    cell_version = "0.17.0"
+    cell_version = "0.17.1"
 
     def apply(self, state):
         out = state.clone()

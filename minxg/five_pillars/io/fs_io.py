@@ -11,7 +11,7 @@ from minxg.base import BaseWorker, tool
 class FsIoWorker(BaseWorker):
     facade_alias = "fs_io"
     worker_id = "fs_io"
-    version = "0.17.0"
+    version = "0.17.1"
 
     @tool(description="Read file content (optional line count/offset)", category="read")
     async def read_file(self, path: str, lines: int = 0, start: int = 0) -> Dict:

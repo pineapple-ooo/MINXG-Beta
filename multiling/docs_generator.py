@@ -13,7 +13,7 @@ import yaml
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("docs_gen")
 
-DOCS_VERSION = "0.17.0"
+DOCS_VERSION = "0.17.1"
 BUILD_DATE = "2026-06-01"
 OUTPUT_DIR = Path("docs") if Path("docs").exists() else Path(".")
 STATIC_DIR = OUTPUT_DIR / "static"
@@ -615,7 +615,7 @@ class DocsBuilder:
         except Exception as e:
             pass
     def _generate_sitemap(self, pages: List[DocPage]):
-        lines = ['<?xml version = "0.17.0" encoding="UTF-8"?>']
+        lines = ['<?xml version = "0.17.1" encoding="UTF-8"?>']
         lines.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
         for page in pages:
             lines.append(f"<url><loc>{page.page_id}.html</loc><lastmod>{page.last_updated}</lastmod></url>")

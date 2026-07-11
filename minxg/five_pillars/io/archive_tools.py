@@ -72,7 +72,7 @@ class ArchiveWorker(BaseWorker):
     Supports auto-detection, recursive extraction, and password-protected archives.
     """
     worker_id = "archive"
-    version = "0.17.0"
+    version = "0.17.1"
 
     @tool(description="List contents of an archive (ZIP, TAR, etc.) without extracting")
     def archive_list(self, path: str) -> Dict[str, Any]:
