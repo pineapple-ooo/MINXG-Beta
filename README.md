@@ -224,17 +224,6 @@ print(f"Registered {len(registry.list_all())} tools. Take that, amateurs.")
 
 ---
 
-## Why We're Better Than Everyone Else
-
-**Hermes?** Cute. 100MB of code, 20 features. We got 500+.  
-**Claude Code?** Single-purpose tool. We're a goddamn platform.  
-**LangChain?** Over-engineered mess. We're elegant chaos.  
-**LlamaIndex?** RAG only. We do everything.
-
-We're not just better. We're **embarrassingly** better.
-
----
-
 ## Stats That'll Make You Drool
 
 - **429 Python files** — That's a lot of code, buddy
