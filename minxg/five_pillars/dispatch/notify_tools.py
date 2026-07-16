@@ -4,6 +4,7 @@ from minxg.base import BaseWorker, tool
 class NotifyWorker(BaseWorker):
     facade_alias = "notify_worker"
     worker_id = "notify_worker"
+    tier = "user"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool

@@ -45,10 +45,15 @@ class BaseWorker:
     """Base class for all py_workers. Provides tool registration, stats, health checks."""
     worker_id: str = "base"
     version: str = "1.0.0"
+    # Three-tier architecture (v0.18.0): every worker belongs to ONE tier.
+    # 'ai' = reasoning / generation / planning
+    # 'user' = human-facing interaction (ADB, screen, notifications)
+    # 'code' = deterministic computation (math, crypto, build, FFI)
+    tier: str = "code"
     # Backward-compat facade marker — if set, this worker's tool list is
     # suppressed from the canonical list and calls are routed through the
     # named facade. This trims 639→~200 tools by collapsing legacy narrow
-    # workers into `text_kit` / `apk_forge` / `concurrent_runner` etc.
+    # workers into `text_kit` / `android_forge` / `concurrent_runner` etc.
     facade_alias: Optional[str] = None
     # Diagnostic counter — tools that would have been listed but were
     # suppressed by ``facade_alias``. Surfaced via statistics().

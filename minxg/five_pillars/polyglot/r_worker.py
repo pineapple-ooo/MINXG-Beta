@@ -25,6 +25,7 @@ _ADAPTER = _sys.modules.get("minxg.contracts.runtime.r")
 
 class RWorker(BaseWorker):
     worker_id = "r_stats"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="Full statistical summary (mean/sd/quartiles/skew/kurt).",

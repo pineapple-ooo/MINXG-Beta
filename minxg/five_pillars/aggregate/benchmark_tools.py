@@ -10,6 +10,7 @@ from minxg.base import BaseWorker, tool
 class BenchmarkToolsWorker(BaseWorker):
     facade_alias = "data_tools"
     worker_id = "benchmark_tools"
+    tier = "ai"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="Measure code execution time", category="measure")

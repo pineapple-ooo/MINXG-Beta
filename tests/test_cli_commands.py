@@ -227,10 +227,22 @@ class TestGateway:
         # status is a read-only HTTP probe; should run unconditionally
         assert rc in (0, 1), f"unexpected gateway status rc={rc}"
 
-    def test_gateway_no_subcommand_defaults_to_status(self):
+    def test_gateway_no_subcommand_runs_foreground(self):
+        """v0.18.2: `minxg gateway` with no sub-command runs in foreground.
+        When there's no gateway module available the call exits non-zero
+        cleanly (e.g. RuntimeError ImportError), but the dispatcher
+        itself must not raise; rc is 0 (KeyboardInterrupt) or 1 (error).
+        """
         rc, _ = _silent_call(["gateway"])
-        # missing sub-command defaults to status
-        assert rc in (0, 1)
+        # 0 = KeyboardInterrupt / clean shutdown, 1 = exception raised,
+        # both indicate the gateway_foreground() dispatcher was reached,
+        # which is the goal of this test.
+        assert rc in (0, 1), f"unexpected rc={rc} for gateway no-subcommand"
+
+    def test_gateway_old_start_subcommand_rejected_by_argparse(self):
+        """v0.18.2: the old `gateway start` sub-command is rejected."""
+        rc, out = _silent_call(["gateway", "start"])
+        assert rc != 0, "`gateway start` should no longer be accepted"
 
 
 # ── ext sub-commands — exhaustive through dispatch_ext_command ────────────

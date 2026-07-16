@@ -10,6 +10,7 @@ from minxg.base import BaseWorker, tool
 class AiToolsWorker(BaseWorker):
     facade_alias = "ai_tools"
     worker_id = "ai_tools"
+    tier = "ai"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="Estimate token count", category="text")

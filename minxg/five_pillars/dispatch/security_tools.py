@@ -13,6 +13,7 @@ from minxg.base import BaseWorker, tool
 class SecurityToolsWorker(BaseWorker):
     facade_alias = "security_tools"
     worker_id = "security_tools"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="Check password strength (0-4)", category="password")

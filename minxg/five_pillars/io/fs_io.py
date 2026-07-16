@@ -11,6 +11,7 @@ from minxg.base import BaseWorker, tool
 class FsIoWorker(BaseWorker):
     facade_alias = "fs_io"
     worker_id = "fs_io"
+    tier = "user"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="Read file content (optional line count/offset)", category="read")

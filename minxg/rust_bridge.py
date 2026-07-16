@@ -13,6 +13,7 @@ Design:
 """
 
 import ctypes
+import math
 import os
 import sys
 from ctypes import (
@@ -27,11 +28,15 @@ from typing import Optional, List, Tuple
 # ─── Find the shared library ──────────────────────────────────────────────────
 
 def _find_lib() -> Optional[str]:
-    """Locate libminxg_rust.so (release build)."""
+    """Locate libminxg_rust_core.so (release or debug build)."""
     base = Path(__file__).resolve().parent.parent  # repo root
+    # Release build (Rust crate name → libminxg_rust_core.so)
     candidates = [
-        base / "rust_core" / "target" / "release" / "libminxg_rust.so",
-        base / "rust_core" / "target" / "release" / "libminxg_rust.dylib",
+        base / "rust_core" / "target" / "release" / "libminxg_rust_core.so",
+        base / "rust_core" / "target" / "release" / "libminxg_rust_core.dylib",
+        # Debug build fallback
+        base / "rust_core" / "target" / "debug" / "libminxg_rust_core.so",
+        base / "rust_core" / "target" / "debug" / "libminxg_rust_core.dylib",
     ]
     for path in candidates:
         if path.exists():
@@ -39,7 +44,7 @@ def _find_lib() -> Optional[str]:
 
     # Also check alongside the package
     me = Path(__file__).resolve().parent
-    for name in ("libminxg_rust.so", "libminxg_rust.dylib"):
+    for name in ("libminxg_rust_core.so", "libminxg_rust_core.dylib"):
         if (me / name).exists():
             return str(me / name)
 
@@ -194,6 +199,8 @@ class RustLib:
         L.vec_minmax.restype = c_int32
         L.vec_correlation.argtypes = [POINTER(c_double), POINTER(c_double), c_uint32]
         L.vec_correlation.restype = c_double
+        L.vec_stats.argtypes = [POINTER(c_double), c_uint32, POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double)]
+        L.vec_stats.restype = c_int32
         L.mat_mul.argtypes = [
             POINTER(c_double), c_uint32, c_uint32,
             POINTER(c_double), c_uint32, c_uint32,
@@ -272,22 +279,16 @@ def jet_add(a_val, a_derivs, a_order, b_val, b_derivs, b_order):
 # ─── Test-level detection ──────────────────────────────────────────────────────
 
 def is_rust_available() -> bool:
-    """Return True if the Rust shared library exists AND can be dlopen'd.
+    """Return True if the Rust shared library exists on disk.
 
-    ``_find_lib()`` returns the on-disk path; we also check it loads.
-    On Termux/Android, even a valid .so under ``/storage/emulated/0/`` can
-    fail dlopen due to namespace restrictions — that's a sandbox issue,
-    not a code defect, and we report "not available" to skip FFI tests.
+    Previously this also tried ``ctypes.CDLL(path)``, which fails on
+    Termux/Android even when the .so is valid because of namespace
+    restrictions.  That caused *all* Rust-backed tests to skip instead
+    of running.  We now only check file existence here; callers that
+    actually need to call into Rust will still hit ``OSError`` from
+    ctypes in sandboxed environments, which is the correct failure mode.
     """
-    path = _find_lib()
-    if path is None:
-        return False
-    try:
-        import ctypes
-        ctypes.CDLL(path)
-        return True
-    except OSError:
-        return False
+    return _find_lib() is not None
 
 
 # ─── v0.16.5 — math_ops / str_ops high-level Python wrappers ───────────────
@@ -318,6 +319,21 @@ def vec_minmax(values) -> tuple:
     if rl.lib.vec_minmax(buf, len(values), byref(mn), byref(mx)) != 0:
         raise ValueError("vec_minmax failed")
     return (mn.value, mx.value)
+
+
+def vec_stats(values) -> dict:
+    """Batch stats: mean, std, min, max in a single Rust call."""
+    rl = RustLib.get()
+    n = len(values)
+    buf = (c_double * n)(*values)
+    mean = c_double(0.0)
+    std = c_double(0.0)
+    mn = c_double(0.0)
+    mx = c_double(0.0)
+    rc = rl.lib.vec_stats(buf, n, byref(mean), byref(std), byref(mn), byref(mx))
+    if rc != 0:
+        raise ValueError("vec_stats failed")
+    return {"mean": mean.value, "std": std.value, "min": mn.value, "max": mx.value}
 
 
 def vec_correlation(a, b) -> float:
@@ -379,3 +395,181 @@ def vec_dot(a, b) -> float:
     va = (c_double * len(a))(*a)
     vb = (c_double * len(b))(*b)
     return rl.lib.vec_dot(va, vb, len(a))
+
+
+# ─── Signal processing (v0.18.2) ────────────────────────────────────
+
+def signal_fft_real(data: List[float], fft_len: int) -> List[float]:
+    """Radix-2 DIT FFT on real-valued data.
+    Returns interleaved [re0, im0, re1, im1, ...] complex pairs.
+    fft_len must be power-of-2. Data is zero-padded if shorter.
+    """
+    rl = RustLib.get()
+    n = len(data)
+    va = (c_double * n)(*data)
+    out_len = fft_len * 2
+    out = (c_double * out_len)()
+    rc = rl.lib.fft_real(va, n, fft_len, out)
+    if rc != 0:
+        raise RuntimeError(f"fft_real failed with code {rc}")
+    return list(out)
+
+
+def signal_dwt_haar(data: List[float]) -> Tuple[List[float], List[float]]:
+    """1-level Haar DWT. Returns (approx, detail) each of length len(data)/2."""
+    rl = RustLib.get()
+    n = len(data)
+    if n < 2 or n % 2 != 0:
+        raise ValueError("dwt_haar: length must be even and >= 2")
+    va = (c_double * n)(*data)
+    half = n // 2
+    approx = (c_double * half)()
+    detail = (c_double * half)()
+    rc = rl.lib.dwt_haar(va, n, approx, detail)
+    if rc != 0:
+        raise RuntimeError(f"dwt_haar failed with code {rc}")
+    return list(approx), list(detail)
+
+
+class _KalmanState:
+    """Mutable Kalman filter state."""
+    def __init__(self, init_state: float = 0.0, init_cov: float = 1000.0):
+        self._state = c_double(init_state)
+        self._cov = c_double(init_cov)
+
+    def step(self, measurement: float, process_noise: float = 0.001, measurement_noise: float = 0.1) -> float:
+        rl = RustLib.get()
+        rl.lib.kalman_step(byref(self._state), byref(self._cov),
+                           c_double(measurement), c_double(process_noise), c_double(measurement_noise))
+        return self._state.value
+
+
+def signal_entropy(bins: List[float]) -> float:
+    """Shannon entropy from normalized histogram bins."""
+    rl = RustLib.get()
+    n = len(bins)
+    vb = (c_double * n)(*bins)
+    return rl.lib.entropy_shannon(vb, n)
+
+
+def signal_autocorr(data: List[float], max_lag: int) -> List[float]:
+    """Unbiased autocorrelation for lags 0..max_lag."""
+    rl = RustLib.get()
+    n = len(data)
+    out_len = max_lag + 1
+    out = (c_double * out_len)()
+    rc = rl.lib.autocorrelation((c_double * n)(*data), n, max_lag, out)
+    if rc != 0:
+        raise RuntimeError(f"autocorrelation failed with code {rc}")
+    return list(out)
+
+
+def signal_peak_detect(data: List[float], max_peaks: int = 10) -> List[Tuple[int, float]]:
+    """Detect peaks via zero-crossing of first derivative."""
+    rl = RustLib.get()
+    n = len(data)
+    idx_out = (c_uint32 * max_peaks)()
+    val_out = (c_double * max_peaks)()
+    count = rl.lib.peak_detect((c_double * n)(*data), n, idx_out, val_out, max_peaks)
+    if count < 0:
+        raise RuntimeError("peak_detect failed")
+    return [(idx_out[i], val_out[i]) for i in range(count)]
+
+
+def signal_energy(data: List[float]) -> float:
+    """Sum of squares (Parseval-adjacent energy)."""
+    rl = RustLib.get()
+    n = len(data)
+    return rl.lib.signal_energy((c_double * n)(*data), n)
+
+
+# ── v0.18.2: Lyapunov + fixed-point ──────────────────────────────────
+
+def _lyapunov_python(x0: float, r: float, transient: int, iters: int) -> Dict[str, Any]:
+    """Pure-Python Lyapunov fallback (no Rust needed)."""
+    x = max(0.0001, min(0.9999, x0))
+    for _ in range(transient):
+        x = r * x * (1.0 - x)
+        if not math.isfinite(x):
+            x = 0.5
+    total = 0.0
+    count = 0
+    orbit_sample = []
+    for i in range(iters):
+        df = abs(r * (1.0 - 2.0 * x))
+        if df > 1e-14:
+            total += math.log(df)
+            count += 1
+        if i < 50:
+            orbit_sample.append(round(x, 5))
+        x = r * x * (1.0 - x)
+        if not math.isfinite(x):
+            break
+    lam = total / count if count > 0 else -999.0
+    return _classify_lambda(lam, r, x0, orbit_sample)
+
+
+def _classify_lambda(lam: float, r: float, x0: float, orbit: list) -> Dict[str, Any]:
+    if lam > 0.3:
+        cls, pun = "chaotic", f"λ={lam:.4f} — full chaos, orbit looks like static"
+    elif lam > 0.0:
+        cls, pun = "weakly chaotic", f"λ={lam:.4f} — structured chaos, predictable unpredictability"
+    elif lam > -0.1:
+        cls, pun = "near-bifurcation", f"λ={lam:.4f} — on the knife-edge of order and chaos"
+    else:
+        cls, pun = "periodic/stable", f"λ={lam:.4f} — settles down, predictable future"
+    return {
+        "status": "ok", "lambda": round(lam, 6),
+        "classification": cls, "r": r, "x0": x0,
+        "punchline": pun, "orbit_sample": orbit,
+        "engine": "pure_python (Rust .so not built)",
+    }
+
+
+def lyapunov_logistic(x0: float, r: float, transient: int = 500,
+                       iters: int = 10000) -> Dict[str, Any]:
+    """Lyapunov exponent λ for logistic map x_{n+1}=r·x_n·(1-x_n).
+
+    λ > 0  → chaotic / λ < 0  → periodic / λ ≈ 0  → bifurcation edge.
+    Uses Rosenstein method: average slope of ln|dF/dx| along orbit.
+    Auto-falls back to pure Python if Rust .so not available.
+    """
+    try:
+        rl = RustLib.get()
+        buf = (c_double * max(0, iters))()
+        lam = rl.lib.lyapunov_logistic(x0, r, transient, iters, buf)
+        if lam < -900.0:
+            return {"status": "error", "error": f"bad params r={r}, x0={x0}"}
+        orbit = list(buf[:min(50, iters)])
+        return _classify_lambda(lam, r, x0, orbit)
+    except FileNotFoundError:
+        # .so not built — use pure Python fallback
+        return _lyapunov_python(x0, r, transient, iters)
+
+
+def fixed_point_iter(
+    g_fn,          # callable f64 → f64
+    x0: float = 0.5,
+    max_iter: int = 200,
+    tol: float = 1e-10,
+) -> Dict[str, Any]:
+    """Solve x = g(x) via successive substitution.  Converges if |g'(x)| < 1 near root.
+
+    Use for: implicit equations, steady-state PDEs, economic equilibrium,
+    chemical equilibrium, BEM integrals — anywhere you'd otherwise need Newton
+    but lack or don't trust the derivative.
+    """
+    x = x0
+    history = [x]
+    for _ in range(max_iter):
+        nx = g_fn(x)
+        if not isinstance(nx, float) or not math.isfinite(nx):
+            return {"status": "error", "x": float(x), "converged": False,
+                    "reason": "non-finite intermediate", "history": history[-10:]}
+        if abs(nx - x) < tol:
+            return {"status": "ok", "x": float(nx), "converged": True,
+                    "iterations": len(history), "history": history}
+        x = nx
+        history.append(x)
+    return {"status": "partial", "x": float(x), "converged": False,
+            "iterations": max_iter, "reason": "max_iter", "history": history[-10:]}

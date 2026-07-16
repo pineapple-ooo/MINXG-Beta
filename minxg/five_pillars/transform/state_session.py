@@ -34,6 +34,7 @@ class SessionState:
 class StateSessionWorker(BaseWorker):
     facade_alias = "state_session"
     worker_id = "state_session"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     def __init__(self):

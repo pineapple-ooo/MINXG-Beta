@@ -14,6 +14,7 @@ from minxg.five_pillars.io.network import NetworkWorker
 
 class ShExecWorker(BaseWorker):
     worker_id = "sh_exec"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     def __init__(self):

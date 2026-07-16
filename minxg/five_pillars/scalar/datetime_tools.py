@@ -12,6 +12,7 @@ from minxg.base import BaseWorker, tool
 class DateTimeToolsWorker(BaseWorker):
     facade_alias = "datetime_tools"
     worker_id = "datetime_tools"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     def __init__(self):

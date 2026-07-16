@@ -27,6 +27,7 @@ except ImportError:
 class DataToolsWorker(BaseWorker):
     facade_alias = "data_tools"
     worker_id = "data_tools"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="Validate JSON string and show error location", category="json")

@@ -35,6 +35,7 @@ except (ImportError, OSError):
 class TextToolsWorker(BaseWorker):
     facade_alias = "text_kit"
     worker_id = "text_tools"
+    tier = "ai"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="Split text into words using optimized tokenizer", category="analyze")

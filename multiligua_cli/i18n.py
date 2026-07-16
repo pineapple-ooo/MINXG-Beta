@@ -1,18 +1,6 @@
 """
-MINXG i18n — multilingual internationalization module (12 languages).
-
-Languages shipped: en, zh, ja, ko, fr, de, es, pt-BR, ru, ar, hi, th.
-Each lives in i18n_data/{code}.json as a flat dict of translation keys.
-
-Built-in defaults: a small _DEFAULTS dict ships the most-used keys
-inline so a missing JSON file does not turn the CLI into raw-key soup.
-When i18n_data/{lang}.json is present, its entries override _DEFAULTS.
-
-Public surface:
-- LANGUAGES, LANG_NAMES, LANG_CODES
-- set_lang / get_lang / get_lang_name / init_i18n
-- T(key, lang=None, **kwargs) — translates a key with .format() kwargs
-- available_keys(lang=None) -> list[str]
+MINXG i18n — English-only (v0.18.x). All other locales removed per policy.
+Keeps the translation key system intact so switching back is a JSON restore.
 """
 
 from __future__ import annotations
@@ -23,18 +11,7 @@ from typing import Dict
 
 
 LANGUAGES: Dict[str, Dict[str, str]] = {
-    "en":    {"name": "English",                "native": "English"},
-    "zh":    {"name": "Chinese",                "native": "中文"},
-    "ja":    {"name": "Japanese",               "native": "日本語"},
-    "ko":    {"name": "Korean",                  "native": "한국어"},
-    "fr":    {"name": "French",                  "native": "Français"},
-    "de":    {"name": "German",                  "native": "Deutsch"},
-    "es":    {"name": "Spanish",                 "native": "Español"},
-    "pt-BR": {"name": "Portuguese (Brazil)",     "native": "Português (Brasil)"},
-    "ru":    {"name": "Russian",                 "native": "Русский"},
-    "ar":    {"name": "Arabic",                  "native": "العربية"},
-    "hi":    {"name": "Hindi",                   "native": "हिन्दी"},
-    "th":    {"name": "Thai",                    "native": "ไทย"},
+    "en": {"name": "English", "native": "English"},
 }
 
 LANG_NAMES = [v["native"] for v in LANGUAGES.values()]

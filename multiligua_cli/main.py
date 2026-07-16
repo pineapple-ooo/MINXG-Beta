@@ -57,7 +57,7 @@ def _build_cheatsheet() -> str:
         f"║  MINXG — commands                                                    ║",
         f"╠══════════════════════════════════════════════════════════════════════╣",
         f"║                                                                      ║",
-        f"║  minxg                    Start the TUI chat (default)               ║",
+        f"║  minxg                    Start the TUI chat (DEFAULT)           ║",
         f"║  minxg setup              Run the setup wizard                       ║",
         f"║  minxg config             Show current configuration                 ║",
         f"║  minxg status             Runtime status                             ║",
@@ -67,7 +67,7 @@ def _build_cheatsheet() -> str:
         f"║  minxg key <key>          Quick-set API key                          ║",
         f"║  minxg lang [code]        Switch display language (en only, default) ║",
         f"║  minxg ext list|add|...   Manage extensions (user-installed)         ║",
-        f"║  minxg gateway start|stop|status   API gateway lifecycle             ║",
+        f"║  minxg gateway [--detach]  API gateway (foreground default, -d=bg)  ║",
         f"║  minxg doctor             Self-check (config + tools + extensions)   ║",
         f"║  minxg help               Show this cheatsheet                       ║",
         f"║                                                                      ║",
@@ -81,7 +81,7 @@ def _build_cheatsheet() -> str:
         f"║  Examples:                                                           ║",
         f"║    minxg model gpt-4o              # one-shot set the model          ║",
         f"║    minxg ext add minxg-adb         # enable built-in ADB extension   ║",
-        f"║    minxg gateway start --foreground                                        ║",
+        f"║    minxg gateway --detach   (background mode, old 'gateway start')        ║",
         f"║                                                                      ║",
         f"╚══════════════════════════════════════════════════════════════════════╝",
     ]
@@ -126,9 +126,9 @@ def run_tools(args) -> int:
         if HAS_RICH:
             from rich.table import Table
             from rich import box
-            table = Table(title=f"[Tools] {T('tools_title')}", box=box.ROUNDED)
+            table = Table(title=f"[bold bright_cyan][Tools][/bold bright_cyan] {T('tools_title')}", box=box.HEAVY_HEAD, border_style="deep_sky_blue3")
             table.add_column("Status", style="green", width=4)
-            table.add_column(T("cfg_ai_provider"), style="cyan")
+            table.add_column(T("cfg_ai_provider"), style="bright_cyan")
             table.add_column(T("status_extensions"), style="white")
             table.add_column("Tools", style="dim")
             for ts_name, ts_data in sorted(toolsets.items()):
@@ -476,7 +476,7 @@ Core commands:
   minxg api <URL>         Quick-set the API base URL
   minxg key <KEY>         Quick-set the API key
   minxg ext ...           Manage user-installed extensions
-  minxg gateway ...       API gateway lifecycle (start | stop | status)
+  minxg gateway ...       API gateway lifecycle (--detach for background, stop, status)
   minxg doctor            Self-check (config + tools + extensions)
   minxg --version         Show version
 
@@ -484,7 +484,7 @@ Examples:
   minxg
   minxg model gpt-4o
   minxg ext add minxg-adb
-  minxg gateway start --foreground
+  minxg gateway --detach
 """,
     )
     parser.add_argument("--version", action="version",
@@ -502,6 +502,16 @@ Examples:
     sub.add_parser("tools", help="List available tools")
     sub.add_parser("help", help="Show command cheatsheet")
 
+    # New commands for v0.19.0
+    sub.add_parser("memory", help="Memory system management")
+    sub.add_parser("cost", help="Cost tracking and analytics")
+    sub.add_parser("compare", help="Multi-model comparison")
+    sub.add_parser("web", help="Start Web UI server")
+    sub.add_parser("features", help="Show feature showcase")
+    sub.add_parser("themes", help="Theme management")
+    sub.add_parser("export", help="Export conversations")
+    sub.add_parser("import", help="Import conversations")
+
     p_model = sub.add_parser("model", help="Set or view the active model")
     p_model.add_argument("model_name", nargs="?",
                          help="Model name (optional; omit to view)")
@@ -518,10 +528,12 @@ Examples:
                         help=f"Language code ({', '.join(LANG_CODES[:3])}...)")
 
     p_gw = sub.add_parser("gateway",
-                          help="API gateway lifecycle (start | stop | status)")
+                          help="API gateway lifecycle (foreground by default, --detach for background, stop, status)")
     p_gw.add_argument("sub_command", nargs="?",
-                      choices=["start", "stop", "status"],
-                      help="Sub-command to run")
+                      choices=["stop", "status"],
+                      help="Sub-command to run (omit = run in foreground)")
+    p_gw.add_argument("--detach", "-d", action="store_true",
+                      help="Start gateway in background (replaces old 'gateway start')")
 
     p_doctor = sub.add_parser("doctor",
                                help="Self-check (config + tools + extensions)")
@@ -666,16 +678,24 @@ Examples:
     if cmd == "lang":
         return run_lang_config(args)
 
+    # ── `minxg gateway` — unified gateway command ──
+    # (v0.18.2 — the old `gateway start` sub-command has been removed.
+    #  `minxg gateway` with no sub-command runs in foreground.
+    #  `minxg gateway --detach` runs in background.
+    #  `minxg gateway stop` / `minxg gateway status` remain.)
     if cmd == "gateway":
-        sub_c = getattr(args, "sub_command", None) or "status"
+        sub_c = getattr(args, "sub_command", None)
+        detach = getattr(args, "detach", False)
         from multiligua_cli.gateway_cli import (
-            gateway_foreground, gateway_start, gateway_stop, gateway_status,
+            gateway_foreground, gateway_detach, gateway_stop, gateway_status,
         )
-        if sub_c == "start":
-            return gateway_start(args)
         if sub_c == "stop":
             return gateway_stop(args)
-        return gateway_status(args)
+        if sub_c == "status":
+            return gateway_status(args)
+        if detach:
+            return gateway_detach(args)
+        return gateway_foreground(args)
 
     if cmd == "doctor":
         from multiligua_cli.doctor import run_doctor
@@ -695,17 +715,85 @@ Examples:
         from extensions.package_cli import dispatch_ext_command
         return dispatch_ext_command(args, ext_act)
 
-    # No subcommand -> ask: chat CLI or start API gateway?
-    mode = _pick_initial_mode()
-    if mode == "gateway":
-        from multiligua_cli.gateway_cli import gateway_start
-        return gateway_start(args)
-    if mode == "setup":
-        from multiligua_cli.setup import run_setup
-        rc = run_setup()
-        if rc == 0:
-            _print_completion_hint()
-        return rc
+    # New v0.19.0 commands
+    if cmd == "memory":
+        from multiligua_cli.memory_viz import print_memory_dashboard
+        print_memory_dashboard()
+        return 0
+
+    if cmd == "cost":
+        from multiligua_cli.cost_tracker import get_tracker
+        tracker = get_tracker()
+        print(f"\n💰 Cost Tracker")
+        print(f"   Total Requests: {tracker.total_requests}")
+        print(f"   Total Tokens: {tracker.total_input_tokens + tracker.total_output_tokens}")
+        print(f"   Total Cost: ${tracker.total_cost:.4f}")
+        if tracker.budget_usd:
+            print(f"   Budget: ${tracker.budget_usd:.2f} ({tracker.budget_used_percent:.1f}% used)")
+        print()
+        return 0
+
+    if cmd == "compare":
+        print("\n🔀 Multi-Model Comparison")
+        print("   Use /compare in TUI to compare models interactively.")
+        print()
+        return 0
+
+    if cmd == "web":
+        from multiligua_cli.web_ui import run_web_ui
+        run_web_ui()
+        return 0
+
+    if cmd == "features":
+        from multiligua_cli.features import print_features
+        print_features()
+        return 0
+
+    if cmd == "themes":
+        from multiligua_cli.themes import list_themes, set_theme
+        import sys
+        if len(sys.argv) > 2:
+            theme_name = sys.argv[2]
+            if set_theme(theme_name):
+                print(f"✓ Theme set to: {theme_name}")
+            else:
+                print(f"✗ Unknown theme: {theme_name}")
+        else:
+            themes = list_themes()
+            print("\n🎨 Available Themes:")
+            for t in themes:
+                marker = " ◀" if t["is_current"] else "  "
+                print(f"   {marker}{t['display_name']} — {t['description']}")
+            print()
+        return 0
+
+    if cmd == "export":
+        from multiligua_cli.memory_system import get_memory_engine
+        engine = get_memory_engine()
+        fmt = "json"
+        if len(sys.argv) > 2 and sys.argv[2] in ("json", "markdown"):
+            fmt = sys.argv[2]
+        output = engine.export(format=fmt)
+        print(output)
+        return 0
+
+    if cmd == "import":
+        from multiligua_cli.memory_system import get_memory_engine
+        import sys
+        if len(sys.argv) < 3:
+            print("Usage: minxg import <file.json>")
+            return 1
+        file_path = sys.argv[2]
+        with open(file_path, "r") as f:
+            data = f.read()
+        engine = get_memory_engine()
+        count = engine.import_memories(data, format="json")
+        print(f"✓ Imported {count} memories")
+        return 0
+
+    # No subcommand -> start chat directly.
+    # (v0.19.x — `minxg` with no args is *the* chat entry point.
+    #  Use `minxg gateway` for the API gateway instead.)
     from multiligua_cli.tui_chat import tui_chat
     return tui_chat(args)
 

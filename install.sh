@@ -51,25 +51,24 @@ USAGE
 # ── Completion cheatsheet ────────────────────────────
 cat <<'CHEATSHEET'
 +--------------------------------------------------------------------+
-| MINXG - installed |
+| MINXG - installed (v0.18.2)                                        |
 +--------------------------------------------------------------------+
-| |
-| minxg start the TUI chat |
-| minxg setup run the setup wizard |
-| minxg config show current configuration |
-| minxg status runtime status |
-| minxg tools list available tools |
-| minxg ext available list built-in optional extensions |
-| minxg ext add minxg-adb install ADB tools (opt-in) |
-| minxg ext add minxg-root install ROOT tools (opt-in) |
-| minxg gateway start start the API gateway |
-| minxg doctor self-check |
-| minxg --version show version |
-| |
-| Try now: |
-| $ minxg --version |
-| $ minxg config |
-| $ minxg |
+|                                                                    |
+| minxg                    Start the TUI chat (DEFAULT)             |
+| minxg gateway             Start the API gateway (--detach for background)  |
+| minxg setup              Run the setup wizard (Quick or Full)      |
+| minxg config             Show current configuration                |
+| minxg status             Runtime status                            |
+| minxg tools              List available tools                       |
+| minxg ext list           List extensions (files: ON by default)    |
+| minxg ext add minxg-adb  Install ADB extension (opt-in)            |
+| minxg ext add minxg-root Install ROOT extension (opt-in)           |
+| minxg doctor             Self-check                                |
+| minxg --version          Show version                               |
+|                                                                    |
+| Try now:                                                           |
+| $ minxg --version                                                  |
+| $ minxg                                                            |
 +--------------------------------------------------------------------+
 CHEATSHEET
 exit 0
@@ -83,9 +82,9 @@ INSTALL_DIR="${MINXG_DIR:-${2:-$HOME/.minxg-src}}"
 CLONE_BRANCH="${MINXG_BRANCH:-${3:-}}"
 # ───────────────────────────────────────────────────────
 
-echo "════════════════════════════════════════"
-echo " MINXG v0.11.0 "
-echo "════════════════════════════════════════"
+echo "══════════════════════════════════════════════════════"
+echo " MINXG v0.18.1 "
+echo "══════════════════════════════════════════════════════"
 echo ""
 
 # ── vs ────────────────────────────
@@ -364,15 +363,17 @@ echo " python: $(python3 --version 2>&1)"
 if [ "$NATIVE_OK" = true ]; then printf " native: \u001b[32mC/C++\u001b[0m\n"; else printf " native: python fallback\n"; fi
 echo ""
 echo " common commands:"
-echo " minxg start the TUI chat"
-echo " minxg ext list show installed extensions"
-echo " minxg ext add <slug> install an extension"
-echo " minxg ext add minxg-adb install ADB tools (opt-in)"
-echo " minxg ext add minxg-root install ROOT tools (opt-in)"
-echo " minxg doctor self-check"
+echo " minxg                    Start the TUI chat (DEFAULT)"
+echo " minxg gateway             Start the API gateway (--detach for bg)"
+echo " minxg setup              Run the setup wizard (Quick or Full)"
+echo " minxg ext list           List extensions (files: ON by default)"
+echo " minxg ext add minxg-adb  Install ADB extension (opt-in)"
+echo " minxg ext add minxg-root Install ROOT extension (opt-in)"
+echo " minxg doctor             Self-check"
 echo ""
-echo " (the old ADB/Root auto-detect steps were removed in 0.11; install"
-echo " those extensions only when you need them — see 'minxg ext available'.)"
+echo " files extension is enabled by default (v0.19.x) — the AI can"
+echo " read your file system out of the box.  Disable with:"
+echo "   minxg ext disable minxg-files"
 
 # ── Termux / ZeroTermux notification ───────────────────────────
 # Fire AND-log only when we're inside Termux (NOT just Android).

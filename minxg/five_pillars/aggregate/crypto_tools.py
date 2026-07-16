@@ -31,6 +31,7 @@ except ImportError:
 class CryptoToolsWorker(BaseWorker):
     facade_alias = "crypto_tools"
     worker_id = "crypto_tools"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="MD5 hash", category="hash")

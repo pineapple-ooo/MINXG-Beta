@@ -65,6 +65,7 @@ class RootWorker(BaseWorker):
     All operations are logged for audit purposes.
     """
     worker_id = "root"
+    tier = "user"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     def _register_tools(self):

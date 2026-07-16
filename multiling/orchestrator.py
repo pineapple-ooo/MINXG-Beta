@@ -559,7 +559,20 @@ class NexusOrchestrator:
 
     async def _stream_conversation(self, messages, tools, session_id=None,
                                    tool_callback=None, max_iters=90):
-        """Streaming conversation loop with tool execution."""
+        """Streaming conversation loop with tool execution.
+
+        v0.18.3 fix vs prior: the round-trip used to read fresh ``context_msgs``
+        from the InfiniteContextManager on every iteration. After a tool round
+        we appended the tool result to the local ``messages`` list but never to
+        ``ctx``, so the *second* API call would re-fetch from ``ctx`` and lose
+        the tool result the model needed to keep producing coherent text.
+
+        Now we maintain a single canonical ``live_messages`` list that mirrors
+        both ``ctx`` and what we POST to the model. Tool calls land with proper
+        ``tool_call_id`` alignment, and ``tool_choice="auto"`` is set explicitly
+        so upstream proxies (OpenRouter, portkey, derisk) don't reuse a stale
+        provider-side default that suppresses tool calls.
+        """
         import aiohttp
         import time as time_mod
 
@@ -567,28 +580,32 @@ class NexusOrchestrator:
         for msg in messages:
             await ctx.add_message(msg["role"], msg["content"])
 
+        # Single source of truth that grows as the conversation progresses.
+        # ``ctx`` continues to mirror it for InfiniteContextManager consumers.
+        live_messages: List[Dict[str, Any]] = list(messages)
+
         api_call_count = 0
         final_text_parts = []
-        accumulated_tool_calls = {}
+        accumulated_tool_calls: Dict[int, Dict] = {}
 
         while api_call_count < max_iters:
             api_call_count += 1
 
-
-            context_msgs = await ctx.get_context(max_messages=50)
-
-
-            headers = {"Content-Type": "application/json"}
-            if self.ai_api_key:
-                headers["Authorization"] = f"Bearer {self.ai_api_key}"
-
+            # ── 1) Build payload from the canonical list. We *don't*
+            #    re-read ctx here any more — live_messages is the truth.
             payload = {
                 "model": self.ai_model,
-                "messages": context_msgs,
+                "messages": list(live_messages),
                 "stream": True,
             }
             if tools:
                 payload["tools"] = tools
+                payload["tool_choice"] = "auto"
+                payload["parallel_tool_calls"] = True
+
+            headers = {"Content-Type": "application/json"}
+            if self.ai_api_key:
+                headers["Authorization"] = f"Bearer {self.ai_api_key}"
 
             has_tool_calls = False
             has_content = False
@@ -705,21 +722,38 @@ class NexusOrchestrator:
                                "result": result_obj,
                                "elapsed_ms": elapsed}
 
-                        await ctx.add_message("tool", json.dumps(result_obj))
+                        # ── Mirror to ctx with full tool_call_id metadata
+                        #    so InfiniteContextManager replay includes it.
+                        await ctx.add_message(
+                            "tool",
+                            json.dumps(result_obj, ensure_ascii=False)[:2000],
+                            metadata={"tool_call_id": tc.get("id", "")},
+                        )
 
-
-                        messages.append({
+                        # ── And append to the live canonical list we POST.
+                        live_messages.append({
                             "role": "tool",
                             "tool_call_id": tc.get("id", ""),
                             "content": json.dumps(result_obj, ensure_ascii=False)[:2000],
                         })
 
 
-                    messages.append({
+                    # ── Close the round: assistant message with the tool_calls field.
+                    #    Without this the next API call rejects the tool results
+                    #    (no matching tool_call_id reference) — that is the
+                    #    "AI never closes the loop" symptom reported in v0.18.2.
+                    live_messages.append({
                         "role": "assistant",
-                        "content": None,
+                        "content": "" if not final_text_parts else "".join(final_text_parts),
                         "tool_calls": tool_calls_for_round,
                     })
+                    await ctx.add_message(
+                        "assistant",
+                        json.dumps({
+                            "tool_calls": tool_calls_for_round,
+                            "text": "".join(final_text_parts),
+                        }, ensure_ascii=False),
+                    )
 
                     continue
 

@@ -20,6 +20,8 @@ import time
 from contextlib import contextmanager
 from typing import Any, Dict, Iterable, Iterator, List, Tuple
 
+from multiligua_cli.wizard_ui import Colors
+
 # ─── ANSI colour helpers ────────────────────────────────────────────────────
 
 
@@ -132,16 +134,11 @@ _STATUS_GLYPH = {
 
 def tool_call_card(name: str, args: Dict[str, Any],
                    status: str, summary: str = "") -> str:
-    """Pretty-print a tool-call block.
-
-    ``status`` ∈ ``"pending"|"running"|"done"|"error"``. ``summary`` is optional
-    one-line result preview.
-    """
+    """Pretty-print a tool-call block — MINXG gold/teal high-density card."""
     glyph = _STATUS_GLYPH.get(status, "·")
     badge = color(_STATUS_COLOR.get(status, "gray"), f"{glyph} {status.upper()}")
-    label = color("bold", f"⟦ {name} ⟧")
-    body = []
-    body.append(f"{label} {badge}")
+    label = f"[{Colors.GOLD}{Colors.BOLD}]⟦ {name} ⟧[/{Colors.RESET}]"
+    body = [f"{label} {badge}"]
     if args:
         import json
         try:
@@ -149,7 +146,7 @@ def tool_call_card(name: str, args: Dict[str, Any],
             arg_str = arg_str.replace("\\n", "\n")
         except Exception:
             arg_str = repr(args)[:200]
-        body.append(color("dim", f"  args: {arg_str}"))
+        body.append(f"  [{Colors.TEAL}]{arg_str}[/{Colors.RESET}]")
     if summary:
         body.append(f"  → {summary}")
     return "\n".join(body)

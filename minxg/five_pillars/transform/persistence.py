@@ -16,6 +16,7 @@ from minxg.base import BaseWorker, tool
 class PersistenceWorker(BaseWorker):
     facade_alias = "persistence"
     worker_id = "persistence"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     def __init__(self, db_path: str = None):

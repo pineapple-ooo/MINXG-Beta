@@ -9,6 +9,7 @@ import uuid
 from collections import defaultdict
 from typing import Dict, List, Optional, Any, Callable, Union
 from minxg.base import BaseWorker, tool
+from minxg.sandbox import safe_eval as _safe_eval, safe_exec as _safe_exec
 
 
 
@@ -65,7 +66,9 @@ def not_(cond: Callable) -> Callable[[Dict], bool]:
 class RulesWorker(BaseWorker):
     facade_alias = "rules"
     worker_id = "rules"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
+    _allowed_rule_names = {"ctx", "step0", "step1", "step2", "error"}
 
     def __init__(self):
         self._rules: Dict[str, Dict] = {}     
@@ -100,16 +103,16 @@ class RulesWorker(BaseWorker):
         """
           action_expr:    "ctx['hit'] = True; ctx['count'] = ctx.get('count', 0) + 1"
         """
+        allowed_names = {"ctx"}
         try:
-            cond = compile(f"lambda ctx: bool({condition_expr})", f"<cond:{name}>", "eval")
-            cond_fn = eval(cond)
+            cond_fn = _safe_eval(condition_expr, allowed_names=allowed_names)
         except Exception as e:
             return {"error": f"invalid condition_expr: {e}"}
         try:
             action_src = f"def _act(ctx):\n    {action_expr.replace(chr(10), chr(10) + '    ')}"
-            exec_globals = {}
-            exec(action_src, exec_globals)
-            act_fn = exec_globals["_act"]
+            ctx_locals = {"ctx": {}}
+            _safe_exec(action_src, ctx_locals)
+            act_fn: Callable = ctx_locals["_act"]
         except Exception as e:
             return {"error": f"invalid action_expr: {e}"}
 

@@ -8,6 +8,7 @@ from minxg.base import BaseWorker, tool
 class ProcessToolsWorker(BaseWorker):
     facade_alias = "sh_exec"
     worker_id = "process_tools"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="Generate process search command", category="ps")

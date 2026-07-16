@@ -67,6 +67,7 @@ class StateMachine:
 class StateMachineWorker(BaseWorker):
     facade_alias = "state_machine"
     worker_id = "state_machine"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     def __init__(self):

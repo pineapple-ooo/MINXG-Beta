@@ -7,7 +7,7 @@ name = "minxg-beta"
 dynamic = ["version"]
 description = "MINXG — modular AI worker platform with a chat CLI, an OpenAI-compatible v1 gateway, opt-in extensions (ADB/ROOT/files), and a self-developed temporal driver engine. 376 operators in 11 categories (306 of them mathematical across 6 pillars). Pure Python. Published on PyPI as `minxg-beta` — `pip install minxg-beta`."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.8"
 authors = [{ name = "MINXG Authors" }]
 license = { text = "MIT" }
 keywords = ["ai", "orchestration", "workers", "operator", "driver", "five-pillars", "self-evolution", "lossless", "polyglot", "minxg"]
@@ -16,6 +16,9 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",

@@ -77,6 +77,7 @@ class ScreenWorker(BaseWorker):
     """
 
     worker_id: str = "screen"
+    tier: str = "user"  # v0.18.0 three-tier classification
     version: str = "0.1.0"
 
     def __init__(self) -> None:

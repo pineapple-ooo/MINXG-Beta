@@ -71,6 +71,7 @@ class _Barrier:
 class LimitsLockWorker(BaseWorker):
     facade_alias = "limits_break"
     worker_id = "limits_lock"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     def __init__(self):

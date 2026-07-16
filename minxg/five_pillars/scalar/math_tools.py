@@ -47,6 +47,7 @@ def _safe_eval(node):
 class MathToolsWorker(BaseWorker):
     facade_alias = "math_tools"
     worker_id = "math_tools"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="Safe math expression evaluation", category="calc")
@@ -64,13 +65,14 @@ class MathToolsWorker(BaseWorker):
             n = len(values)
             if n == 0:
                 return {"error": "empty list"}
-            mean = sum(values) / n
-            variance = sum((x - mean) ** 2 for x in values) / n
-            std = math.sqrt(variance)
+            # Rust-backed batch stats in one ctypes call
+            from minxg.rust_bridge import vec_stats as _vec_stats
+            stats = _vec_stats(values)
             sorted_vals = sorted(values)
             median = sorted_vals[n // 2] if n % 2 else (sorted_vals[n // 2 - 1] + sorted_vals[n // 2]) / 2
-            return {"count": n, "mean": mean, "std": std, "median": median,
-                    "min": min(values), "max": max(values), "sum": sum(values)}
+            return {"count": n, "mean": stats["mean"], "std": stats["std"],
+                    "median": median, "min": stats["min"], "max": stats["max"],
+                    "sum": sum(values)}
         except Exception as e:
             return {"error": str(e)}
 

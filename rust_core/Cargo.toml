@@ -1,19 +1,14 @@
 [package]
-name = "minxg_rust"
-version = "0.17.1"
+name = "minxg_rust_core"
+version = "0.18.1"
 edition = "2021"
-description = "MINXG Rust Core — pure-Rust mathematical operators, memory-safe FFI bridge"
 license = "MIT"
+description = "MINXG Rust performance core -- hot-path computations"
 
 [lib]
-name = "minxg_rust"
+name = "minxg_rust_core"
 crate-type = ["cdylib", "rlib"]
 
-# NO third-party deps. All math is hand-rolled from std.
 [dependencies]
-
-[profile.release]
-lto = true
-codegen-units = 1
-opt-level = 3
-panic = "abort"           # no unwinding through FFI
+# No external deps -- pure stdlib for maximum portability
+# PyO3 bindings added when Python FFI is needed

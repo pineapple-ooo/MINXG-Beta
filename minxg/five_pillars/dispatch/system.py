@@ -21,6 +21,7 @@ from minxg.base import BaseWorker, tool
 class SystemWorker(BaseWorker):
     facade_alias = "system"
     worker_id = "system"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="Execute shell command, return stdout/stderr/exit_code", category="exec")

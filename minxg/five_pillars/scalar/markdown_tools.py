@@ -4,6 +4,7 @@ from minxg.base import BaseWorker, tool
 class MarkdownWorker(BaseWorker):
     facade_alias = "markdown_worker"
     worker_id = "markdown_worker"
+    tier = "ai"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool

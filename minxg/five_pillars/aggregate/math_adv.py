@@ -20,6 +20,7 @@ from minxg.base import BaseWorker, tool
 class MathAdvWorker(BaseWorker):
     facade_alias = "math_tools"
     worker_id = "math_adv"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     # ══════════════════════════════════════════════════════════════════════════

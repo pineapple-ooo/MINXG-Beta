@@ -4,6 +4,7 @@ from minxg.base import BaseWorker, tool
 class ColorWorker(BaseWorker):
     facade_alias = "color_worker"
     worker_id = "color_worker"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool

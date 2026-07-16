@@ -89,8 +89,10 @@ class TestBuiltinOptIn(unittest.TestCase):
         files = self._find("minxg-files")
         if files is None:
             return
-        self.assertFalse(files.enabled,
-                         "minxg-files is on by default; should be opt-in")
+        # v0.19.x — files ext is ON by default so the AI can read
+        # the file system out of the box. ADB/ROOT stay opt-in.
+        self.assertTrue(files.enabled,
+                         "minxg-files should be ON by default since v0.19.x")
 
     def test_builtin_descriptions_english_only(self):
         """Built-in extension descriptions must not contain Chinese chars."""

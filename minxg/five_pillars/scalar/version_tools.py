@@ -4,6 +4,7 @@ from minxg.base import BaseWorker, tool
 class VersionWorker(BaseWorker):
     facade_alias = "version_worker"
     worker_id = "version_worker"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool

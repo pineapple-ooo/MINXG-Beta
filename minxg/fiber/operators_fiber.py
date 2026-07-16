@@ -13,6 +13,7 @@ from .connection import Connection, ParallelTransport, Curvature
 from .section import Section, CovariantDerivative
 from .tangent import TangentBundle, RiemannianMetric
 from .frame import FrameBundle, Vielbein, vielbein
+from ..safe_eval import make_lambda
 
 
 def register_fiber_operators():
@@ -34,7 +35,7 @@ def register_fiber_operators():
 
     def make_tangent_bundle(dim, metric_fn_str):
         """Build a tangent bundle with a string-defined metric function."""
-        metric_callable = eval("lambda p: " + metric_fn_str) if isinstance(metric_fn_str, str) else metric_fn_str
+        metric_callable = make_lambda("p", metric_fn_str) if isinstance(metric_fn_str, str) else metric_fn_str
         return TangentBundle(int(dim), RiemannianMetric(metric_callable))
     reg.register(Operator(op_id, "fiber_tangent_bundle", "fiber",
                           "Tangent bundle T(M) with metric",
@@ -62,7 +63,7 @@ def register_fiber_operators():
 
     def make_connection_levi_civita(dim, metric_fn_str):
         """Levi-Civita connection from a metric (Christoffel symbols)."""
-        metric_callable = eval("lambda p: " + metric_fn_str) if isinstance(metric_fn_str, str) else metric_fn_str
+        metric_callable = make_lambda("p", metric_fn_str) if isinstance(metric_fn_str, str) else metric_fn_str
         metric = RiemannianMetric(metric_callable)
         tb = TangentBundle(int(dim), metric)
         
@@ -81,7 +82,7 @@ def register_fiber_operators():
 
     
     def make_pt(conn, curve_fn_str, t_min, t_max):
-        curve = eval("lambda t: " + curve_fn_str) if isinstance(curve_fn_str, str) else curve_fn_str
+        curve = make_lambda("t", curve_fn_str) if isinstance(curve_fn_str, str) else curve_fn_str
         return ParallelTransport(conn, curve, float(t_min), float(t_max))
     reg.register(Operator(op_id, "fiber_parallel_transport", "fiber",
                           "Parallel transport along a curve",
@@ -127,7 +128,7 @@ def register_fiber_operators():
 
     
     def make_section(section_fn_str, fiber_dim):
-        fn = eval("lambda p: " + section_fn_str) if isinstance(section_fn_str, str) else section_fn_str
+        fn = make_lambda("p", section_fn_str) if isinstance(section_fn_str, str) else section_fn_str
         return Section(fn, int(fiber_dim))
     reg.register(Operator(op_id, "fiber_section", "fiber",
                           "Construct a section from a function",

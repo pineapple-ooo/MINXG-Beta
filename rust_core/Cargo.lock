@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "minxg_rust"
-version = "0.14.1"
+name = "minxg_rust_core"
+version = "0.18.1"

@@ -3,10 +3,12 @@ test_cli_gateway.py — exercise multiligua_cli/gateway_cli.py
 
 Tests cover:
   - gateway_foreground returns 0 or raises SystemExit(KeyboardInterrupt)
+  - gateway_detach (replaces old gateway_start) background nohup path
   - gateway status returns 0
   - gateway stop returns 0 or nonzero
-  - unknown gateway subcommand returns nonzero (argparse surface)
   - port override via --port is accepted
+  - --detach flag is accepted by argparse
+  - backward-compat alias gateway_start -> gateway_detach
   - api_key from args vs config fallback
 """
 from __future__ import annotations
@@ -53,6 +55,7 @@ class FakeArgs:
         self.host = kwargs.get("host", "0.0.0.0")
         self.api_key = kwargs.get("api_key")
         self.sub_command = kwargs.get("sub_command", "status")
+        self.detach = kwargs.get("detach", False)
 
 
 # ── gateway_foreground ─────────────────────────────────────────────────────
@@ -208,14 +211,12 @@ class TestGatewayStop:
         fake_kill.assert_called_once_with(12345, 9)
 
 
-# ── gateway_start ──────────────────────────────────────────────────────────
+# ── gateway_detach ──────────────────────────────────────────────────────────
 
-class TestGatewayStart:
-    def test_start_background_nohup_when_not_systemd(self, tmp_path):
+class TestGatewayDetach:
+    def test_detach_background_nohup_when_not_systemd(self, tmp_path):
         """When /proc/1/comm != systemd, falls back to nohup start."""
         cfg = _make_isolated_config(tmp_path)
-        # ensure_config (in multiligua_cli.utils) checks `config_exists` via
-        # late-bound sys.modules lookup, so patching the source module works.
         from multiligua_cli import utils as utils_mod
         with mock.patch.object(utils_mod, "config_exists", return_value=True):
             with mock.patch.object(gw_mod, "print_banner"):
@@ -227,8 +228,8 @@ class TestGatewayStart:
                                     "subprocess.Popen", return_value=mock.Mock(pid=4242)
                                 ) as popen_mock:
                                     with mock.patch("time.sleep"):
-                                        rc = gw_mod.gateway_start(
-                                            FakeArgs(sub_command="start")
+                                        rc = gw_mod.gateway_detach(
+                                            FakeArgs(sub_command=None, detach=True)
                                         )
             assert rc == 0
             popen_mock.assert_called_once()
@@ -240,11 +241,29 @@ class TestGatewayStart:
         parser = ArgumentParser()
         sub = parser.add_subparsers(dest="command")
         p_gw = sub.add_parser("gateway")
-        p_gw.add_argument("sub_command", nargs="?", choices=["start", "stop", "status"])
+        p_gw.add_argument("sub_command", nargs="?", choices=["stop", "status"])
         p_gw.add_argument("--port", type=int)
-        args = parser.parse_args(["gateway", "start", "--port", "9999"])
+        p_gw.add_argument("--detach", "-d", action="store_true")
+        args = parser.parse_args(["gateway", "--port", "9999"])
         assert args.port == 9999
-        assert args.sub_command == "start"
+        assert args.detach is False
+
+    def test_detach_flag_accepted_by_argparse(self):
+        """Argparse accepts --detach for the gateway subparser."""
+        from argparse import ArgumentParser
+        parser = ArgumentParser()
+        sub = parser.add_subparsers(dest="command")
+        p_gw = sub.add_parser("gateway")
+        p_gw.add_argument("sub_command", nargs="?", choices=["stop", "status"])
+        p_gw.add_argument("--detach", "-d", action="store_true")
+        args = parser.parse_args(["gateway", "--detach"])
+        assert args.detach is True
+
+    def test_backward_compat_alias_gateway_start_exists(self):
+        """The backward-compat alias gateway_start still exists and
+        redirects to gateway_detach."""
+        assert hasattr(gw_mod, "gateway_start")
+        assert gw_mod.gateway_start is gw_mod.gateway_detach
 
 
 # ── api_key precedence ─────────────────────────────────────────────────────

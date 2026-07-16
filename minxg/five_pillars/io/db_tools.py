@@ -9,6 +9,7 @@ from minxg.base import BaseWorker, tool
 
 class DbToolsWorker(BaseWorker):
     worker_id = "db_tools"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="Open SQLite database and return info", category="sqlite")

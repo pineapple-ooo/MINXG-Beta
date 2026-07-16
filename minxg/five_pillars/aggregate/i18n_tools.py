@@ -4,6 +4,7 @@ from minxg.base import BaseWorker, tool
 class I18nWorker(BaseWorker):
     facade_alias = "i18n_worker"
     worker_id = "i18n_worker"
+    tier = "ai"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool

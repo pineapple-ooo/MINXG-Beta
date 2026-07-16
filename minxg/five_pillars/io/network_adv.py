@@ -23,6 +23,7 @@ class NetworkAdvWorker(BaseWorker):
     facade_alias = "network"
     """Advanced network operations: ping, dns, http, ssl, websocket, port scan, whois, speed test."""
     worker_id = "network_adv"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     def _register_tools(self):

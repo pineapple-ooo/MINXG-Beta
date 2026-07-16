@@ -407,6 +407,7 @@ class TextKitWorker(BaseWorker):
     """One worker, many ops."""
 
     worker_id = "text_kit"
+    tier = "ai"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(

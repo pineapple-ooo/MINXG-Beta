@@ -31,7 +31,7 @@ from typing import Tuple
 #   Major breaking changes → bump major
 #   Backwards-compatible features  → bump minor
 #   Bug fixes / wording      → bump patch
-VERSION = "0.17.1"
+VERSION = "0.18.2"
 
 
 def parse(vv: str = VERSION) -> Tuple[int, int, int]:

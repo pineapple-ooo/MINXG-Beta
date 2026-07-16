@@ -24,6 +24,7 @@ except (ImportError, OSError):
 class StringWorker(BaseWorker):
     facade_alias = "text_kit"
     worker_id = "string_worker"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool

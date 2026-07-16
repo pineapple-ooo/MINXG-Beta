@@ -21,6 +21,7 @@ from minxg.five_pillars.dispatch.platform_registry import (
 class PlatformWorker(BaseWorker):
     facade_alias = "platform_worker"
     worker_id = "platform_worker"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool

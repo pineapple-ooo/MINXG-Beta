@@ -8,6 +8,7 @@ from minxg.base import BaseWorker, tool
 class CloudToolsWorker(BaseWorker):
     facade_alias = "web_tools"
     worker_id = "cloud_tools"
+    tier = "user"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="AWS EC2 instance type recommendation", category="aws")

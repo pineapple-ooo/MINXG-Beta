@@ -34,6 +34,7 @@ def _adapters():
 
 class JuliaWorker(BaseWorker):
     worker_id = "julia_math"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     # ── Tool surface ────────────────────────────────────────────────
@@ -111,6 +112,26 @@ class JuliaWorker(BaseWorker):
         return await self._invoke_async({"mode": "ode_step",
                                          "f": f, "x0": x0, "y0": y0,
                                          "h": h, "n": n})
+
+    # ── v0.18.2 additions ─────────────────────────────────────────────
+
+    @tool(description="FFT ground-truth: run Julia FFTW-backed FFT to verify Rust signal.rs output.",
+          category="compute")
+    async def julia_fft_verify(self, data) -> Dict[str, Any]:
+        adapter, status = _adapters()
+        if status != "available":
+            return self._disabled("fft_verify", f"len={len(data)}")
+        return await self._invoke_async({"mode": "fft", "data": list(data)})
+
+    @tool(description="LU decomposition of nxn matrix via Julia LinearAlgebra. Returns L,U,P.",
+          category="compute")
+    async def julia_lu_decomp(self, n: int, a) -> Dict[str, Any]:
+        if len(a) != n * n:
+            return self._bad_input("a must have n*n entries", {"n": n, "len_a": len(a)})
+        adapter, status = _adapters()
+        if status != "available":
+            return self._disabled("lu_decomp", f"{n}x{n}")
+        return await self._invoke_async({"mode": "lu", "n": n, "a": list(a)})
 
     # ── Helpers ─────────────────────────────────────────────────────
     @staticmethod

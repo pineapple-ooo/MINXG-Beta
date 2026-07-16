@@ -16,6 +16,7 @@ from .ifs import (
     iterated_function_system, sierpinski_gasket, koch_snowflake,
     dragon_curve, barnsley_fern, cantor_set,
 )
+from ..safe_eval import make_lambda
 
 
 _CHAOS_STATE = {"registered": False}
@@ -108,8 +109,8 @@ def register_chaos_operators():
 
     def generic_lyap(f_str, fp_str, x0, n, transient):
         """Generic 1D Lyapunov exponent from string function definitions."""
-        f = eval("lambda x: " + f_str) if isinstance(f_str, str) else f_str
-        fp = eval("lambda x: " + fp_str) if isinstance(fp_str, str) else fp_str
+        f = make_lambda("x", f_str) if isinstance(f_str, str) else f_str
+        fp = make_lambda("x", fp_str) if isinstance(fp_str, str) else fp_str
         return lyapunov_exponent(f, fp, float(x0), int(n), int(transient))
     reg.register(Operator(op_id, "chaos_lyapunov_1d", "chaos",
                           "Lyapunov exponent of a 1D map (string-defined)",

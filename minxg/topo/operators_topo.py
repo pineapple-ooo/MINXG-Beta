@@ -13,6 +13,7 @@ from .homology import betti_numbers, euler_characteristic, persistent_homology, 
 from .filtration import VietorisRips, alpha_complex, euclidean, chebyshev, manhattan, cosine_distance
 from .persistence import PersistenceDiagram, PersistenceImage, wasserstein_distance
 from .mapper import mapper_algorithm, cover, _single_link_cluster
+from ..safe_eval import make_lambda
 
 
 def _to_complex(data: Dict) -> SimplicialComplex:
@@ -348,7 +349,7 @@ def register_topo_operators():
     def mapper_op(points, filter_fn, n_int, overlap, eps):
         result = mapper_algorithm(
             _to_points(points),
-            filter_fn=eval("lambda p: " + filter_fn) if isinstance(filter_fn, str) else filter_fn,
+            filter_fn=make_lambda("p", filter_fn) if isinstance(filter_fn, str) else filter_fn,
             n_intervals=int(n_int),
             overlap=float(overlap),
             cluster_eps=float(eps),

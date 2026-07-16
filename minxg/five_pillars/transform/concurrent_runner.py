@@ -59,6 +59,7 @@ class ConcurrentRunner(BaseWorker):
     """
 
     worker_id = "concurrent_runner"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
     _category = "scheduler"
 

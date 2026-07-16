@@ -338,6 +338,7 @@ class OperatorWorker(BaseWorker):
     facade_alias = "platform_worker"
     """Operator engine: execute operators by ID or name, list operators, run pipelines."""
     worker_id = "operator"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     def _register_tools(self):

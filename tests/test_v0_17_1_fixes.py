@@ -41,8 +41,8 @@ def test_baseworker_statistics_suppressed_increments_on_list():
 
 def test_unaliased_worker_has_no_facade_alias_field():
     """A non-aliased worker still has facade_alias = None in its stats."""
-    from minxg.five_pillars.devtools.apk_forge import ApkForgeWorker
-    w = ApkForgeWorker()
+    from minxg.five_pillars.devtools.android_forge import AndroidForgeWorker
+    w = AndroidForgeWorker()
     s = w.statistics()
     assert s["facade_alias"] is None
     assert s["suppressed"] == 0

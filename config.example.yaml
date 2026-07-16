@@ -26,7 +26,7 @@ ai:
 # ─── Local API gateway (OpenAI-compatible /v1/chat/completions) ────────────
 gateway:
   host: 0.0.0.0
-  port: 18080                     # `minxg gateway start [--foreground]`
+  port: 18080                     # `minxg gateway [--detach]`
   auto_start: false               # auto-listen when `minxg` opens the TUI
   api_key: ""                     # blank => generate at first start
 

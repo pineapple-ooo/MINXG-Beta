@@ -72,6 +72,7 @@ class ArchiveWorker(BaseWorker):
     Supports auto-detection, recursive extraction, and password-protected archives.
     """
     worker_id = "archive"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="List contents of an archive (ZIP, TAR, etc.) without extracting")

@@ -9,6 +9,7 @@ from minxg.base import BaseWorker, tool
 class MlToolsWorker(BaseWorker):
     facade_alias = "ml_tools"
     worker_id = "ml_tools"
+    tier = "ai"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="Min-Max normalize array", category="preprocess")

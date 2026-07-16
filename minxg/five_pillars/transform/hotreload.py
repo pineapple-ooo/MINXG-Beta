@@ -15,6 +15,7 @@ from minxg.base import BaseWorker, tool
 class HotReloadWorker(BaseWorker):
     facade_alias = "persistence"
     worker_id = "hotreload"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     def __init__(self):

@@ -15,6 +15,7 @@ class DevToolsWorker(BaseWorker):
     facade_alias = "platform_worker"
     """Development tools: git, docker, package managers, build systems."""
     worker_id = "dev_tools"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     def _register_tools(self):

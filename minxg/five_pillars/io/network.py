@@ -33,6 +33,7 @@ except ImportError:
 class NetworkWorker(BaseWorker):
     facade_alias = "network"
     worker_id = "network"
+    tier = "user"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="HTTP request (Go-native or aiohttp/urllib fallback)",

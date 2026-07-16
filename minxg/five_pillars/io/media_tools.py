@@ -10,6 +10,7 @@ from minxg.base import BaseWorker, tool
 class MediaToolsWorker(BaseWorker):
     facade_alias = "media_tools"
     worker_id = "media_tools"
+    tier = "user"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="Get image info: size/format/filesize", category="image")

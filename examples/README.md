@@ -1,24 +1,31 @@
 # MINXG Examples
 
-> Runnable, self-contained examples for every mathematical pillar.
-> Each file is < 80 lines. Run with `python3 examples/<file>.py`.
+This directory contains example code demonstrating MINXG's capabilities.
 
-| File | Pillar | What it shows |
-|------|--------|----------------|
-| `01_geometric_algebra.py` | GA | Rotate vectors, reflections, dilations in 3D |
-| `02_category_theory.py` | CAT | Type-safe morphism composition, Maybe monad |
-| `03_information_geometry.py` | IG | Fisher matrix, natural gradient, KL/JS divergence |
-| `04_algebraic_topology.py` | TOPO | Persistent homology, Betti numbers, persistence diagram |
-| `05_dynamical_systems.py` | CHAOS | Logistic map, Lyapunov, Lorenz attractor, fractal |
-| `06_fiber_bundles.py` | FIBER | Parallel transport, Riemann curvature, geodesics |
-| `07_mixed_pipeline.py` | ALL | Chain all six pillars in one program |
+## MCP Examples
 
-Quick start:
+- `mcp/claude_desktop_config.json` — Claude Desktop MCP configuration
+- `mcp/cursor_mcp_config.json` — Cursor IDE MCP configuration
+- `mcp/chatgpt_mcp_config.json` — ChatGPT MCP configuration
 
-```bash
-python3 examples/01_geometric_algebra.py
-python3 examples/02_category_theory.py
-# ...
-```
+## CLI Examples
 
-See also: [QUICKSTART.md](../QUICKSTART.md) · [ARCHITECTURE.md](../ARCHITECTURE.md)
+- `cli/basic_chat.py` — Basic chat usage
+- `cli/tool_usage.py` — Tool calling examples
+- `cli/memory_usage.py` — Memory system examples
+
+## Web UI Examples
+
+- `web/embedded_chat.html` — Embed MINXG in a web page
+- `web/api_usage.py` — Using the OpenAI-compatible API
+
+## Worker Examples
+
+- `workers/custom_worker.py` — Creating custom workers
+- `workers/worker_composition.py` — Combining workers
+
+## Polyglot Examples
+
+- `polyglot/c_bridge.c` — C integration example
+- `polyglot/rust_bridge.rs` — Rust integration example
+- `polyglot/go_bridge.go` — Go integration example

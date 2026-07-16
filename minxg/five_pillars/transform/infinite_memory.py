@@ -183,6 +183,7 @@ class SemanticStore:
 class InfiniteMemoryWorker(BaseWorker):
     facade_alias = "state_session"
     worker_id = "infinite_memory"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     def __init__(self):

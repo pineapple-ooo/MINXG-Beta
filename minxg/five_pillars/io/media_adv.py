@@ -14,10 +14,27 @@ from typing import Any, Dict, List, Optional, Tuple
 from minxg.base import BaseWorker, tool
 
 
+def _parse_frame_rate(expr: str) -> float:
+    expr = (expr or "0/1").strip()
+    if "/" in expr:
+        num, _, den = expr.partition("/")
+        den = den.strip()
+        if den:
+            try:
+                return float(num) / float(den)
+            except Exception:
+                return 0.0
+    try:
+        return float(expr)
+    except Exception:
+        return 0.0
+
+
 class MediaAdvWorker(BaseWorker):
     facade_alias = "media_tools"
     """Advanced media tools: image, audio, video processing."""
     worker_id = "media_adv"
+    tier = "ai"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     def _register_tools(self):
@@ -114,7 +131,8 @@ class MediaAdvWorker(BaseWorker):
                 if s.get("codec_type") == "video":
                     info["video"] = {
                         "codec": s.get("codec_name"), "width": s.get("width"),
-                        "height": s.get("height"), "fps": eval(s.get("r_frame_rate", "0/1")),
+                        "height": s.get("height"),
+                        "fps": _parse_frame_rate(s.get("r_frame_rate", "0/1")),
                     }
                 elif s.get("codec_type") == "audio":
                     info["audio"] = {

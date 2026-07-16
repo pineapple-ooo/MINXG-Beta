@@ -29,6 +29,7 @@ except ImportError:
 class EncodingToolsWorker(BaseWorker):
     facade_alias = "crypto_tools"
     worker_id = "encoding_tools"
+    tier = "code"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="Base64 encode", category="encode")

@@ -1,11 +1,14 @@
-"""
-extensions/builtin/files_ext/__init__.py — file browser v1.0.0
+"""extensions/builtin/files_ext/__init__.py -- file browser v1.0.0
 
-Cross-platform interactive file browser / selector. Opt-in by default to
-match the rest of the built-in extensions; the auto-detect path
-("always on because files always exist") felt worse than opt-in.
+Cross-platform interactive file browser / selector.
 
-Enable with `minxg ext add minxg-files`.
+**Enabled by default since v0.19.x** -- the AI needs file-read
+capability to be useful out of the box.  ADB and ROOT remain
+opt-in because they touch the device privileged surface;
+files lives purely in userspace and defaults to ON.
+
+Disable with `minxg ext disable minxg-files` if you really
+don't want it.
 """
 from __future__ import annotations
 
@@ -23,7 +26,7 @@ EXTENSION_DESCRIPTION = (
 EXTENSION_VERSION = "0.17.1"
 EXTENSION_PRIORITY = 50
 EXTENSION_SOURCE = "builtin"
-EXTENSION_ENABLED = False  # opt-in via `minxg ext add minxg-files`
+EXTENSION_ENABLED = True   # enabled by default since v0.19.x
 
 
 def handle_command(args) -> int:

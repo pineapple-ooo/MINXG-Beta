@@ -80,6 +80,20 @@ from .five_pillars.polyglot import (
     JuliaWorker, RWorker, DatalogWorker, WasmWorker,
 )
 
+from .five_pillars.devtools.android_forge import (
+    AndroidForgeWorker, ApkForgeWorker,  # back-compat alias
+)
+from .five_pillars.devtools.dev_forge import (
+    QuadForgeWorker, DevForgeWorker,  # back-compat alias
+)
+from .five_pillars.devtools.dev_shell import DevShellWorker
+from .five_pillars.devtools.reverse_studio import (
+    ReverseStudioWorker, LEGAL_NOTICE,
+)
+from .five_pillars.devtools.audit_worker import AuditWorker
+from .five_pillars.devtools.self_evolution import SelfEvolutionWorker
+from .five_pillars.math_pillar.geometry import GeometryWorker
+
 from .operators import OperatorWorker
 
 __all__ = [
@@ -103,6 +117,19 @@ __all__ = [
     "MlToolsWorker", "BenchmarkToolsWorker",
     # Polyglot workers — Julia / R / Datalog / Wasm (v0.16.0)
     "JuliaWorker", "RWorker", "DatalogWorker", "WasmWorker",
+    # Devtools (v0.18.0) — multi-platform forge, dev shell facade,
+    # and the academic-only reverse engineering studio
+    "AndroidForgeWorker",
+    # ApkForgeWorker preserved as v0.17.x backward-compat alias
+    "ApkForgeWorker",
+    "QuadForgeWorker",
+    # DevForgeWorker preserved as v0.18.0 backward-compat alias
+    "DevForgeWorker", "DevShellWorker", "ReverseStudioWorker",
+    "GeometryWorker",
+    "AuditWorker",
+    "SelfEvolutionWorker",
+    # Three-tier architecture (v0.18.0)
+    "AI_TIER", "USER_TIER", "CODE_TIER", "TierRegistry", "classify",
     "OperatorWorker",
     "CURRENT_PLATFORM", "detect_platform", "get_available_tools",
     "get_tools_by_category", "get_system_capabilities",
@@ -258,3 +285,9 @@ LENS_LANGUAGES = ("en", "zh", "zh-TW", "ja", "ko")
 DRIVER_PHASES = ("ready", "stepping", "paused", "halted", "faulted", "singularity")
 DRIVER_METHODS = ("euler", "rk4", "rk45")
 DRIVER_DEFAULT_MAX_SUBDIVISIONS = 6
+
+# Three-tier architecture (v0.18.0)
+from .tiers import (
+    AI_TIER, USER_TIER, CODE_TIER,
+    TierRegistry, classify,
+)

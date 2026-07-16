@@ -48,6 +48,7 @@ class AdbWorker(BaseWorker):
     Auto-disabled on non-Android platforms.
     """
     worker_id = "adb"
+    tier = "user"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     def _register_tools(self):

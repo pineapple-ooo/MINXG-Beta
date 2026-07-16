@@ -12,6 +12,7 @@ from minxg.base import BaseWorker, tool
 class FsCopyWorker(BaseWorker):
     facade_alias = "fs_io"
     worker_id = "fs_copy"
+    tier = "user"  # v0.18.0 three-tier classification
     version = "0.17.1"
 
     @tool(description="Copy file/directory (preserve=true keeps metadata)", category="write")

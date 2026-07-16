@@ -1,10 +1,16 @@
 """
 multiligua_cli/gateway_cli.py — OpenHTTP Gateway lifecycle commands.
 
-Commands: gateway | gateway start | gateway stop | gateway status
+Commands:
+    minxg gateway              Run the gateway in foreground (default)
+    minxg gateway --detach     Start gateway as background service
+    minxg gateway stop          Stop the gateway service / process
+    minxg gateway status       Show gateway status
 
-Separated from main.py so the gateway layer and the CLI skeleton
-stay decoupled.
+v0.18.2 — the old `gateway start` sub-command has been removed.
+`minxg gateway` with no sub-command IS the start command (foreground
+by default, --detach for background).  This is simpler and matches
+the user's preference for fewer, cleaner commands.
 """
 from __future__ import annotations
 
@@ -29,7 +35,16 @@ from multiligua_cli.utils import (
 
 @ensure_config
 def gateway_foreground(args) -> int:
-    """Run the OpenHTTP Gateway in foreground (blocking)."""
+    """Run the OpenHTTP Gateway in foreground (blocking).
+
+    This is the default when the user runs `minxg gateway` with no
+    sub-command.  If --detach is passed, the caller should have
+    already dispatched to gateway_detach() instead — but if we
+    somehow get here with --detach, redirect.
+    """
+    if getattr(args, "detach", False):
+        return gateway_detach(args)
+
     print_banner()
     print_info("Starting OpenHTTP AI Agent Gateway...")
     print_info("Workers: py_workers (19 workers, 177 tools)")
@@ -51,23 +66,27 @@ def gateway_foreground(args) -> int:
 
 
 @ensure_config
-def gateway_start(args) -> int:
-    """Start the gateway as a background service (systemd or nohup)."""
+def gateway_detach(args) -> int:
+    """Start the gateway as a background service (systemd or nohup).
+
+    Replaces the old `gateway_start`.  Triggered by `minxg gateway --detach`.
+    """
     print_banner()
-    print_info("Installing gateway service...\n")
+    print_info("Starting gateway in background mode...\n")
 
     try:
-        
+        # systemd path
         if os.path.exists("/proc/1/comm"):
             with open("/proc/1/comm") as f:
                 init = f.read().strip()
             if init == "systemd":
                 return _install_systemd_service()
-        
+
+        # nohup fallback
         return _start_background_nohup()
 
     except Exception as e:
-        print_error(f"Error installing gateway service: {e}")
+        print_error(f"Error starting gateway in background: {e}")
         return 1
 
 
@@ -113,19 +132,22 @@ def _start_background_nohup() -> int:
     logfile = os.path.expanduser("~/.multiling/gateway.log")
     os.makedirs(os.path.dirname(pidfile), exist_ok=True)
 
-    
     with open(pidfile, "w") as f:
         f.write("0")
 
+    # Build the argv for the background gateway process.
+    # The child re-enters `minxg gateway` (no sub) which runs
+    # gateway_foreground() and actually serves.
+    argv = [sys.executable, "-m", "multiligua_cli.main", "gateway"]
     proc = subprocess.Popen(
-        [sys.executable, "-m", "multiligua_cli.main", "gateway"],
+        argv,
         stdout=open(logfile, "a"),
         stderr=subprocess.STDOUT,
         start_new_session=True,
     )
 
-    time.sleep(1)
-    
+    time.sleep(2)
+
     with open(pidfile, "w") as f:
         f.write(str(proc.pid))
 
@@ -140,7 +162,6 @@ def gateway_stop(args) -> int:
     try:
         pidfile = os.path.expanduser("~/.multiling/gateway.pid")
 
-        
         if os.path.exists("/proc/1/comm"):
             with open("/proc/1/comm") as f:
                 if "systemd" in f.read():
@@ -151,7 +172,6 @@ def gateway_stop(args) -> int:
                     print_success("Gateway service stopped (systemd).")
                     return 0
 
-        
         if os.path.exists(pidfile):
             with open(pidfile) as f:
                 pid = int(f.read().strip())
@@ -176,7 +196,6 @@ def gateway_status(args) -> int:
     try:
         pidfile = os.path.expanduser("~/.multiling/gateway.pid")
 
-        
         if os.path.exists("/proc/1/comm"):
             with open("/proc/1/comm") as f:
                 if "systemd" in f.read():
@@ -191,7 +210,6 @@ def gateway_status(args) -> int:
                         print(result.stdout)
                     return 0
 
-        
         if os.path.exists(pidfile):
             with open(pidfile) as f:
                 pid = int(f.read().strip())
@@ -210,5 +228,10 @@ def gateway_status(args) -> int:
         return 1
 
 
+# Backward-compat alias: old code that imported `gateway_start` gets
+# redirected to the new detach function.
+gateway_start = gateway_detach
 
+# Module-level convenience: `gateway = gateway_foreground` so
+# main.py can do `from gateway_cli import gateway`.
 gateway = gateway_foreground
