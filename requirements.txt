@@ -1,0 +1,25 @@
+# MINXG v0.1.0 — Core runtime dependencies
+# Install: pip install -r requirements.txt
+# Or:      pip install -e .
+
+# Core: async HTTP, config, env, CLI
+aiohttp>=3.9.0
+PyYAML>=6.0.0
+python-dotenv>=1.0.0
+rich>=13.0.0
+readchar>=2.0.0
+croniter>=6.0.0
+
+# Cryptography: encrypted memory store
+cryptography>=41.0.0
+
+# High-performance hashing and compression (self-evolution engine)
+zstandard>=0.22.0
+xxhash>=3.4.0
+
+# High-performance JSON (secure store)
+orjson>=3.9.0
+
+# Gateway dependencies (optional):
+# fastapi>=0.104.0,<1
+# uvicorn[standard]>=0.24.0,<1

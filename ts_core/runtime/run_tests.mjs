@@ -1,0 +1,62 @@
+#!/usr/bin/env node
+/**
+ * MINXG TypeScript Schema Validator Tests (JS port of src/validate.ts)
+ *
+ * Run: node ts_core/runtime/run_tests.mjs
+ */
+import { validateMessage, validateMessages, validateChatRequest } from "./validate.mjs";
+
+let passed = 0;
+let failed = 0;
+
+function test(name, fn) {
+    try {
+        fn();
+        console.log("  \x1b[32m✓\x1b[0m " + name);
+        passed++;
+    } catch (e) {
+        console.log("  \x1b[31m✗\x1b[0m " + name + ": " + e.message);
+        failed++;
+    }
+}
+
+function eq(a, b) { if (a !== b) throw new Error(`Expected ${JSON.stringify(b)}, got ${JSON.stringify(a)}`); }
+function ok(x) { if (!x) throw new Error("Expected truthy, got " + JSON.stringify(x)); }
+
+console.log("MINXG TypeScript Schema Validator Tests (node only, no build)\n");
+
+test("validateMessage — valid user", () => {
+    const r = validateMessage({ role: "user", content: "hi" });
+    ok(r); eq(r.role, "user"); eq(r.content, "hi");
+});
+test("validateMessage — invalid role returns null", () => {
+    eq(validateMessage({ role: "bad", content: "x" }), null);
+});
+test("validateMessage — null input returns null", () => {
+    eq(validateMessage(null), null);
+});
+test("validateMessages — array of 2 messages", () => {
+    const r = validateMessages([
+        { role: "system", content: "sys" },
+        { role: "user", content: "hi" },
+    ]);
+    ok(r); eq(r.length, 2);
+});
+test("validateMessages — empty array returns null", () => {
+    eq(validateMessages([]), null);
+});
+test("validateChatRequest — valid minimal", () => {
+    const r = validateChatRequest({ model: "gpt-4o", messages: [{ role: "user", content: "hi" }] });
+    ok(r.ok);
+});
+test("validateChatRequest — missing model", () => {
+    const r = validateChatRequest({ messages: [{ role: "user", content: "hi" }] });
+    eq(r.ok, false); ok(r.error.includes("model"));
+});
+test("validateChatRequest — missing messages", () => {
+    const r = validateChatRequest({ model: "gpt-4o" });
+    eq(r.ok, false);
+});
+
+console.log(`\n${passed} passed, ${failed} failed`);
+process.exit(failed > 0 ? 1 : 0);

@@ -1,0 +1,42 @@
+{
+  "name": "@minxg/gateway-ts",
+  "version": "0.14.1",
+  "description": "MINXG TypeScript Gateway Core — type-safe client SDK, gateway middleware, and CLI utilities for the MINXG AI worker platform",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./client": {
+      "import": "./dist/client.js",
+      "types": "./dist/client.d.ts"
+    },
+    "./schema": {
+      "import": "./dist/schema.js",
+      "types": "./dist/schema.d.ts"
+    }
+  },
+  "files": [
+    "dist/",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --import tsx --test src/**/*.test.ts",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist/"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0",
+    "tsx": "^4.19.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["minxg", "gateway", "ai", "typescript", "openai-compatible"]
+}

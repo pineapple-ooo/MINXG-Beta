@@ -1,0 +1,26 @@
+[
+  {
+    "name": "writing-minxg-extensions",
+    "description": "How to write, register, and ship a MINXG extension (executable Python plugin).",
+    "version": "1.0.0",
+    "author": "minxg-core",
+    "tags": ["development", "extensions", "python"],
+    "source": "bundled:development/writing-minxg-extensions"
+  },
+  {
+    "name": "writing-minxg-skills",
+    "description": "How to write, test, and publish a MINXG skill (markdown instructions, no code).",
+    "version": "1.0.0",
+    "author": "minxg-core",
+    "tags": ["development", "skills", "meta"],
+    "source": "bundled:development/writing-minxg-skills"
+  },
+  {
+    "name": "daily-standup-notes",
+    "description": "Turn rough end-of-day notes into a clean done/doing/blocked standup update.",
+    "version": "1.0.0",
+    "author": "minxg-core",
+    "tags": ["productivity", "writing", "standup"],
+    "source": "bundled:productivity/daily-standup-notes"
+  }
+]

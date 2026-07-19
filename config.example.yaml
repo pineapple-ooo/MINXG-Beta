@@ -1,0 +1,40 @@
+# MINXG example configuration.
+#
+# Copy to `config.yaml` next to this file (or in your project root
+# if you installed via `pip install -e .`) and edit the values to
+# point at your own AI provider.
+#
+# Anything you leave blank here will be filled in by running
+# `minxg setup`, which writes to `config.yaml` after the wizard.
+
+# ─── AI provider ───────────────────────────────────────────────────────────
+ai:
+  provider: openai                # see multiligua_cli/providers.py for the
+                                  # full list (openai, anthropic, google,
+                                  # deepseek, doubao, xai, groq, minimax,
+                                  # mistral, cohere, together, fireworks, ...)
+  model: gpt-4o-mini              # any model name your provider accepts
+  base_url: https://api.openai.com/v1
+  api_key: sk-PUT-YOUR-KEY-HERE
+  temperature: 0.3
+  max_tokens: 4096                # leave null to use the provider default
+  concurrency: 4                  # parallel outbound requests
+  max_tool_calls: 8               # safety ceiling for tool-call loops
+  reasoning_effort: medium        # openai-style: xhigh|high|medium|low|minimal|none
+                                  # unsupported per-provider => ignored at runtime
+
+# ─── Local API gateway (OpenAI-compatible /v1/chat/completions) ────────────
+gateway:
+  host: 0.0.0.0
+  port: 18080                     # `minxg gateway [--detach]`
+  auto_start: false               # auto-listen when `minxg` opens the TUI
+  api_key: ""                     # blank => generate at first start
+
+# ─── Polyglot workers (Python, Go, Rust, Java, …) ──────────────────────────
+workers:
+  host: 127.0.0.1
+  port: 19001
+  auto_start: true
+
+# ─── Language / UI ─────────────────────────────────────────────────────────
+lang: en                          # one of: en, zh-CN, zh-TW, ja, ko, …

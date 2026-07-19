@@ -1,0 +1,21 @@
+# nexusai-multilang / Termux dependency constraints
+#
+# Usage:
+#   pip install -r requirements.txt -c constraints-termux.txt
+#
+# These pins keep the tested Android/Termux install path stable when upstream packages
+# move faster than Termux-compatible wheels / sdists.
+
+# Core dependencies with Termux-compatible versions
+psutil>=5.9.0,<6
+aiohttp>=3.8.0,<4
+pyyaml>=6.0,<7
+urllib3>=1.26,<2
+certifi>=2023.0.0,<2024
+
+# prompt_toolkit for CLI (may not work well on Termux, fallback to simple input)
+# prompt_toolkit>=3.0.0,<4
+
+# Note: On Termux, you may need to:
+#   pkg install python libxml2 libxslt
+#   pip install lxml

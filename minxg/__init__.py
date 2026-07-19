@@ -1,0 +1,293 @@
+"""minxg — Seven-Pillar Operator Architecture v0.16.0
+
+A modular worker platform organized along seven mathematical/functional
+operator dimensions. Each pillar is independently importable so that
+editing one module never forces a project-wide rebuild.
+
+The seven mathematical pillars (v0.16.0):
+  1. GA       — Geometric Algebra (multivector calculus)
+  2. Cat      — Category Theory (functors, monads, morphisms)
+  3. InfoGeo  — Information Geometry (Fisher metric, natural gradient)
+  4. Topo     — Topology (homology, cohomology, spectral sequences)
+  5. Chaos    — Chaos Theory (Lyapunov, bifurcation, fractals)
+  6. Fiber    — Fiber Bundles (connections, curvature, parallel transport)
+  7. SymbDiff — Symbolic Differential Algebra (jets, Lie brackets, diff ideals)
+
+Platforms supported: Android (Termux) + Windows only.
+"""
+from .base import BaseWorker, ToolDef, WorkerRegistry
+from . import _config as _cfg_mod
+
+load_config = _cfg_mod.load_config
+get = _cfg_mod.get
+CONFIG = _cfg_mod.CONFIG
+
+from .five_pillars.io.fs_io import FsIoWorker
+from .five_pillars.io.fs_copy import FsCopyWorker
+from .five_pillars.io.fs_search import FsSearchWorker
+from .five_pillars.io.network import NetworkWorker
+from .five_pillars.io.network_adv import NetworkAdvWorker
+from .five_pillars.io.media_tools import MediaToolsWorker
+from .five_pillars.io.media_adv import MediaAdvWorker
+from .five_pillars.io.db_tools import DbToolsWorker
+from .five_pillars.io.web_tools import WebToolsWorker
+from .five_pillars.io.web_search import search as web_search  
+from .five_pillars.io.archive_tools import ArchiveWorker
+from .five_pillars.io.cloud_tools import CloudToolsWorker
+
+from .five_pillars.dispatch.system import SystemWorker
+from .five_pillars.dispatch.sh_query import ShQueryWorker
+from .five_pillars.dispatch.sh_exec import ShExecWorker
+from .five_pillars.dispatch.process_tools import ProcessToolsWorker
+from .five_pillars.dispatch.limits_lock import LimitsLockWorker
+from .five_pillars.dispatch.limits_break import LimitsBreakWorker
+from .five_pillars.dispatch.platform_tools import PlatformWorker
+from .five_pillars.dispatch.platform_registry import (
+    CURRENT_PLATFORM, detect_platform, get_available_tools,
+    get_tools_by_category, get_system_capabilities,
+)
+from .five_pillars.dispatch.adb_tools import AdbWorker
+from .five_pillars.dispatch.root_tools import RootWorker
+from .five_pillars.dispatch.dev_tools import DevToolsWorker
+from .five_pillars.dispatch.security_tools import SecurityToolsWorker
+from .five_pillars.dispatch.go_client import GoGatewayClient as GoBridge
+from .five_pillars.dispatch.notify_tools import NotifyWorker
+
+from .five_pillars.transform.state_session import StateSessionWorker
+from .five_pillars.transform.state_machine import StateMachineWorker
+from .five_pillars.transform.persistence import PersistenceWorker
+from .five_pillars.transform.rules import RulesWorker
+from .five_pillars.transform.events import EventsWorker
+from .five_pillars.transform.hotreload import HotReloadWorker
+from .five_pillars.transform.ai_tools import AiToolsWorker
+
+from .five_pillars.scalar.text_tools import TextToolsWorker
+from .five_pillars.scalar.datetime_tools import DateTimeToolsWorker
+from .five_pillars.scalar.math_tools import MathToolsWorker
+from .five_pillars.scalar.string_tools import StringWorker
+from .five_pillars.scalar.version_tools import VersionWorker
+from .five_pillars.scalar.color_tools import ColorWorker
+from .five_pillars.scalar.markdown_tools import MarkdownWorker
+
+from .five_pillars.aggregate.encoding_tools import EncodingToolsWorker
+from .five_pillars.aggregate.crypto_tools import CryptoToolsWorker
+from .five_pillars.aggregate.data_tools import DataToolsWorker
+from .five_pillars.aggregate.template_tools import TemplateToolsWorker
+from .five_pillars.aggregate.i18n_tools import I18nWorker
+from .five_pillars.aggregate.ml_tools import MlToolsWorker
+from .five_pillars.aggregate.benchmark_tools import BenchmarkToolsWorker
+from .five_pillars.polyglot import (
+    JuliaWorker, RWorker, DatalogWorker, WasmWorker,
+)
+
+from .five_pillars.devtools.android_forge import (
+    AndroidForgeWorker, ApkForgeWorker,  # back-compat alias
+)
+from .five_pillars.devtools.dev_forge import (
+    QuadForgeWorker, DevForgeWorker,  # back-compat alias
+)
+from .five_pillars.devtools.dev_shell import DevShellWorker
+from .five_pillars.devtools.reverse_studio import (
+    ReverseStudioWorker, LEGAL_NOTICE,
+)
+from .five_pillars.devtools.audit_worker import AuditWorker
+from .five_pillars.devtools.self_evolution import SelfEvolutionWorker
+from .five_pillars.math_pillar.geometry import GeometryWorker
+
+from .operators import OperatorWorker
+
+__all__ = [
+    "BaseWorker", "ToolDef", "WorkerRegistry",
+    "FsIoWorker", "FsCopyWorker", "FsSearchWorker",
+    "NetworkWorker", "NetworkAdvWorker",
+    "MediaToolsWorker", "MediaAdvWorker",
+    "DbToolsWorker", "WebToolsWorker", "web_search",
+    "ArchiveWorker", "CloudToolsWorker",
+    "SystemWorker", "ShQueryWorker", "ShExecWorker", "ProcessToolsWorker",
+    "LimitsLockWorker", "LimitsBreakWorker", "PlatformWorker",
+    "AdbWorker", "RootWorker", "DevToolsWorker",
+    "SecurityToolsWorker", "GoBridge", "NotifyWorker",
+    "StateSessionWorker", "StateMachineWorker",
+    "PersistenceWorker", "RulesWorker", "EventsWorker", "HotReloadWorker",
+    "AiToolsWorker",
+    "TextToolsWorker", "DateTimeToolsWorker", "MathToolsWorker",
+    "StringWorker", "VersionWorker", "ColorWorker", "MarkdownWorker",
+    "EncodingToolsWorker", "CryptoToolsWorker", "DataToolsWorker",
+    "TemplateToolsWorker", "I18nWorker",
+    "MlToolsWorker", "BenchmarkToolsWorker",
+    # Polyglot workers — Julia / R / Datalog / Wasm (v0.16.0)
+    "JuliaWorker", "RWorker", "DatalogWorker", "WasmWorker",
+    # Devtools (v0.18.0) — multi-platform forge, dev shell facade,
+    # and the academic-only reverse engineering studio
+    "AndroidForgeWorker",
+    # ApkForgeWorker preserved as v0.17.x backward-compat alias
+    "ApkForgeWorker",
+    "QuadForgeWorker",
+    # DevForgeWorker preserved as v0.18.0 backward-compat alias
+    "DevForgeWorker", "DevShellWorker", "ReverseStudioWorker",
+    "GeometryWorker",
+    "AuditWorker",
+    "SelfEvolutionWorker",
+    # Three-tier architecture (v0.18.0)
+    "AI_TIER", "USER_TIER", "CODE_TIER", "TierRegistry", "classify",
+    "OperatorWorker",
+    "CURRENT_PLATFORM", "detect_platform", "get_available_tools",
+    "get_tools_by_category", "get_system_capabilities",
+    # Standalone subsystems (v0.16.0 — promoted to top-level)
+    "cap", "contracts", "driver", "lossless",
+    "twin", "lens", "self_evolution", "polyglot", "symbdiff", "screen",
+]
+
+# Single source of truth: see minxg/_version.py
+from ._version import VERSION, banner, parse, get_version
+try:
+    __version__ = VERSION
+except NameError:  # pragma: no cover
+    __version__ = "0.0.0"
+
+try:
+    from . import cap as _cap
+except ImportError:
+    _cap = None
+
+try:
+    from . import contracts as _contracts
+except ImportError:
+    _contracts = None
+
+try:
+    from . import driver as _driver
+except ImportError:
+    _driver = None
+
+try:
+    from . import lossless as _lossless
+except ImportError:
+    _lossless = None
+
+try:
+    from . import twin as _twin
+except ImportError:
+    _twin = None
+
+try:
+    from . import lens as _lens
+except ImportError:
+    _lens = None
+
+try:
+    from . import self_evolution as _self_evolution
+except ImportError:
+    _self_evolution = None
+
+try:
+    from . import polyglot as _polyglot
+except ImportError:
+    _polyglot = None
+
+try:
+    from . import symbdiff as _symbdiff
+except ImportError:
+    _symbdiff = None
+
+# Promote standalone subsystems to top-level so callers can do
+# `import minxg; minxg.twin` the same way they do `minxg.ga`.
+if _cap is not None:
+    cap = _cap
+if _contracts is not None:
+    contracts = _contracts
+if _driver is not None:
+    driver = _driver
+if _lossless is not None:
+    lossless = _lossless
+if _twin is not None:
+    twin = _twin
+if _lens is not None:
+    lens = _lens
+if _self_evolution is not None:
+    self_evolution = _self_evolution
+if _polyglot is not None:
+    polyglot = _polyglot
+if _symbdiff is not None:
+    symbdiff = _symbdiff
+
+try:
+    from . import screen as _screen
+except ImportError:
+    _screen = None
+
+if _screen is not None:
+    screen = _screen
+
+del _cap, _contracts, _driver, _lossless, _twin, _lens, _self_evolution, _polyglot, _symbdiff, _screen
+
+try:
+    from . import ga
+    from .ga import operators_ga as _ga_ops
+    GA_OPERATORS = _ga_ops.GA_OPERATOR_COUNT
+except ImportError:
+    GA_OPERATORS = 0
+
+try:
+    from . import cat
+    from .cat import operators_cat as _cat_ops
+    CAT_OPERATORS = _cat_ops.CAT_OPERATOR_COUNT
+except ImportError:
+    CAT_OPERATORS = 0
+
+try:
+    from . import infogeo
+    from .infogeo import operators_ig as _ig_ops
+    IG_OPERATORS = _ig_ops.IG_OPERATOR_COUNT
+except ImportError:
+    IG_OPERATORS = 0
+
+try:
+    from . import topo
+    from .topo import operators_topo as _topo_ops
+    TOPO_OPERATORS = _topo_ops.TOPO_OPERATOR_COUNT
+except ImportError:
+    TOPO_OPERATORS = 0
+
+try:
+    from . import chaos
+    from .chaos import operators_chaos as _chaos_ops
+    CHAOS_OPERATORS = _chaos_ops.CHAOS_OPERATOR_COUNT
+except ImportError:
+    CHAOS_OPERATORS = 0
+
+try:
+    from . import fiber
+    from .fiber import operators_fiber as _fiber_ops
+    FIBER_OPERATORS = _fiber_ops.FIBER_OPERATOR_COUNT
+except ImportError:
+    FIBER_OPERATORS = 0
+
+try:
+    from . import symbdiff
+    from .symbdiff import operators_symbdiff as _sd_ops
+    SYMDIFF_OPERATORS = 4  # Jet, LieBracket, DiffIdeal, IntFactor
+except ImportError:
+    SYMDIFF_OPERATORS = 0
+
+TOTAL_MATHEMATICAL_OPERATORS = (
+    GA_OPERATORS + CAT_OPERATORS + IG_OPERATORS
+    + TOPO_OPERATORS + CHAOS_OPERATORS + FIBER_OPERATORS
+    + SYMDIFF_OPERATORS
+)
+
+POLYGLOT_LANGUAGES = ("python", "rust", "javascript", "go", "shell")
+LOSSLESS_MAGIC = b"MINSKE"
+LOSSLESS_VERSION = 1
+TWIN_ERROR = "UnsupportedTwinOp"
+SELF_EVOLUTION_PHASES = ("born", "mutable", "live", "quiet", "gone")
+LENS_LANGUAGES = ("en", "zh", "zh-TW", "ja", "ko")
+DRIVER_PHASES = ("ready", "stepping", "paused", "halted", "faulted", "singularity")
+DRIVER_METHODS = ("euler", "rk4", "rk45")
+DRIVER_DEFAULT_MAX_SUBDIVISIONS = 6
+
+# Three-tier architecture (v0.18.0)
+from .tiers import (
+    AI_TIER, USER_TIER, CODE_TIER,
+    TierRegistry, classify,
+)

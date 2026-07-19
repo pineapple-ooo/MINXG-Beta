@@ -1,0 +1,4 @@
+# Drop this into your project's config/minxg.yaml
+minxg:
+  version: '1.1.0'
+  pillars: [scalar, aggregate, io, dispatch, transform]

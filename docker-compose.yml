@@ -1,0 +1,88 @@
+# docker-compose.yml — MINXG v0.18.3
+#
+# Because if hermes-agent has one and we don't, the user will notice.
+#
+# Services:
+#   - minxg-gateway  — AI gateway with tool dispatch
+#   - rust-core      — standalone Rust compute worker (optional, same image)
+#   - health-monitor — cron-driven health check + dead-target sweeper
+#
+# Profiles:
+#   docker compose --profile gateway up          # gateway only
+#   docker compose --profile full up             # all services
+#   docker compose --profile dev up              # dev mode (volume mounts)
+#
+# Port mapping:
+#   Gateway: 8080 → host (OpenAI-compatible API)
+#   Monitor: internal only, watches gateway health
+
+version: "3.9"
+
+services:
+  minxg-gateway:
+    image: minxg:0.18.3
+    build:
+      context: .
+      dockerfile: Dockerfile
+    profiles: ["gateway", "full", "dev"]
+    container_name: minxg-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - minxg_data:/data
+      # Dev mode: mount source for live reload
+      - type: bind
+        source: ./minxg
+        target: /app/minxg
+        profile: ["dev"]
+      - type: bind
+        source: ./multiligua_cli
+        target: /app/multiligua_cli
+        profile: ["dev"]
+    environment:
+      - MINXG_PROFILE=${MINXG_PROFILE:-container}
+      - MINXG_API_KEY=${MINXG_API_KEY:-}
+      - MINXG_MODEL=${MINXG_MODEL:-}
+      - MINXG_LOG_LEVEL=${MINXG_LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD", "python", "-c", "from minxg import VERSION; print(VERSION)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - minxg-net
+
+  rust-core-worker:
+    image: minxg:0.18.3
+    profiles: ["full"]
+    container_name: minxg-rust-core
+    restart: unless-stopped
+    entrypoint: ["python", "-c", "from minxg.rust_bridge import rust_core_version; print(rust_core_version())"]
+    depends_on:
+      minxg-gateway:
+        condition: service_healthy
+    networks:
+      - minxg-net
+
+  health-monitor:
+    image: minxg:0.18.3
+    profiles: ["full"]
+    container_name: minxg-health-monitor
+    restart: unless-stopped
+    entrypoint: ["./scripts/health_monitor.sh"]
+    depends_on:
+      minxg-gateway:
+        condition: service_healthy
+    volumes:
+      - ./scripts:/app/scripts:ro
+    networks:
+      - minxg-net
+
+volumes:
+  minxg_data:
+    driver: local
+
+networks:
+  minxg-net:
+    driver: bridge

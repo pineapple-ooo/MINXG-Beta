@@ -1,0 +1,49 @@
+{
+  "name": "minxg",
+  "version": "0.18.0",
+  "description": "MINXG — 70+ AI workers for file I/O, network, crypto, math, and more. Exposed as MCP tools.",
+  "author": "MINXG Authors",
+  "license": "MIT",
+  "homepage": "https://github.com/pineapple-ooo/MINXG-Beta",
+  "repository": "https://github.com/pineapple-ooo/MINXG-Beta",
+  "categories": ["productivity", "developer-tools", "data"],
+  "requirements": {
+    "python": ">=3.8",
+    "packages": ["minxg-beta", "fastmcp"]
+  },
+  "commands": [
+    {
+      "name": "minxg-list-tools",
+      "description": "List all available MINXG tools, optionally filtered by category",
+      "usage": "/minxg-list-tools [category]",
+      "examples": [
+        "/minxg-list-tools",
+        "/minxg-list-tools crypto",
+        "/minxg-list-tools math"
+      ]
+    },
+    {
+      "name": "minxg-call",
+      "description": "Call a MINXG tool with parameters",
+      "usage": "/minxg-call <worker> <tool> [params]",
+      "examples": [
+        "/minxg-call fs_io read_file /etc/hosts",
+        "/minxg-call crypto hash --algorithm sha256 --data hello"
+      ]
+    },
+    {
+      "name": "minxg-setup",
+      "description": "Set up MINXG MCP server for Claude Code",
+      "usage": "/minxg-setup",
+      "examples": [
+        "/minxg-setup"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "name": "minxg-worker",
+      "path": "skills/minxg-worker/SKILL.md"
+    }
+  ]
+}
